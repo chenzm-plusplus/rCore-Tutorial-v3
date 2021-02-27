@@ -36,6 +36,7 @@ __alltraps:
     # set input argument of trap_handler(cx: &mut TrapContext)
     mv a0, sp
     call trap_handler
+    # ATTENTION！trap是在这里调用的
 
 __restore:
     # case1: start running app by __restore
