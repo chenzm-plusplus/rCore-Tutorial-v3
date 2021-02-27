@@ -41,18 +41,12 @@ $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
 
 kernel:
-<<<<<<< HEAD
 	@cd ../user && make build
-=======
->>>>>>> ch1-dev
 	@echo Platform: $(BOARD)
 	@cp src/linker-$(BOARD).ld src/linker.ld
 	@cargo build --release
 	@rm src/linker.ld
-<<<<<<< HEAD
 
-=======
->>>>>>> ch1-dev
 
 clean:
 	@cargo clean
