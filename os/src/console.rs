@@ -43,12 +43,6 @@ macro_rules! println {
         $crate::console::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?));
     }
 }
-
-pub fn test(){
-    let key: Option<&'static str> = option_env!("LOG");
-    println!("In test.....");
-    println!("the secret key might be: {:?}", key);
-}
 //================more function===================
 
 #[macro_export]
