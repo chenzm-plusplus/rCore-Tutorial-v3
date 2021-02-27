@@ -50,6 +50,7 @@ unsafe impl Sync for AppManager {}
 
 impl AppManagerInner {
     pub fn print_app_info(&self) {
+        info!("AppManagerInner::print_app_info");
         println!("[kernel] num_app = {}", self.num_app);
         for i in 0..self.num_app {
             println!("[kernel] app_{} [{:#x}, {:#x})", i, self.app_start[i], self.app_start[i + 1]);
