@@ -76,9 +76,9 @@ macro_rules! println {
 //     }
 // }
 
-pub fn test(){
-    println!(open_env!("LOG"));
-}
+// pub fn test(){
+//     println!(open_env!("LOG"));
+// }
 
 // #[macro_export]
 // macro_rules! info{

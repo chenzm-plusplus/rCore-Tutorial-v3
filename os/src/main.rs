@@ -52,5 +52,5 @@ pub fn rust_main() -> ! {
 
     panic!("Shutdown machine!");
 
-    crate::console::test();
+    // crate::console::test();
 }
