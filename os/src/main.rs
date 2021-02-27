@@ -63,7 +63,7 @@ pub fn rust_main() -> ! {
     debug!("debug");
     trace!("trace");
 
-    crate::console::test();
+    crate::console::my_log();
 
     panic!("Shutdown machine!");
 
