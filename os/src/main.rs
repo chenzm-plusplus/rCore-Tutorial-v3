@@ -57,8 +57,15 @@ pub fn rust_main() -> ! {
     info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
     info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
     info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+    error!("error");
+    warn!("warn");
+    info!("info");
+    debug!("debug");
+    trace!("trace");
+
+    crate::console::test();
 
     panic!("Shutdown machine!");
 
-    // crate::console::test();
+    
 }
