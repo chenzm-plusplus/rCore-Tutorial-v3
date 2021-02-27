@@ -9,6 +9,8 @@ mod console;
 mod lang_items;
 mod sbi;
 
+use log::{self, Level, LevelFilter, Log, Metadata, Record};
+
 global_asm!(include_str!("entry.asm"));
 
 fn clear_bss() {
@@ -49,4 +51,6 @@ pub fn rust_main() -> ! {
     info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
 
     panic!("Shutdown machine!");
+
+    crate::console::test();
 }
