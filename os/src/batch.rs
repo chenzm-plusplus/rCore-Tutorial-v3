@@ -36,6 +36,9 @@ impl UserStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
+    fn get_stack_space(&self) -> (usize,usize){
+        return (self.data.as_ptr() as usize, self.get_sp());
+    }
 }
 
 struct AppManager {
@@ -85,6 +88,11 @@ impl AppManagerInner {
         self.current_app += 1;
     }
 
+    pub fn print_current_app_info(&self){
+        let i = self.current_app;
+        println!("[kernel] app_{} [{:#x}, {:#x})", i, self.app_start[i-1], self.app_start[i]);
+    }
+
     pub fn address_space_current(&self) -> (usize,usize){
         debug!("current address space is...[{:#x},{:#x})",self.app_start[self.current_app-1],self.app_start[self.current_app]);
         (self.app_start[self.current_app-1], self.app_start[self.current_app])
@@ -113,6 +121,18 @@ lazy_static! {
 
 pub fn address_space_current() -> (usize,usize){
     return APP_MANAGER.inner.borrow().address_space_current();
+}
+
+pub fn current_user_stack_space() -> (usize,usize){
+    return USER_STACK.get_stack_space();
+}
+
+pub fn print_current_app_info(){
+    APP_MANAGER.inner.borrow().print_current_app_info();
+}
+
+pub fn app_base_address()-> usize{
+    APP_BASE_ADDRESS
 }
 
 pub fn init() {
