@@ -61,7 +61,7 @@ impl AppManagerInner {
         if app_id >= self.num_app {
             panic!("All applications completed!");
         }
-        println!("[kernel] Loading app_{}", app_id);
+        info!("[kernel] Loading app_{}", app_id);
         // clear icache
         llvm_asm!("fence.i" :::: "volatile");
         // clear app area
@@ -84,6 +84,11 @@ impl AppManagerInner {
     pub fn move_to_next_app(&mut self) {
         self.current_app += 1;
     }
+
+    pub fn address_space_current(&self) -> (usize,usize){
+        debug!("current address space is...[{:#x},{:#x})",self.app_start[self.current_app-1],self.app_start[self.current_app]);
+        (self.app_start[self.current_app-1], self.app_start[self.current_app])
+    }
 }
 
 lazy_static! {
@@ -104,6 +109,10 @@ lazy_static! {
             }
         }),
     };
+}
+
+pub fn address_space_current() -> (usize,usize){
+    return APP_MANAGER.inner.borrow().address_space_current();
 }
 
 pub fn init() {
