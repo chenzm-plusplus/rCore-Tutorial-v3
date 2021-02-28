@@ -53,7 +53,7 @@ unsafe impl Sync for AppManager {}
 
 impl AppManagerInner {
     pub fn print_app_info(&self) {
-        info!("AppManagerInner::print_app_info");
+        trace!("AppManagerInner::print_app_info");
         println!("[kernel] num_app = {}", self.num_app);
         for i in 0..self.num_app {
             println!("[kernel] app_{} [{:#x}, {:#x})", i, self.app_start[i], self.app_start[i + 1]);
@@ -94,7 +94,7 @@ impl AppManagerInner {
     }
 
     pub fn address_space_current(&self) -> (usize,usize){
-        debug!("current address space is...[{:#x},{:#x})",self.app_start[self.current_app-1],self.app_start[self.current_app]);
+        trace!("current address space is...[{:#x},{:#x})",self.app_start[self.current_app-1],self.app_start[self.current_app]);
         (self.app_start[self.current_app-1], self.app_start[self.current_app])
     }
 }
@@ -131,8 +131,8 @@ pub fn print_current_app_info(){
     APP_MANAGER.inner.borrow().print_current_app_info();
 }
 
-pub fn app_base_address()-> usize{
-    APP_BASE_ADDRESS
+pub fn app_address_space()-> (usize,usize){
+    (APP_BASE_ADDRESS,APP_BASE_ADDRESS + APP_SIZE_LIMIT)
 }
 
 pub fn init() {
