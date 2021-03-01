@@ -122,6 +122,12 @@ impl TaskManager {
         let current = inner.current_task;
         current
     }
+
+    fn get_task_space_current(&self) -> (usize,usize){
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        inner.tasks[current].get_task_space()
+    }
 }
 
 pub fn run_first_task() {
@@ -150,6 +156,11 @@ pub fn exit_current_and_run_next() {
     run_next_task();
 }
 
+//for sys_write check
 pub fn get_num_app_current()->usize{
     TASK_MANAGER.get_num_app_current()
+}
+
+pub fn get_task_space_current()->(usize,usize){
+    TASK_MANAGER.get_task_space_current()
 }

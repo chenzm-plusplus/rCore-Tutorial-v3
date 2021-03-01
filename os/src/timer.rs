@@ -14,5 +14,6 @@ pub fn get_time_ms() -> usize {
 }
 
 pub fn set_next_trigger() {
+    trace!("timer::set_next_trigger....new timer is {}",get_time() + CLOCK_FREQ / TICKS_PER_SEC);
     set_timer(get_time() + CLOCK_FREQ / TICKS_PER_SEC);
 }

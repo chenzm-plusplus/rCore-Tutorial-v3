@@ -1,4 +1,5 @@
 const TASK_PRIORITY_INIT:usize = 16;
+use crate::config::USER_STACK_SIZE;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
@@ -11,6 +12,11 @@ impl TaskControlBlock {
     pub fn get_task_cx_ptr2(&self) -> *const usize {
         &self.task_cx_ptr as *const usize
     }
+
+    pub fn get_task_space(&self) -> (usize, usize){
+        (self.task_cx_ptr as usize, self.task_cx_ptr as usize + USER_STACK_SIZE)
+    }
+
     pub fn get_task_priority(&self) -> usize{
         self.task_priority.get_priority()
     }
