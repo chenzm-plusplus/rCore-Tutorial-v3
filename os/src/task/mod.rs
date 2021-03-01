@@ -3,6 +3,8 @@ mod switch;
 mod task;
 
 use crate::config::MAX_APP_NUM;
+use crate::config::APP_BASE_ADDRESS;
+use crate::config::APP_SIZE_LIMIT;
 use crate::loader::{get_num_app, init_app_cx};
 use crate::console::*;
 use core::cell::RefCell;
@@ -128,6 +130,12 @@ impl TaskManager {
         let current = inner.current_task;
         inner.tasks[current].get_task_space()
     }
+
+    fn app_address_space_current(&self) -> (usize,usize){
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
+    }
 }
 
 pub fn run_first_task() {
@@ -163,4 +171,8 @@ pub fn get_num_app_current()->usize{
 
 pub fn get_task_space_current()->(usize,usize){
     TASK_MANAGER.get_task_space_current()
+}
+
+pub fn app_address_space_current()-> (usize,usize){
+    TASK_MANAGER.app_address_space_current()
 }
