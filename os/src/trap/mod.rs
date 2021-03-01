@@ -50,9 +50,9 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             println!("[kernel] IllegalInstruction in application, core dumped.");
             exit_current_and_run_next();
         }
-        Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            set_next_trigger();
-            suspend_current_and_run_next();
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
+            set_next_trigger();//先重新设置一个 10ms 的计时器
+            suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
         }
         _ => {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);

@@ -35,6 +35,7 @@ pub fn rust_main() -> ! {
     println!("[kernel] Hello, world!");
     trap::init();
     loader::load_apps();
+    //对时钟中断的初始化
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();

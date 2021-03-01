@@ -72,6 +72,7 @@ impl TaskManager {
     fn find_next_task(&self) -> Option<usize> {
         let inner = self.inner.borrow();
         let current = inner.current_task;
+        //就是在这里要加入调度算法！哪个进程是下一个要运行的进程呢？下面一句返回的就是它
         (current + 1..current + self.num_app + 1)
             .map(|id| id % self.num_app)
             .find(|id| {

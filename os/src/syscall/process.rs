@@ -18,3 +18,9 @@ pub fn sys_yield() -> isize {
 pub fn sys_get_time() -> isize {
     get_time_ms() as isize
 }
+
+//sys_gettime, sys_set_priority
+
+pub fn sys_get_priority() -> isize{
+    0
+}
