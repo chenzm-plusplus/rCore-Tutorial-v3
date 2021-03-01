@@ -47,6 +47,7 @@ kernel:
 	@cargo build --release --features "board_$(BOARD)"
 	@rm src/linker.ld
 
+
 clean:
 	@cargo clean
 

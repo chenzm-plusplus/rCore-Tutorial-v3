@@ -16,6 +16,7 @@ use crate::syscall::syscall;
 use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
+    get_num_app_current,
 };
 use crate::timer::set_next_trigger;
 
@@ -32,12 +33,15 @@ pub fn enable_timer_interrupt() {
     unsafe { sie::set_stimer(); }
 }
 
+//留下的问题：trap——handler传入的参数只有寄存器们。怎么判断是不是有超出内存区域？
 #[no_mangle]
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
+    trace!("trap_handler");
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
+            trace!("trap_handler::Exception::UserEnvCall");
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
@@ -55,6 +59,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
         }
         _ => {
+            println!("[kernel] Upsupported trap of app {}", get_num_app_current());
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }

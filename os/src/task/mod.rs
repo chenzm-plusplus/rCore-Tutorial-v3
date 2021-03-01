@@ -116,6 +116,12 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    fn get_num_app_current(&self) -> usize{
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        current
+    }
 }
 
 pub fn run_first_task() {
@@ -142,4 +148,8 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
+}
+
+pub fn get_num_app_current()->usize{
+    TASK_MANAGER.get_num_app_current()
 }

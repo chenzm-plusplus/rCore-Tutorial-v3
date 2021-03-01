@@ -20,7 +20,7 @@ pub fn sys_get_time() -> isize {
 }
 
 //sys_gettime, sys_set_priority
-
 pub fn sys_get_priority() -> isize{
     0
+    // run_next_app()
 }

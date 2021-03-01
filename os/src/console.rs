@@ -44,7 +44,7 @@ macro_rules! println {
     }
 }
 
-pub fn test(){
+pub fn my_log(){
     let key: Option<&'static str> = option_env!("LOG");
     println!("In test.....");
     println!("the secret key might be: {:?}", key);
