@@ -3,7 +3,7 @@ use crate::config::USER_STACK_SIZE;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
-    pub task_cx_ptr: usize,
+    pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
     pub task_status: TaskStatus,
     pub task_priority: TaskPriority,
 }
@@ -11,10 +11,6 @@ pub struct TaskControlBlock {
 impl TaskControlBlock {
     pub fn get_task_cx_ptr2(&self) -> *const usize {
         &self.task_cx_ptr as *const usize
-    }
-
-    pub fn get_task_space(&self) -> (usize, usize){
-        (self.task_cx_ptr as usize, self.task_cx_ptr as usize + USER_STACK_SIZE)
     }
 
     pub fn get_task_priority(&self) -> usize{

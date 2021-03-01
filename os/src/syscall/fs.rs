@@ -3,8 +3,9 @@ const FD_STDOUT: usize = 1;
 // use crate::batch::address_space_current;
 // use crate::batch::current_user_stack_space;
 // use crate::batch::print_current_app_info;
-use crate::task::app_address_space_current;
-use crate::task::{get_task_space_current,get_num_app_current};
+use crate::task::get_app_address_space_current;
+use crate::task::get_num_app_current;
+use crate::task::get_user_stack_space_current;
 
 
 /// 功能：将内存中缓冲区中的数据写入文件。
@@ -19,8 +20,8 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     trace!("call sys_write......");
     debug!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
     
-    let (left,right) = get_task_space_current();
-    let (left2,right2) = app_address_space_current();
+    let (left,right) = get_user_stack_space_current();
+    let (left2,right2) = get_app_address_space_current();
     debug!("current user stack space is...[{:#x},{:#x})",left,right);
     debug!("current user app space is...[{:#x},{:#x})",left2,right2);
 

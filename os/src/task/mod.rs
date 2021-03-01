@@ -5,7 +5,7 @@ mod task;
 use crate::config::MAX_APP_NUM;
 use crate::config::APP_BASE_ADDRESS;
 use crate::config::APP_SIZE_LIMIT;
-use crate::loader::{get_num_app, init_app_cx};
+use crate::loader::{get_num_app, init_app_cx, get_user_stack_space};
 use crate::console::*;
 use core::cell::RefCell;
 use lazy_static::*;
@@ -125,13 +125,13 @@ impl TaskManager {
         current
     }
 
-    fn get_task_space_current(&self) -> (usize,usize){
-        let mut inner = self.inner.borrow_mut();
-        let current = inner.current_task;
-        inner.tasks[current].get_task_space()
-    }
+    // fn get_user_stack_space_current(&self) -> (usize,usize){
+    //     let mut inner = self.inner.borrow_mut();
+    //     let current = inner.current_task;
+    //     inner.tasks[current].get_user_stack_space()
+    // }
 
-    fn app_address_space_current(&self) -> (usize,usize){
+    fn get_app_address_space_current(&self) -> (usize,usize){
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
@@ -169,10 +169,11 @@ pub fn get_num_app_current()->usize{
     TASK_MANAGER.get_num_app_current()
 }
 
-pub fn get_task_space_current()->(usize,usize){
-    TASK_MANAGER.get_task_space_current()
+pub fn get_user_stack_space_current()->(usize,usize){
+    // TASK_MANAGER.get_user_stack_space_current()
+    get_user_stack_space(TASK_MANAGER.get_num_app_current())
 }
 
-pub fn app_address_space_current()-> (usize,usize){
-    TASK_MANAGER.app_address_space_current()
+pub fn get_app_address_space_current()-> (usize,usize){
+    TASK_MANAGER.get_app_address_space_current()
 }

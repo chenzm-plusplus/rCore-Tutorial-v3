@@ -41,6 +41,9 @@ impl UserStack {
     fn get_sp(&self) -> usize {
         self.data.as_ptr() as usize + USER_STACK_SIZE
     }
+    pub fn get_space(&self) -> (usize,usize){
+        (self.data.as_ptr() as usize, self.data.as_ptr() as usize + USER_STACK_SIZE)
+    }
 }
 
 fn get_base_i(app_id: usize) -> usize {
@@ -84,4 +87,8 @@ pub fn init_app_cx(app_id: usize) -> &'static TaskContext {
         TrapContext::app_init_context(get_base_i(app_id), USER_STACK[app_id].get_sp()),
         TaskContext::goto_restore(),
     )
+}
+
+pub fn get_user_stack_space(app_id: usize) -> (usize,usize){
+    USER_STACK[app_id].get_space()
 }
