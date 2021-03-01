@@ -1,11 +1,17 @@
+const TASK_PRIORITY_INIT:usize = 16;
+
 pub struct TaskControlBlock {
     pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
+    pub task_priority: TaskPriority,
 }
 
 impl TaskControlBlock {
     pub fn get_task_cx_ptr2(&self) -> *const usize {
         &self.task_cx_ptr as *const usize
+    }
+    pub fn get_task_priority(&self) -> usize{
+        self.task_priority.get_priority()
     }
 }
 
@@ -15,4 +21,29 @@ pub enum TaskStatus {
     Ready,
     Running,
     Exited,
+}
+
+pub struct TaskPriority{
+    priority: usize,
+}
+
+impl TaskPriority{
+    pub fn new() -> Self {
+        TaskPriority {
+            priority: TASK_PRIORITY_INIT
+        }
+    }
+    pub fn get_priority(&self)->usize{
+        self.priority
+    }
+    pub fn priority_up(&mut self)->usize{
+        self.priority = self.priority + 1;
+        self.priority
+    }
+    pub fn priority_down(&mut self)->usize{
+        if self.priority>2 {
+            self.priority = self.priority - 1;
+        }
+        self.priority
+    }
 }

@@ -7,7 +7,7 @@ use crate::loader::{get_num_app, init_app_cx};
 use core::cell::RefCell;
 use lazy_static::*;
 use switch::__switch;
-use task::{TaskControlBlock, TaskStatus};
+use task::{TaskControlBlock, TaskStatus, TaskPriority};
 
 pub use context::TaskContext;
 
@@ -27,7 +27,7 @@ lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
         let num_app = get_num_app();
         let mut tasks = [
-            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit };
+            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit, task_priority: TaskPriority::new()};
             MAX_APP_NUM
         ];
         for i in 0..num_app {
