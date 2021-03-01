@@ -1,5 +1,6 @@
 const TASK_PRIORITY_INIT:usize = 16;
 
+#[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
     pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
@@ -23,6 +24,7 @@ pub enum TaskStatus {
     Exited,
 }
 
+#[derive(Copy, Clone, PartialEq)]
 pub struct TaskPriority{
     priority: usize,
 }

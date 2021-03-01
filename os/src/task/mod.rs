@@ -4,6 +4,7 @@ mod task;
 
 use crate::config::MAX_APP_NUM;
 use crate::loader::{get_num_app, init_app_cx};
+use crate::console::*;
 use core::cell::RefCell;
 use lazy_static::*;
 use switch::__switch;
@@ -25,12 +26,15 @@ unsafe impl Sync for TaskManager {}
 
 lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
+        debug!("TASK_MANAGERL::init");
         let num_app = get_num_app();
+        debug!("num_app is {}",num_app);
         let mut tasks = [
-            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit, task_priority: TaskPriority};
+            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit, task_priority: TaskPriority::new()};
             MAX_APP_NUM
         ];
         for i in 0..num_app {
+            debug!("i...{}",i);
             tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
             tasks[i].task_status = TaskStatus::Ready;
             // tasks[i].task_priority = TaskPriority::new();
@@ -81,8 +85,20 @@ impl TaskManager {
             })
     }
 
+    ///!!!
+    fn find_next_task_stride(&self) -> Option<usize> {
+        let inner = self.inner.borrow();
+        let current = inner.current_task;
+        //修改调度算法，返回不同的值
+        (current + 1..current + self.num_app + 1)
+            .map(|id| id % self.num_app)
+            .find(|id| {
+                inner.tasks[*id].task_status == TaskStatus::Ready
+            })
+    }
+
     fn run_next_task(&self) {
-        if let Some(next) = self.find_next_task() {
+        if let Some(next) = self.find_next_task_stride() {
             let mut inner = self.inner.borrow_mut();
             let current = inner.current_task;
             inner.tasks[next].task_status = TaskStatus::Running;
