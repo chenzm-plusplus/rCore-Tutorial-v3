@@ -18,11 +18,16 @@ pub use context::TaskContext;
 pub struct TaskManager {
     num_app: usize,
     inner: RefCell<TaskManagerInner>,
+    inner_strides: RefCell<StrideInner>,
 }
 
 struct TaskManagerInner {
     tasks: [TaskControlBlock; MAX_APP_NUM],
     current_task: usize,
+}
+
+struct StrideInner{
+    strides: [Task_Stride; MAX_APP_NUM],
 }
 
 unsafe impl Sync for TaskManager {}
@@ -33,7 +38,10 @@ lazy_static! {
         let num_app = get_num_app();
         debug!("num_app is {}",num_app);
         let mut tasks = [
-            TaskControlBlock { task_cx_ptr: 0, task_status: TaskStatus::UnInit, task_priority: TaskPriority::new()};
+            TaskControlBlock { task_cx_ptr: 0, 
+                                task_status: TaskStatus::UnInit, 
+                                task_priority: TaskPriority::new(), 
+                            };
             MAX_APP_NUM
         ];
         for i in 0..num_app {
@@ -41,12 +49,19 @@ lazy_static! {
             tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
             tasks[i].task_status = TaskStatus::Ready;
         }
+        let mut strides = [Task_Stride::new(); MAX_APP_NUM];
+        for i in 0..num_app{
+            strides[i].set_task_number(i);
+        }
         TaskManager {
             num_app,
             inner: RefCell::new(TaskManagerInner {
                 tasks,
                 current_task: 0,
             }),
+            inner_strides: RefCell::new(StrideInner{
+                strides,
+            })
         }
     };
 }
@@ -89,6 +104,7 @@ impl TaskManager {
 
     ///!!!
     fn find_next_task_stride(&self) -> Option<usize> {
+        trace!("in find next task stride...");
         let inner = self.inner.borrow();
         let current = inner.current_task;
         //修改调度算法，返回不同的值
@@ -100,11 +116,31 @@ impl TaskManager {
         */
         //获得下一个替换的进程
         //在状态为ready的进程当中，寻找sstride最小的进行进行调度
-        (current + 1..current + self.num_app + 1)
-            .map(|id| id % self.num_app)
-            .find(|id| {
-                inner.tasks[*id].task_status == TaskStatus::Ready
-            })
+        // (current + 1..current + self.num_app + 1)
+        //     .map(|id| id % self.num_app)
+        //     .find(|id| {
+        //         inner.tasks[*id].task_status == TaskStatus::Ready
+        //     })
+        //遍历一遍所有进程
+        //查找Ready且stride最小的，对这个进程++
+        //也可以是当前进程
+        let mut inner_strides = self.inner_strides.borrow_mut();
+        let mut min_stride :usize = inner_strides.strides[current].get_my_stride();
+        let mut min_task:usize = self.num_app;
+        for task_id in 0..self.num_app {
+            if inner_strides.strides[task_id].get_my_stride() <= min_stride && inner.tasks[task_id].task_status == TaskStatus::Ready{
+                min_stride = inner_strides.strides[task_id].get_my_stride();
+                min_task = task_id;
+            }
+        }
+        if min_task == self.num_app{
+            debug!("find no task...");
+            None
+        }else{
+            debug!("fine next task...{}, stride is {}",min_task,inner_strides.strides[min_task].get_my_stride());
+            inner_strides.strides[min_task].run_me();
+            Some(min_task)
+        }
     }
 
     fn run_next_task(&self) {
@@ -133,20 +169,24 @@ impl TaskManager {
         current
     }
 
+    fn get_num_app(&self)->usize{
+        self.num_app
+    }
+
     fn get_app_address_space_current(&self) -> (usize,usize){
-        let mut inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow_mut();
         let current = inner.current_task;
         (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
     }
 
     fn get_task_priority_current(&self) -> usize{
-        let inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow();
         let current = inner.current_task;
         inner.tasks[current].get_priority()
     }
 
     fn get_task_priority(&self,task:usize) -> usize{
-        let inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow();
         inner.tasks[task].get_priority()
     }
 
@@ -181,6 +221,10 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
+}
+
+pub fn get_my_num_app()->usize{
+    TASK_MANAGER.get_num_app()
 }
 
 //for sys_write check

@@ -17,10 +17,11 @@ use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
     get_task_current,
+    get_my_num_app,
 };
 use crate::timer::set_next_trigger;
-use crate::timer::get_time;
-use crate::config::CLOCK_FREQ;
+use crate::timer::{get_time,get_time_ms};
+use crate::config::MAX_RUN_TIME_MS;
 
 global_asm!(include_str!("trap.S"));
 
@@ -59,7 +60,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
         Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
             trace!("trap_handler::Exception::SupervisorTimer");
             //TEMP::先检查是否已经超过了规定的时间
-            if get_time()>CLOCK_FREQ{
+            if get_time_ms()>MAX_RUN_TIME_MS*get_my_num_app(){
                 panic!("[kernel] Run toooooooo loooooooong time!");
             }
             set_next_trigger();//先重新设置一个 10ms 的计时器

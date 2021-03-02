@@ -13,22 +13,32 @@ use super::get_task_priority;
 注意！！！但是在task管理的部分，每次切换进程等进程状态改变时也要改变堆
 */
 
+#[derive(Copy, Clone, PartialEq)]
 pub struct Task_Stride{
     task: usize,//这个进程的编号
     stride: usize
 }
 impl Task_Stride{
-    pub fn new(tsk:usize)-> Self{
+    pub fn new()-> Self{
         Task_Stride{
-            task:tsk,
+            task:0,
             stride:0 as usize,
         }
+    }
+    pub fn set_task_number(&mut self,tsk:usize){
+        self.task = tsk;
     }
     pub fn get_task(&self)->usize{
         self.task
     }
-    pub fn get_stride_pass(&self)->usize{
+    pub fn get_my_stride(&self) -> usize{
+        self.stride
+    }
+    fn get_stride_pass(&self)->usize{
         BIG_STRIDE / get_task_priority(self.get_task())
+    }
+    pub fn run_me(&mut self){
+        self.stride += self.get_stride_pass();
     }
 }
 
