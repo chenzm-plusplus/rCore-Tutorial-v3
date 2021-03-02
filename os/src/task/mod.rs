@@ -1,6 +1,7 @@
 mod context;
 mod switch;
 mod task;
+mod stride;
 
 use crate::config::MAX_APP_NUM;
 use crate::config::APP_BASE_ADDRESS;
@@ -96,6 +97,8 @@ impl TaskManager {
         每次需要调度时，从当前 runnable 态的进程中选择 stride 最小的进程调度。对于获得调度的进程 P，将对应的 stride 加上其对应的步长 pass。
         一个时间片后，回到上一步骤，重新调度当前 stride 最小的进程。
         */
+        //获得下一个替换的进程
+        //在状态为ready的进程当中，寻找sstride最小的进行进行调度
         (current + 1..current + self.num_app + 1)
             .map(|id| id % self.num_app)
             .find(|id| {
@@ -141,7 +144,7 @@ impl TaskManager {
         inner.tasks[current].get_priority()
     }
 
-    fn set_task_priority(&mut self, prio:usize){
+    fn set_task_priority(&self, prio:usize){
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         inner.tasks[current].set_priority(prio);
