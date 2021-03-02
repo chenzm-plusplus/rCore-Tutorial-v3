@@ -28,14 +28,14 @@ impl Task_Stride{
     pub fn set_task_number(&mut self,tsk:usize){
         self.task = tsk;
     }
-    pub fn get_task(&self)->usize{
+    pub fn get_task_number(&self)->usize{
         self.task
     }
     pub fn get_my_stride(&self) -> usize{
         self.stride
     }
     fn get_stride_pass(&self)->usize{
-        BIG_STRIDE / get_task_priority(self.get_task())
+        BIG_STRIDE / get_task_priority(self.get_task_number())
     }
     pub fn run_me(&mut self){
         self.stride += self.get_stride_pass();
