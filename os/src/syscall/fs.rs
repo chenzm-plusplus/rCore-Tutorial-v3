@@ -1,6 +1,6 @@
 const FD_STDOUT: usize = 1;
 use crate::task::get_app_address_space_current;
-use crate::task::get_num_app_current;
+use crate::task::get_task_current;
 use crate::task::get_user_stack_space_current;
 
 
@@ -11,7 +11,7 @@ use crate::task::get_user_stack_space_current;
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    info!("[kernel] now app {} is writing...",get_num_app_current());
+    info!("[kernel] now app {} is writing...",get_task_current());
     trace!("call sys_write......");
     debug!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
     

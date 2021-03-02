@@ -16,7 +16,7 @@ use crate::syscall::syscall;
 use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
-    get_num_app_current,
+    get_task_current,
 };
 use crate::timer::set_next_trigger;
 use crate::timer::get_time;
@@ -64,10 +64,10 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             }
             set_next_trigger();//先重新设置一个 10ms 的计时器
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
-            info!("[kernel] now app {} is running...",get_num_app_current());
+            info!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
-            println!("[kernel] Upsupported trap of app {}", get_num_app_current());
+            println!("[kernel] Upsupported trap of app {}", get_task_current());
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }

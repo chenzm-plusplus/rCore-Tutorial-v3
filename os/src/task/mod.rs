@@ -11,6 +11,7 @@ use core::cell::RefCell;
 use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus, TaskPriority};
+use stride::Task_Stride;
 
 pub use context::TaskContext;
 
@@ -126,7 +127,7 @@ impl TaskManager {
         }
     }
 
-    fn get_num_app_current(&self) -> usize{
+    fn get_task_current(&self) -> usize{
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         current
@@ -142,6 +143,11 @@ impl TaskManager {
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         inner.tasks[current].get_priority()
+    }
+
+    fn get_task_priority(&self,task:usize) -> usize{
+        let mut inner = self.inner.borrow_mut();
+        inner.tasks[task].get_priority()
     }
 
     fn set_task_priority(&self, prio:usize){
@@ -178,12 +184,12 @@ pub fn exit_current_and_run_next() {
 }
 
 //for sys_write check
-pub fn get_num_app_current()->usize{
-    TASK_MANAGER.get_num_app_current()
+pub fn get_task_current()->usize{
+    TASK_MANAGER.get_task_current()
 }
 
 pub fn get_user_stack_space_current()->(usize,usize){
-    get_user_stack_space(TASK_MANAGER.get_num_app_current())
+    get_user_stack_space(TASK_MANAGER.get_task_current())
 }
 
 pub fn get_app_address_space_current()-> (usize,usize){
@@ -196,4 +202,8 @@ pub fn get_task_priority_current() -> usize{
 
 pub fn set_task_priority(prio:usize){
     TASK_MANAGER.set_task_priority(prio);
+}
+
+pub fn get_task_priority(task:usize)->usize{
+    TASK_MANAGER.get_task_priority(task)
 }
