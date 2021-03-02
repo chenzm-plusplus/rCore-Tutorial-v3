@@ -128,7 +128,7 @@ impl TaskManager {
     }
 
     fn get_task_current(&self) -> usize{
-        let mut inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow_mut();
         let current = inner.current_task;
         current
     }
@@ -140,13 +140,13 @@ impl TaskManager {
     }
 
     fn get_task_priority_current(&self) -> usize{
-        let mut inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow_mut();
         let current = inner.current_task;
         inner.tasks[current].get_priority()
     }
 
     fn get_task_priority(&self,task:usize) -> usize{
-        let mut inner = self.inner.borrow_mut();
+        let inner = self.inner.borrow_mut();
         inner.tasks[task].get_priority()
     }
 
