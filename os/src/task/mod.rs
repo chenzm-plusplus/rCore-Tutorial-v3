@@ -6,7 +6,6 @@ use crate::config::MAX_APP_NUM;
 use crate::config::APP_BASE_ADDRESS;
 use crate::config::APP_SIZE_LIMIT;
 use crate::loader::{get_num_app, init_app_cx, get_user_stack_space};
-use crate::console::*;
 use core::cell::RefCell;
 use lazy_static::*;
 use switch::__switch;
@@ -39,7 +38,6 @@ lazy_static! {
             debug!("i...{}",i);
             tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
             tasks[i].task_status = TaskStatus::Ready;
-            // tasks[i].task_priority = TaskPriority::new();
         }
         TaskManager {
             num_app,
@@ -92,6 +90,12 @@ impl TaskManager {
         let inner = self.inner.borrow();
         let current = inner.current_task;
         //修改调度算法，返回不同的值
+        /*
+        为每个进程设置一个当前 stride，表示该进程当前已经运行的“长度”。
+        另外设置其对应的 pass 值（只与进程的优先权有关系），表示对应进程在调度后，stride 需要进行的累加值。
+        每次需要调度时，从当前 runnable 态的进程中选择 stride 最小的进程调度。对于获得调度的进程 P，将对应的 stride 加上其对应的步长 pass。
+        一个时间片后，回到上一步骤，重新调度当前 stride 最小的进程。
+        */
         (current + 1..current + self.num_app + 1)
             .map(|id| id % self.num_app)
             .find(|id| {
@@ -125,16 +129,22 @@ impl TaskManager {
         current
     }
 
-    // fn get_user_stack_space_current(&self) -> (usize,usize){
-    //     let mut inner = self.inner.borrow_mut();
-    //     let current = inner.current_task;
-    //     inner.tasks[current].get_user_stack_space()
-    // }
-
     fn get_app_address_space_current(&self) -> (usize,usize){
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
+    }
+
+    fn get_task_priority_current(&self) -> usize{
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        inner.tasks[current].get_priority()
+    }
+
+    fn set_task_priority(&mut self, prio:usize){
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        inner.tasks[current].set_priority(prio);
     }
 }
 
@@ -170,10 +180,17 @@ pub fn get_num_app_current()->usize{
 }
 
 pub fn get_user_stack_space_current()->(usize,usize){
-    // TASK_MANAGER.get_user_stack_space_current()
     get_user_stack_space(TASK_MANAGER.get_num_app_current())
 }
 
 pub fn get_app_address_space_current()-> (usize,usize){
     TASK_MANAGER.get_app_address_space_current()
+}
+
+pub fn get_task_priority_current() -> usize{
+    TASK_MANAGER.get_task_priority_current()
+}
+
+pub fn set_task_priority(prio:usize){
+    TASK_MANAGER.set_task_priority(prio);
 }

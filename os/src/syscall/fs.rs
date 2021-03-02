@@ -1,8 +1,4 @@
 const FD_STDOUT: usize = 1;
-// use crate::batch::print_app_info;
-// use crate::batch::address_space_current;
-// use crate::batch::current_user_stack_space;
-// use crate::batch::print_current_app_info;
 use crate::task::get_app_address_space_current;
 use crate::task::get_num_app_current;
 use crate::task::get_user_stack_space_current;
@@ -14,7 +10,6 @@ use crate::task::get_user_stack_space_current;
 ///      `len` 表示内存中缓冲区的长度。
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
-/// 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     info!("[kernel] now app {} is writing...",get_num_app_current());
     trace!("call sys_write......");

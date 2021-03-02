@@ -1,5 +1,4 @@
 const TASK_PRIORITY_INIT:usize = 16;
-use crate::config::USER_STACK_SIZE;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
@@ -13,7 +12,11 @@ impl TaskControlBlock {
         &self.task_cx_ptr as *const usize
     }
 
-    pub fn get_task_priority(&self) -> usize{
+    pub fn set_priority(&mut self,prio:usize){
+        self.task_priority.set_priority(prio);
+    }
+
+    pub fn get_priority(&self) -> usize{
         self.task_priority.get_priority()
     }
 }
@@ -40,14 +43,17 @@ impl TaskPriority{
     pub fn get_priority(&self)->usize{
         self.priority
     }
-    pub fn priority_up(&mut self)->usize{
-        self.priority = self.priority + 1;
-        self.priority
+    pub fn set_priority(&mut self, prio:usize){
+        self.priority = prio;
     }
-    pub fn priority_down(&mut self)->usize{
-        if self.priority>2 {
-            self.priority = self.priority - 1;
-        }
-        self.priority
-    }
+    // pub fn priority_up(&mut self)->usize{
+    //     self.priority = self.priority + 1;
+    //     self.priority
+    // }
+    // pub fn priority_down(&mut self)->usize{
+    //     if self.priority>2 {
+    //         self.priority = self.priority - 1;
+    //     }
+    //     self.priority
+    // }
 }

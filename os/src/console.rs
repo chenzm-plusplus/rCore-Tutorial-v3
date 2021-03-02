@@ -1,8 +1,7 @@
 use crate::sbi::console_putchar;
 use core::fmt::{self, Write};
 
-use lazy_static::lazy_static;
-use log::{self, Level, LevelFilter, Log, Metadata, Record};
+// use lazy_static::lazy_static;
 use core::option_env;
 
 struct Stdout;
@@ -17,13 +16,11 @@ impl Write for Stdout {
 }
 
 // /// Add escape sequence to print with color in Linux console
-macro_rules! with_color {
-    ($fmt: literal, $color_code: ident) => {
-        //format_args!("\u{1B}[{}m{}\u{1B}[0m", $color_code as u8, $args)
-        concat!("\x1b[",$color_code,"m",$fmt, "\x1b[0m")
-        // format_args!("\x1b[{}m{}\x1b[0m", $color_code as u8, $fmt)
-    };
-}
+// macro_rules! with_color {
+//     ($fmt: literal, $color_code: ident) => {
+//         concat!("\x1b[",$color_code,"m",$fmt, "\x1b[0m")
+//     };
+// }
 //================basics function===================
 
 pub fn print(args: fmt::Arguments) {

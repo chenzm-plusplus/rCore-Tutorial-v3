@@ -3,6 +3,8 @@ use crate::task::{
     exit_current_and_run_next,
 };
 use crate::timer::get_time_ms;
+use crate::task::set_task_priority;
+use crate::config::ISIZI_MAX;
 
 pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", exit_code);
@@ -20,7 +22,10 @@ pub fn sys_get_time() -> isize {
 }
 
 //sys_gettime, sys_set_priority
-pub fn sys_get_priority() -> isize{
-    0
-    // run_next_app()
+pub fn sys_set_priority(prio: usize) -> isize{
+    if prio>=2 && prio<ISIZI_MAX as usize {
+        set_task_priority(prio);
+        return prio as isize
+    }
+    return -1 as isize
 }
