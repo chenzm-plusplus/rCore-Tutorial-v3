@@ -27,6 +27,10 @@
 
 ### 请学习 gdb 调试工具的使用(这对后续调试很重要)，并通过 gdb 简单跟踪从机器加电到跳转到 0x80200000 的简单过程。只需要描述重要的跳转即可，只需要描述在 qemu 上的情况。
 
+使用下面的指令对os.bin进行反汇编，发现os的地址是从0x80200000开始的。
+
+`rust-objdump -S -d target/riscv64gc-unknown-none-elf/release/os > target/riscv64gc-unknown-none-elf/release/os.s  -x --arch-name=riscv64 `
+
 ## 你对本次实验设计及难度/工作量的看法，以及有哪些需要改进的地方
 
 作为熟悉代码框架和熟悉Rust语言的第一个实验我觉得难度比较合适。
