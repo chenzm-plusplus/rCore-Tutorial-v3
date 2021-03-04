@@ -11,7 +11,7 @@ use crate::task::get_user_stack_space_current;
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    info!("[kernel] now app {} is writing...",get_task_current());
+    trace!("[kernel] now app {} is writing...",get_task_current());
     trace!("call sys_write......");
     debug!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
     

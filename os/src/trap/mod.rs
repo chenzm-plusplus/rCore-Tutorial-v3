@@ -65,7 +65,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
             }
             set_next_trigger();//先重新设置一个 10ms 的计时器
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
-            info!("[kernel] now app {} is running...",get_task_current());
+            trace!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
             println!("[kernel] Upsupported trap of app {}", get_task_current());
