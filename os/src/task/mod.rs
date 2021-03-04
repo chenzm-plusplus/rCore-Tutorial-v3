@@ -183,9 +183,9 @@ impl TaskManager {
     fn get_app_address_space_current(&self) -> (usize,usize){
         let inner = self.inner.borrow_mut();
         let current = inner.current_task;
-        // (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
-        (APP_BASE_ADDRESS, APP_BASE_ADDRESS + APP_SIZE_LIMIT)
-        //由于这里采用了时间片轮转算法，所以不同的程序在APPBASE这块地址是公用的
+        (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
+        // (APP_BASE_ADDRESS, APP_BASE_ADDRESS + APP_SIZE_LIMIT)
+        //由于这里采用了时间片轮转算法，所以不同的程序被装在不同的APP_BASE_ADDRESS
     }
 
     fn get_task_priority_current(&self) -> usize{
