@@ -89,7 +89,7 @@ macro_rules! info{
         match option_env!("LOG"){
             Some("TRACE")|Some("trace")|Some("Trace") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("DEBUG")|Some("debug")|Some("Debug") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
-            Some("INFO")|Some("info")|Some("Debug") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
+            Some("INFO")|Some("info")|Some("Info") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             None => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             _ => {},
         }

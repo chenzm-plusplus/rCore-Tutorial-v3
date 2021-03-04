@@ -69,6 +69,7 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
         }
         _ => {
             println!("[kernel] Upsupported trap of app {}", get_task_current());
+            exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
