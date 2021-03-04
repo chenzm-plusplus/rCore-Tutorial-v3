@@ -13,16 +13,13 @@
 
 ### 问题1
 
-正确进入 U 态后，程序的特征还应有：使用 S 态特权指令，访问 S 态寄存器后会报错。目前由于一些其他原因，这些问题不太好测试，请同学们可以自行测试这些内容（参考 [前三个测例](https://github.com/DeathWish5/rCore_tutorial_tests/tree/master/user/src/bin) )，描述程序出错行为，同时注意注明你使用的 sbi 及其版本。
+> 正确进入 U 态后，程序的特征还应有：使用 S 态特权指令，访问 S 态寄存器后会报错。目前由于一些其他原因，这些问题不太好测试，请同学们可以自行测试这些内容（参考 [前三个测例](https://github.com/DeathWish5/rCore_tutorial_tests/tree/master/user/src/bin) )，描述程序出错行为，同时注意注明你使用的 sbi 及其版本。
 
-修改测试程序，在U态程序中加入访问S态寄存器的代码，运行得到以下报错信息。因为U态没有访问S态寄存器的权限，因此访问S态寄存器会引入StoreFault，就会跳转到异常处理中StoreFault的位置，结束这个task，运行下一个task。
+修改测试程序，在U态程序中加入访问S态寄存器的代码，运行得到以下报错信息。因为U态没有访问S态寄存器的权限，因此访问S态寄存器会报ivalid instruction，从而产生rustssbi-panic，进而退出。
 
-```toml
-[INFO][kernel] Loading app_1
-Into Test store_fault, we will insert an invalid store operation...
-Kernel should kill this application!
-[kernel] PageFault in application, core dumped.
-```
+![](./lab2/panic.png)
+
+我使用的sbi是0.1.1版。
 
 ### 问题2
 
@@ -32,7 +29,7 @@ Kernel should kill this application!
 
 L40: 刚进入 `__restore` 时，`a0` 代表了什么值。请指出 `__restore` 的两种使用情景。
 
-刚进入 `__restore` 时，`a0` 代表的是内核栈的栈顶地址。
+刚进入 `__restore` 时，`a0` 代表的是内核栈的栈顶地址。使用__restore的两个场景如下：
 
 - 场景1: 准备进入U态，运行用户程序
 - 场景2: 中断/异常处理结束，要返回U态
