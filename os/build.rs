@@ -9,15 +9,15 @@ fn main() {
 }
 
 // static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
-static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/bin/";
-// static TARGET_PATH: &str = "../user/src/bin";
+// static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/bin/";
+static TARGET_PATH: &str = "../user/src/bin";
 
 //"../../rCore_tutorial_tests/user/build/bin/"
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
-    // let mut apps: Vec<_> = read_dir("../user/src/bin")
-    let mut apps: Vec<_> = read_dir("../../rCore_tutorial_tests/user/build/bin/")
+    let mut apps: Vec<_> = read_dir("../user/src/bin")
+    // let mut apps: Vec<_> = read_dir("../../rCore_tutorial_tests/user/build/bin/")
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
