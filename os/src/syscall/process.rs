@@ -90,6 +90,9 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
         return -1 as isize;
     }
     //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
+    //为了完成分配的工作，需要做的事情是：
+    //第一，分配出有这么大的物理内存
+    //第二，更新memory_set的映射规则。由于我们采用恒等映射方式，因此只要在memory_set里面插入
 
     return -1 as isize;
 }
