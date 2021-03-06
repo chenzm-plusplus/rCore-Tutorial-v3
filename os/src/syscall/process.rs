@@ -61,3 +61,8 @@ pub fn sys_set_priority(prio: usize) -> isize{
     }
     return -1 as isize
 }
+
+pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
+    //需要做几件事：
+    return -1 as isize
+}

@@ -3,6 +3,7 @@ use alloc::vec::Vec;
 use alloc::vec;
 use bitflags::*;
 
+//物理页的标志
 bitflags! {
     pub struct PTEFlags: u8 {
         const V = 1 << 0;

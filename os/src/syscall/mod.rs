@@ -3,6 +3,7 @@ const SYSCALL_EXIT: usize = 93;
 const SYSCALL_YIELD: usize = 124;
 const SYSCALL_GETTIMEOFDAY: usize = 169;
 const SYSCALL_SET_PRIORITY: usize = 140;
+const SYSCALL_MMAP: usize = 222;
 
 mod fs;
 mod process;
@@ -19,6 +20,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         //[time as *const _ as usize, tz, 0]
         SYSCALL_GETTIMEOFDAY => sys_get_time(args[0] as *mut TimeVal, args[1]),
         SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
+        SYSCALL_MMAP => sys_mmap(args[0],args[1],args[1]),
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
 }
