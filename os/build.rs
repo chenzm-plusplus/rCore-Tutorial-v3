@@ -50,11 +50,7 @@ _num_app:
     .global app_{0}_end
     .align 3
 app_{0}_start:
-<<<<<<< HEAD
     .incbin "{2}{1}"
-=======
-    .incbin "{2}{1}.bin"
->>>>>>> ch3
 app_{0}_end:"#, idx, app, TARGET_PATH)?;
     }
     Ok(())

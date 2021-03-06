@@ -34,7 +34,8 @@ struct TaskManagerInner {
 }
 
 struct StrideInner{
-    strides: [Task_Stride; MAX_APP_NUM],
+    // strides: [Task_Stride; MAX_APP_NUM],
+    strides: Vec<Task_Stride>,
 }
 
 unsafe impl Sync for TaskManager {}
@@ -44,12 +45,15 @@ lazy_static! {
         println!("init TASK_MANAGER");
         let num_app = get_num_app();
         println!("num_app = {}", num_app);
+        //NOTICE: add stride initialize
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
+        let mut strides: Vec<Task_Stride> = Vec::new();
         for i in 0..num_app {
             tasks.push(TaskControlBlock::new(
                 get_app_data(i),
                 i,
             ));
+            strides.push(Task_Stride::new(i));
         }
         // debug!("TASK_MANAGERL::init");
         // let num_app = get_num_app();
@@ -66,10 +70,10 @@ lazy_static! {
         //     tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
         //     tasks[i].task_status = TaskStatus::Ready;
         // }
-        let mut strides = [Task_Stride::new(); MAX_APP_NUM];
-        for i in 0..num_app{
-            strides[i].set_task_number(i);
-        }
+        // let mut strides = [Task_Stride::new(); MAX_APP_NUM];
+        // for i in 0..num_app{
+        //     strides[i].set_task_number(i);
+        // }
         TaskManager {
             num_app,
             inner: RefCell::new(TaskManagerInner {

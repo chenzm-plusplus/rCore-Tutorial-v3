@@ -19,9 +19,9 @@ pub struct Task_Stride{
     stride: usize
 }
 impl Task_Stride{
-    pub fn new()-> Self{
+    pub fn new(tsk:usize)-> Self{
         Task_Stride{
-            task:0,
+            task:tsk,
             stride:0 as usize,
         }
     }

@@ -5,7 +5,7 @@ use super::TaskContext;
 
 const TASK_PRIORITY_INIT:usize = 16;
 
-#[derive(Copy, Clone, PartialEq)]
+// #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
     pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
     pub task_status: TaskStatus,
@@ -44,12 +44,16 @@ impl TaskControlBlock {
             );
         let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
+        //NOTICE
+        let task_priority = TaskPriority::new();
         let task_control_block = Self {
             task_cx_ptr: task_cx_ptr as usize,
             task_status,
             memory_set,
             trap_cx_ppn,
             base_size: user_sp,
+            //NOTICE
+            task_priority,
         };
         // prepare TrapContext in user space
         let trap_cx = task_control_block.get_trap_cx();
@@ -63,13 +67,13 @@ impl TaskControlBlock {
         task_control_block
     }
 
-    // pub fn set_priority(&mut self,prio:usize){
-    //     self.task_priority.set_priority(prio);
-    // }
+    pub fn set_priority(&mut self,prio:usize){
+        self.task_priority.set_priority(prio);
+    }
 
-    // pub fn get_priority(&self) -> usize{
-    //     self.task_priority.get_priority()
-    // }
+    pub fn get_priority(&self) -> usize{
+        self.task_priority.get_priority()
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -96,14 +100,4 @@ impl TaskPriority{
     pub fn set_priority(&mut self, prio:usize){
         self.priority = prio;
     }
-    // pub fn priority_up(&mut self)->usize{
-    //     self.priority = self.priority + 1;
-    //     self.priority
-    // }
-    // pub fn priority_down(&mut self)->usize{
-    //     if self.priority>2 {
-    //         self.priority = self.priority - 1;
-    //     }
-    //     self.priority
-    // }
 }
