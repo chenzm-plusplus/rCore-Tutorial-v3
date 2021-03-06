@@ -7,7 +7,11 @@ mod memory_set;
 use page_table::{PageTable, PTEFlags};
 use address::{VPNRange, StepByOne};
 pub use address::{PhysAddr, VirtAddr, PhysPageNum, VirtPageNum};
-pub use frame_allocator::{FrameTracker, frame_alloc};
+pub use frame_allocator::{
+    FrameTracker, 
+    frame_alloc,
+    frame_left,
+};
 pub use page_table::{PageTableEntry, translated_byte_buffer};
 pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
 pub use memory_set::remap_test;
@@ -28,14 +32,23 @@ pub fn mmap(start: usize, number: usize, port: usize) -> isize{
     //1. 物理内存还够用吗
     //2. 这个地址范围内是不是有哪些已经被映射过了
 
+    if start % PAGE_SIZE != 0 {
+        return -1 as isize;
+    }
+    if number == 0 {
+        error!("in mmap...number=0");
+        return 0 as isize;
+    }
+
     //以防万一，再检查一遍读写权限问题
     if (port & !0x7 != 0)||(port & 0x7 == 0) {
         return -1 as isize;
     }
 
     //检查一下现在还有几个page，是不是够用
-    //模仿frame_allocator，取出看看是不是能成功取出这么多
-    //或者看看是不是有一个函数，直接统计还剩下几个page没有分配出去；如果没有这样的函数那就加一个
+    if frame_left() < number {
+        return -1 as isize;
+    }
 
     //这个地址范围是不是有人已经映射过了？
     //需要再读一遍代码。

@@ -38,6 +38,7 @@ trait FrameAllocator {
     fn dealloc(&mut self, ppn: PhysPageNum);
 }
 
+//[current,end)左闭右开区间表示还有多少个frame未分配
 pub struct StackFrameAllocator {
     current: usize,
     end: usize,
@@ -84,6 +85,12 @@ impl FrameAllocator for StackFrameAllocator {
     }
 }
 
+impl StackFrameAllocator {
+    pub fn frame_left() -> usize {
+        return end - current + recycled.len();
+    }
+}
+
 type FrameAllocatorImpl = StackFrameAllocator;
 
 lazy_static! {
@@ -105,6 +112,11 @@ pub fn frame_alloc() -> Option<FrameTracker> {
         .lock()
         .alloc()
         .map(|ppn| FrameTracker::new(ppn))
+}
+
+//向其他模块提供public接口，知道现在还有多少个物理页帧可以分配
+pub fn frame_left() -> usize{
+    FRAME_ALLOCATOR.lock().frame_left()
 }
 
 fn frame_dealloc(ppn: PhysPageNum) {
