@@ -14,13 +14,13 @@ use super::get_task_priority;
 */
 
 #[derive(Copy, Clone, PartialEq)]
-pub struct Task_Stride{
+pub struct TaskStride{
     task: usize,//这个进程的编号
     stride: usize
 }
-impl Task_Stride{
+impl TaskStride{
     pub fn new(tsk:usize)-> Self{
-        Task_Stride{
+        TaskStride{
             task:tsk,
             stride:0 as usize,
         }

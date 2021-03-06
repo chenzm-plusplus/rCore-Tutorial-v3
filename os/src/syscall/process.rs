@@ -35,7 +35,7 @@ pub fn sys_yield() -> isize {
 //         _ => -1
 //     }
 // }
-pub fn sys_get_time(ts: *mut TimeVal, tz: usize) -> isize{
+pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
     // match (*ts){
     //     Null => {},
     //     _ => {

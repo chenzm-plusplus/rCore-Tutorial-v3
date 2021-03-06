@@ -10,7 +10,7 @@ use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
-use crate::config::MAX_APP_NUM;
+// use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
 // use crate::loader::{get_num_app, init_app_cx, get_user_stack_space};
@@ -18,7 +18,7 @@ use crate::config::MAX_APP_NUM;
 // use lazy_static::*;
 // use switch::__switch;
 // use task::{TaskControlBlock, TaskStatus, TaskPriority};
-use stride::Task_Stride;
+use stride::TaskStride;
 
 pub use context::TaskContext;
 
@@ -34,8 +34,8 @@ struct TaskManagerInner {
 }
 
 struct StrideInner{
-    // strides: [Task_Stride; MAX_APP_NUM],
-    strides: Vec<Task_Stride>,
+    // strides: [TaskStride; MAX_APP_NUM],
+    strides: Vec<TaskStride>,
 }
 
 unsafe impl Sync for TaskManager {}
@@ -47,13 +47,13 @@ lazy_static! {
         println!("num_app = {}", num_app);
         //NOTICE: add stride initialize
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
-        let mut strides: Vec<Task_Stride> = Vec::new();
+        let mut strides: Vec<TaskStride> = Vec::new();
         for i in 0..num_app {
             tasks.push(TaskControlBlock::new(
                 get_app_data(i),
                 i,
             ));
-            strides.push(Task_Stride::new(i));
+            strides.push(TaskStride::new(i));
         }
         // debug!("TASK_MANAGERL::init");
         // let num_app = get_num_app();
@@ -70,7 +70,7 @@ lazy_static! {
         //     tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
         //     tasks[i].task_status = TaskStatus::Ready;
         // }
-        // let mut strides = [Task_Stride::new(); MAX_APP_NUM];
+        // let mut strides = [TaskStride::new(); MAX_APP_NUM];
         // for i in 0..num_app{
         //     strides[i].set_task_number(i);
         // }
@@ -111,7 +111,7 @@ impl TaskManager {
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Exited;
     }
-
+/*
     fn find_next_task(&self) -> Option<usize> {
         let inner = self.inner.borrow();
         let current = inner.current_task;
@@ -122,7 +122,7 @@ impl TaskManager {
                 inner.tasks[*id].task_status == TaskStatus::Ready
             })
     }
-
+*/
     fn get_current_token(&self) -> usize {
         let inner = self.inner.borrow();
         let current = inner.current_task;
@@ -136,7 +136,7 @@ impl TaskManager {
     }
 
     ///!!!
-    fn find_next_task_stride(&self) -> Option<usize> {
+    fn find_next_TaskStride(&self) -> Option<usize> {
         trace!("in find next task stride...");
         let inner = self.inner.borrow();
         let current = inner.current_task;
@@ -183,7 +183,7 @@ impl TaskManager {
 
     fn run_next_task(&self) {
         trace!("run_next_task......");
-        if let Some(next) = self.find_next_task_stride() {
+        if let Some(next) = self.find_next_TaskStride() {
             trace!("next task is....{}",next);
             let mut inner = self.inner.borrow_mut();
             let current = inner.current_task;
