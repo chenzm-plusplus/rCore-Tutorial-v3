@@ -89,7 +89,7 @@ impl PageTable {
                 result = Some(pte);
                 break;
             }
-            if !pte.is_valid() {
+            if !pte.is_valid() {//如果遍历的过程中发现有页表不存在，那么就创建它
                 let frame = frame_alloc().unwrap();
                 *pte = PageTableEntry::new(frame.ppn, PTEFlags::V);
                 self.frames.push(frame);

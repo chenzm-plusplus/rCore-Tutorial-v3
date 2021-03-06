@@ -4,7 +4,15 @@ use crate::task::{
 };
 use crate::timer::{get_time,get_time_ms,TimeVal};
 use crate::task::set_task_priority;
-use crate::config::ISIZI_MAX;
+use crate::config::{
+    ISIZI_MAX,
+    PAGE_SIZE,
+    MEMORY_MAP_SIZE,
+};
+use crate::mm::{
+    frame_alloc,
+};
+
 
 pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", exit_code);
@@ -63,6 +71,25 @@ pub fn sys_set_priority(prio: usize) -> isize{
 }
 
 pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
+    trace!("sys_mmap...start = {:#x}, len = {}, port = {}...",start,len,port);
     //需要做几件事：
-    return -1 as isize
+    //1.检查数据类型是否合法：
+    //- start和页对齐
+    //- len不能过大不能过小
+    //- port满足一些要求
+    if start % PAGE_SIZE != 0 {
+        return -1 as isize;
+    }
+    if len == 0 {
+        return 0 as isize;
+    }
+    if len > MEMORY_MAP_SIZE {
+        return -1 as isize;
+    }
+    if (port & !0x7 != 0)||(port & 0x7 == 0) {
+        return -1 as isize;
+    }
+    //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
+
+    return -1 as isize;
 }

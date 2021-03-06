@@ -6,7 +6,11 @@ const FD_STDOUT: usize = 1;
 // use crate::task::get_task_current;
 // use crate::task::get_user_stack_space_current;
 
-
+/// TODO: 增加对syswrite的地址范围类型检查
+/// 代码段 .text 不允许被修改；
+/// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
+/// .data/.bss 均允许被读写，但是不允许从它上面取指。
+/// 
 /// 功能：将内存中缓冲区中的数据写入文件。
 /// 参数：`fd` 表示待写入文件的文件描述符；
 ///      `buf` 表示内存中缓冲区的起始地址；
