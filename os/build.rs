@@ -35,14 +35,15 @@ fn insert_app_data() -> Result<()> {
     .section .data
     .global _num_app
 _num_app:
-    .quad {}"#, apps.len())?;
+    .quad {}"#, apps.len()-1)?;
 
-    for i in 0..apps.len() {
+    for i in 1..apps.len() {
         writeln!(f, r#"    .quad app_{}_start"#, i)?;
     }
     writeln!(f, r#"    .quad app_{}_end"#, apps.len() - 1)?;
 
     for (idx, app) in apps.iter().enumerate() {
+        if idx >0 {
         println!("app_{}: {}", idx, app);
         writeln!(f, r#"
     .section .data
@@ -52,6 +53,7 @@ _num_app:
 app_{0}_start:
     .incbin "{2}{1}"
 app_{0}_end:"#, idx, app, TARGET_PATH)?;
+        }
     }
     Ok(())
 }
