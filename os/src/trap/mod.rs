@@ -21,6 +21,12 @@ use crate::task::{
 };
 use crate::timer::set_next_trigger;
 use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+//     get_task_current,
+//     get_my_num_app,
+// };
+// use crate::timer::set_next_trigger;
+// use crate::timer::{get_time,get_time_ms};
+// use crate::config::MAX_RUN_TIME_MS;
 
 global_asm!(include_str!("trap.S"));
 
@@ -40,9 +46,9 @@ fn set_user_trap_entry() {
     }
 }
 
-pub fn enable_timer_interrupt() {
-    unsafe { sie::set_stimer(); }
-}
+// pub fn enable_timer_interrupt() {
+//     unsafe { sie::set_stimer(); }
+// }
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
@@ -52,6 +58,7 @@ pub fn trap_handler() -> ! {
     let stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
+            trace!("trap_handler::Exception::UserEnvCall");
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
@@ -64,11 +71,19 @@ pub fn trap_handler() -> ! {
             println!("[kernel] IllegalInstruction in application, core dumped.");
             exit_current_and_run_next();
         }
-        Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            set_next_trigger();
-            suspend_current_and_run_next();
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
+            trace!("trap_handler::Exception::SupervisorTimer");
+            //TEMP::先检查是否已经超过了规定的时间
+            if get_time_ms()>MAX_RUN_TIME_MS*get_my_num_app(){
+                panic!("[kernel] Run toooooooo loooooooong time!");
+            }
+            set_next_trigger();//先重新设置一个 10ms 的计时器
+            suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
+            trace!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
+            println!("[kernel] Upsupported trap of app {}", get_task_current());
+            exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }

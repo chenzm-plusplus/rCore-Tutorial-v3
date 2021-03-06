@@ -17,6 +17,7 @@ fn syscall(id: usize, args: [usize; 3]) -> isize {
 }
 
 pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
+    //println!("user::sys_write call");
     syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
 }
 

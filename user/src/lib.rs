@@ -11,6 +11,7 @@ mod lang_items;
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
+    // clear_bss(); 问题：为什么不需要这个函数了？
     exit(main());
     panic!("unreachable after sys_exit!");
 }

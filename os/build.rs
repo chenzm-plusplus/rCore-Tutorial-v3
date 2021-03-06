@@ -3,15 +3,23 @@ use std::fs::{File, read_dir};
 
 fn main() {
     println!("cargo:rerun-if-changed=../user/src/");
+    // println!("cargo:rerun-if-changed=../user/src/");
+    println!("cargo:rerun-if-changed=../../rCore_tutorial_tests/user/build/");
     println!("cargo:rerun-if-changed={}", TARGET_PATH);
     insert_app_data().unwrap();
 }
 
 static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
+// static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
+// static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/bin/";
+// static TARGET_PATH: &str = "../user/src/bin";
+
+//"../../rCore_tutorial_tests/user/build/bin/"
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
     let mut apps: Vec<_> = read_dir("../user/src/bin")
+    // let mut apps: Vec<_> = read_dir("../../rCore_tutorial_tests/user/build/bin/")
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
@@ -42,7 +50,11 @@ _num_app:
     .global app_{0}_end
     .align 3
 app_{0}_start:
+<<<<<<< HEAD
     .incbin "{2}{1}"
+=======
+    .incbin "{2}{1}.bin"
+>>>>>>> ch3
 app_{0}_end:"#, idx, app, TARGET_PATH)?;
     }
     Ok(())
