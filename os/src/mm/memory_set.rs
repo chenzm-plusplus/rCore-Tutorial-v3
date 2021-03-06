@@ -35,6 +35,7 @@ lazy_static! {
     ));
 }
 
+
 pub struct MemorySet {
     page_table: PageTable,
     areas: Vec<MapArea>,

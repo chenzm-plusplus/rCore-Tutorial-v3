@@ -3,7 +3,7 @@ use crate::trap::{TrapContext, trap_handler};
 use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use super::TaskContext;
 
-// const TASK_PRIORITY_INIT:usize = 16;
+const TASK_PRIORITY_INIT:usize = 16;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
@@ -12,7 +12,7 @@ pub struct TaskControlBlock {
     pub memory_set: MemorySet,
     pub trap_cx_ppn: PhysPageNum,
     pub base_size: usize,
-    // pub task_priority: TaskPriority,
+    pub task_priority: TaskPriority,
 }
 
 impl TaskControlBlock {

@@ -10,7 +10,7 @@ use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
-// use crate::config::MAX_APP_NUM;
+use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
 // use crate::loader::{get_num_app, init_app_cx, get_user_stack_space};
@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 // use lazy_static::*;
 // use switch::__switch;
 // use task::{TaskControlBlock, TaskStatus, TaskPriority};
-// use stride::Task_Stride;
+use stride::Task_Stride;
 
 pub use context::TaskContext;
 
@@ -209,13 +209,13 @@ impl TaskManager {
         self.num_app
     }
 
-    fn get_app_address_space_current(&self) -> (usize,usize){
-        let inner = self.inner.borrow_mut();
-        let current = inner.current_task;
-        (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
-        // (APP_BASE_ADDRESS, APP_BASE_ADDRESS + APP_SIZE_LIMIT)
-        //由于这里采用了时间片轮转算法，所以不同的程序被装在不同的APP_BASE_ADDRESS
-    }
+    // fn get_app_address_space_current(&self) -> (usize,usize){
+    //     let inner = self.inner.borrow_mut();
+    //     let current = inner.current_task;
+    //     (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
+    //     // (APP_BASE_ADDRESS, APP_BASE_ADDRESS + APP_SIZE_LIMIT)
+    //     //由于这里采用了时间片轮转算法，所以不同的程序被装在不同的APP_BASE_ADDRESS
+    // }
 
     fn get_task_priority_current(&self) -> usize{
         let inner = self.inner.borrow();
@@ -269,14 +269,14 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
     TASK_MANAGER.get_current_trap_cx()
 }
 
-// pub fn get_my_num_app()->usize{
-//     TASK_MANAGER.get_num_app()
-// }
+pub fn get_my_num_app()->usize{
+    TASK_MANAGER.get_num_app()
+}
 
 // //for sys_write check
-// pub fn get_task_current()->usize{
-//     TASK_MANAGER.get_task_current()
-// }
+pub fn get_task_current()->usize{
+    TASK_MANAGER.get_task_current()
+}
 
 // pub fn get_user_stack_space_current()->(usize,usize){
 //     get_user_stack_space(TASK_MANAGER.get_task_current())
@@ -290,10 +290,10 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 //     TASK_MANAGER.get_task_priority_current()
 // }
 
-// pub fn set_task_priority(prio:usize){
-//     TASK_MANAGER.set_task_priority(prio);
-// }
+pub fn set_task_priority(prio:usize){
+    TASK_MANAGER.set_task_priority(prio);
+}
 
-// pub fn get_task_priority(task:usize)->usize{
-//     TASK_MANAGER.get_task_priority(task)
-// }
+pub fn get_task_priority(task:usize)->usize{
+    TASK_MANAGER.get_task_priority(task)
+}
