@@ -21,6 +21,7 @@ pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
 pub use memory_set::{
     remap_test,
     mmap,
+    munmap,
 };
 
 pub fn init() {

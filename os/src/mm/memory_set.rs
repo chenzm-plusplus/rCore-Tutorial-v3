@@ -287,7 +287,17 @@ impl MapArea {
         }
         return true;
     }
-    //return how much pages
+    //check if not mapped...
+    pub fn have_mapped_check(&self)-> bool{
+        let kernel_space = KERNEL_SPACE.lock();
+        for vpn in self.vpn_range{
+            match kernel_space.page_table.translate(vpn){
+                None => return false,//只要有一个虚拟地址没有被映射，那么就发生错误，报错返回
+                _ => {}
+            }
+        }
+        return true;
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -332,7 +342,7 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
         return -1 as isize;
     }
     if len == 0 {
-        error!("in mmap...number=0");
+        warn!("in mmap...number=0");
         return 0 as isize;
     }
     let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
@@ -385,8 +395,63 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
 
     return (size*PAGE_SIZE) as isize;
     //2，放入map里面
+}
 
-    // return -1 as isize;
+/// 接口：fn unmmap(start: usize, len: usize) -> isize
+/// 在系统调用处已经进行了数据合法性检查，因此在这里可以直接进行分配
+/// start：开始地址
+/// number：要分配几个page
+pub fn munmap(start: usize, len: usize) -> isize{
+    //要检查的内容：
+    //1. 物理内存还够用吗
+    //2. 这个地址范围内是不是有哪些已经被映射过了
+
+    if start % PAGE_SIZE != 0 {
+        return -1 as isize;
+    }
+    if len == 0 {
+        warn!("in mmap...number=0");
+        return 0 as isize;
+    }
+    let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
+    //向上取整,表示会用到几个page
+
+    //这个地址范围是不是有人没有映射过？
+    //根据代码，调用translate检查即可
+    //todo：port to mappermission
+    // let mut area = MapArea::new((start).into(),
+    //                         (start+len).into(),
+    //                         MapType::Framed,
+    //                         permission.unwrap());
+    //找到已经mapped过的一个area
+    //调用translate，检查是否全部能完成映射
+    //只要有一个没有被映射，就说明发生了错误，要返回-1
+    // if area.have_mapped_check()==false {
+    //     return -1 as isize;
+    // }
+
+    /*
+    let mut kernel_space = KERNEL_SPACE.lock();
+    area.map(&mut kernel_space.page_table);
+ 
+    let size = (usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start()) );
+
+    kernel_space.areas.push(area);
+
+    //以上合法性检查结束之后，可以直接分配。分为2步：
+    //1，申请物理页面（怎么申请？申请完给谁？）
+    // 这里不用手动写，因为在map的代码里面已经调用了分配物理页帧的函数
+
+    //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
+    //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
+    debug!("[kernel] in mmap...size alloc is {},{}",number,size);
+    assert_eq!(number, size);
+    debug!("[kernel] in mmap...size alloc is {}",size);
+
+    return (size*PAGE_SIZE) as isize;
+    //2，放入map里面
+*/
+    return -1 as isize;
 }
 
 
