@@ -71,7 +71,7 @@ pub fn sys_set_priority(prio: usize) -> isize{
 }
 
 pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
-    trace!("sys_mmap...start = {:#x}, len = {}, port = {}...",start,len,port);
+    debug!("sys_mmap...start = {:#x}, len = {}, port = {}...",start,len,port);
     //需要做几件事：
     //1.检查数据类型是否合法：
     //- start和页对齐
@@ -93,6 +93,7 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
     //为了完成分配的工作，需要做的事情是：
     //第一，分配出有这么大的物理内存
     //第二，更新memory_set的映射规则。由于我们采用恒等映射方式，因此只要在memory_set里面插入
+    debug!("[kernel] sys_mmap...");
 
     return mmap(start, len, port);
 }

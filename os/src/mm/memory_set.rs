@@ -330,12 +330,12 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
     if start % PAGE_SIZE != 0 {
         return -1 as isize;
     }
-    let n = (len as f64/PAGE_SIZE as f64);
-    let number = n as usize;//TODO!!!这里需要进行向上取整的类型转换
-    if number == 0 {
+    if len == 0 {
         error!("in mmap...number=0");
         return 0 as isize;
     }
+    let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
+    //向上取整,表示会用到几个page
 
     //以防万一，再检查一遍读写权限问题
     if (port & !0x7 != 0)||(port & 0x7 == 0) {
@@ -368,7 +368,7 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
     let mut kernel_space = KERNEL_SPACE.lock();
     area.map(&mut kernel_space.page_table);
 
-    let size = (usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start()) + 1 ) as isize;
+    let size = (usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start()) );
 
     kernel_space.areas.push(area);
 
@@ -378,7 +378,11 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
 
     //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
     //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
-    return size;
+    debug!("[kernel] in mmap...size alloc is {},{}",number,size);
+    assert_eq!(number, size);
+    debug!("[kernel] in mmap...size alloc is {}",size);
+
+    return (size*PAGE_SIZE) as isize;
     //2，放入map里面
 
     // return -1 as isize;
