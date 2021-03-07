@@ -355,7 +355,7 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
     //这个地址范围是不是有人已经映射过了？
     //根据代码，调用translate检查即可
     //todo：port to mappermission
-    let area = MapArea::new((start).into(),
+    let mut area = MapArea::new((start).into(),
                             (start+len).into(),
                             MapType::Framed,
                             permission.unwrap());
@@ -364,18 +364,19 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
         return -1 as isize;
     }
 
+    let mut kernel_space = KERNEL_SPACE.lock();
+    area.map(kernel_space.page_table);
+    kernel_space.areas.push(area);
+
+
     //以上合法性检查结束之后，可以直接分配。分为2步：
     //1，申请物理页面（怎么申请？申请完给谁？）
-    for i in 0..number{
-        frame_alloc().unwrap();//申请物理页帧
-    }
+    // 这里不用手动写，因为在map的代码里面已经调用了分配物理页帧的函数
 
     //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
     //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
 
     //2，放入map里面
-    //检查从addr开始的这几页里面是不是有冲突
-    //需要再看代码
 
     return -1 as isize;
 }
