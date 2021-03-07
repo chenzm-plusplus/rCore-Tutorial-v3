@@ -1,6 +1,6 @@
 use super::{PageTable, PageTableEntry, PTEFlags};
 use super::{VirtPageNum, VirtAddr, PhysPageNum, PhysAddr};
-use super::{FrameTracker, frame_alloc};
+use super::{FrameTracker, frame_alloc, frame_left};
 use super::{VPNRange, StepByOne};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
@@ -29,6 +29,8 @@ extern "C" {
     fn strampoline();
 }
 
+//KERNEL_SPACE是每一个app有一份的
+//但是问题来了：怎么取得特定的app的KERNEL_SPACE？
 lazy_static! {
     pub static ref KERNEL_SPACE: Arc<Mutex<MemorySet>> = Arc::new(Mutex::new(
         MemorySet::new_kernel()
@@ -52,6 +54,7 @@ impl MemorySet {
     }
     /// Assume that no conflicts.
     /// 假设已经分配好了物理页面，建立一个对应关系
+    /// 这个函数只能在已经申请完空间才能调用
     pub fn insert_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr, permission: MapPermission) {
         self.push(MapArea::new(
             start_va,
@@ -272,6 +275,16 @@ impl MapArea {
             current_vpn.step();
         }
     }
+    //check if has mapped...
+    pub fn not_map_check(&self)-> bool{
+        let kernel_space = KERNEL_SPACE.lock();
+        for vpn in self.vpn_range{
+            if kernel_space.page_table.translate(vpn).unwrap() != None{
+                return false;//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
+            }
+        }
+        return true;
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -288,6 +301,62 @@ bitflags! {
         const U = 1 << 4;
     }
 }
+
+/// 接口：fn mmap(start: usize, len: usize, port: usize) -> isize
+/// 在系统调用处已经进行了数据合法性检查，因此在这里可以直接进行分配
+/// start：开始地址
+/// number：要分配几个page
+/// port：读写权限
+pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+    //要检查的内容：
+    //1. 物理内存还够用吗
+    //2. 这个地址范围内是不是有哪些已经被映射过了
+
+    if start % PAGE_SIZE != 0 {
+        return -1 as isize;
+    }
+    let n = (len as f64/PAGE_SIZE as f64);
+    let number = n as usize;//TODO!!!这里需要进行向上取整的类型转换
+    if number == 0 {
+        error!("in mmap...number=0");
+        return 0 as isize;
+    }
+
+    //以防万一，再检查一遍读写权限问题
+    if (port & !0x7 != 0)||(port & 0x7 == 0) {
+        return -1 as isize;
+    }
+
+    //检查一下现在还有几个page，是不是够用.done
+    if frame_left() < number {
+        return -1 as isize;
+    }
+
+    //这个地址范围是不是有人已经映射过了？
+    //根据代码，调用translate检查即可
+    //todo：port to mappermission
+    let area = MapArea::new((start).into(),(start+len).into(),MapType::Framed,port);
+    //调用translate，检查是否全部能完成映射
+    if area.not_map_check()==false {
+        return -1 as isize;
+    }
+
+    //以上合法性检查结束之后，可以直接分配。分为2步：
+    //1，申请物理页面（怎么申请？申请完给谁？）
+    for i in 0..number{
+        frame_alloc().unwrap();//申请物理页帧
+    }
+
+    //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
+    //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
+
+    //2，放入map里面
+    //检查从addr开始的这几页里面是不是有冲突
+    //需要再看代码
+
+    return -1 as isize;
+}
+
 
 #[allow(unused)]
 pub fn remap_test() {
