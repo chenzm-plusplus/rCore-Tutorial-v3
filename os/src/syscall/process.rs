@@ -97,3 +97,7 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
 
     return mmap(start, len, port);
 }
+
+pub fn sys_munmap(start: usize, len: usize) -> isize{
+    return -1 as isize;
+}

@@ -55,6 +55,7 @@ lazy_static! {
             ));
             strides.push(TaskStride::new(i));
         }
+/*
         // debug!("TASK_MANAGERL::init");
         // let num_app = get_num_app();
         // debug!("num_app is {}",num_app);
@@ -74,6 +75,7 @@ lazy_static! {
         // for i in 0..num_app{
         //     strides[i].set_task_number(i);
         // }
+*/
         TaskManager {
             num_app,
             inner: RefCell::new(TaskManagerInner {

@@ -31,6 +31,7 @@ extern "C" {
 
 //KERNEL_SPACE是每一个app有一份的
 //但是问题来了：怎么取得特定的app的KERNEL_SPACE？
+//在进程控制块里面，每一个进程都有一个对应的KERNEL_SPACE
 lazy_static! {
     pub static ref KERNEL_SPACE: Arc<Mutex<MemorySet>> = Arc::new(Mutex::new(
         MemorySet::new_kernel()
