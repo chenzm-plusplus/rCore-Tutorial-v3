@@ -12,12 +12,14 @@ fn main() -> i32 {
     let len: usize = 4096;
     let prot: usize = 3;
     assert_eq!(len as isize, mmap(start, len, prot));
+    println!("Test 04_1 map success!");
     for i in start..(start + len) {
         let mut addr: *mut u8 = i as *mut u8;
         unsafe {
             *addr = i as u8;
         }
     }
+    println!("Test 04_1 use space...");
     for i in start..(start + len) {
         let mut addr: *mut u8 = i as *mut u8;
         unsafe {
