@@ -98,8 +98,9 @@ impl PageTable {
         }
         result
     }
+    //这个函数的功能是给出虚拟地址，然后找到其物理地址
     fn find_pte(&self, vpn: VirtPageNum) -> Option<&PageTableEntry> {
-        let idxs = vpn.indexes();
+        let idxs = vpn.indexes();//说明了在页表中寻找映射的方法
         let mut ppn = self.root_ppn;
         let mut result: Option<&PageTableEntry> = None;
         for i in 0..3 {
@@ -109,7 +110,8 @@ impl PageTable {
                 break;
             }
             if !pte.is_valid() {
-                return None;
+                return None;//如果有某一个地方还没有映射，那就说明这个虚拟地址还没有映射
+                //返回值为None时，就可以建立映射关系了
             }
             ppn = pte.ppn();
         }
@@ -127,6 +129,10 @@ impl PageTable {
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
         *pte = PageTableEntry::empty();
     }
+
+    //注意，在外面调用的时候还是调用这个函数的
+    //如果这个虚拟地址已经被映射了，那么就返回pte，否则返回None
+    //所以想要建立新的映射，应该先检查地址范围内返回值是不是None，如果有一个返回值为None，那么就不能用
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.find_pte(vpn)
             .map(|pte| {pte.clone()})

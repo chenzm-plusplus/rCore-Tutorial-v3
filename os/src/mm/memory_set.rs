@@ -51,6 +51,7 @@ impl MemorySet {
         self.page_table.token()
     }
     /// Assume that no conflicts.
+    /// 假设已经分配好了物理页面，建立一个对应关系
     pub fn insert_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr, permission: MapPermission) {
         self.push(MapArea::new(
             start_va,
@@ -196,7 +197,7 @@ pub struct MapArea {
     map_type: MapType,
     map_perm: MapPermission,
 }
-
+//按照规则，一次只能分配整数个page
 impl MapArea {
     pub fn new(
         start_va: VirtAddr,
@@ -306,5 +307,6 @@ pub fn remap_test() {
         kernel_space.page_table.translate(mid_data.floor()).unwrap().executable(),
         false,
     );
+    // kernel_space.insert_framed_area();
     println!("remap_test passed!");
 }

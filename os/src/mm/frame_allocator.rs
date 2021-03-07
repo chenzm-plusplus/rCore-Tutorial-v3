@@ -36,6 +36,7 @@ trait FrameAllocator {
     fn new() -> Self;
     fn alloc(&mut self) -> Option<PhysPageNum>;
     fn dealloc(&mut self, ppn: PhysPageNum);
+    fn frame_left(&self)->usize;
 }
 
 //[current,end)左闭右开区间表示还有多少个frame未分配
@@ -83,13 +84,14 @@ impl FrameAllocator for StackFrameAllocator {
         // recycle
         self.recycled.push(ppn);
     }
-}
-
-impl StackFrameAllocator {
-    pub fn frame_left() -> usize {
-        return end - current + recycled.len();
+    fn frame_left(&self) -> usize {
+        return self.end - self.current + self.recycled.len();
     }
 }
+
+// impl StackFrameAllocator {
+    
+// }
 
 type FrameAllocatorImpl = StackFrameAllocator;
 
@@ -107,11 +109,14 @@ pub fn init_frame_allocator() {
         .init(PhysAddr::from(ekernel as usize).ceil(), PhysAddr::from(MEMORY_END).floor());
 }
 
+//问题：这个ppn是哪来的？
 pub fn frame_alloc() -> Option<FrameTracker> {
     FRAME_ALLOCATOR
         .lock()
         .alloc()
         .map(|ppn| FrameTracker::new(ppn))
+    //至于map哪个ppn，是分配方法决定的，就不需要我们管了
+    //返回的是一个物理页帧
 }
 
 //向其他模块提供public接口，知道现在还有多少个物理页帧可以分配
@@ -129,7 +134,7 @@ fn frame_dealloc(ppn: PhysPageNum) {
 pub fn frame_allocator_test() {
     let mut v: Vec<FrameTracker> = Vec::new();
     for i in 0..5 {
-        let frame = frame_alloc().unwrap();
+        let frame = frame_alloc().unwrap();//使用frame_alloc函数可以得到一个物理页帧
         println!("{:?}", frame);
         v.push(frame);
     }

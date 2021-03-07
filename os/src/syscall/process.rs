@@ -94,7 +94,5 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
     //第一，分配出有这么大的物理内存
     //第二，更新memory_set的映射规则。由于我们采用恒等映射方式，因此只要在memory_set里面插入
 
-    let number = floor(len/PAGE_SIZE) as usize;
-
-    return mmap(start, number,port);
+    return mmap(start, len, port);
 }
