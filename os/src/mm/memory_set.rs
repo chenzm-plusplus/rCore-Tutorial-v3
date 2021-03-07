@@ -286,6 +286,7 @@ impl MapArea {
         }
         return true;
     }
+    //return how much pages
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -365,9 +366,11 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
     }
 
     let mut kernel_space = KERNEL_SPACE.lock();
-    area.map(kernel_space.page_table);
-    kernel_space.areas.push(area);
+    area.map(&mut kernel_space.page_table);
 
+    let size = (usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start()) + 1 ) as isize;
+
+    kernel_space.areas.push(area);
 
     //以上合法性检查结束之后，可以直接分配。分为2步：
     //1，申请物理页面（怎么申请？申请完给谁？）
@@ -375,10 +378,10 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
 
     //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
     //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
-
+    return size;
     //2，放入map里面
 
-    return -1 as isize;
+    // return -1 as isize;
 }
 
 

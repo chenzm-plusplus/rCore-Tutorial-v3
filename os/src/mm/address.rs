@@ -142,6 +142,8 @@ impl StepByOne for VirtPageNum {
     }
 }
 
+//根据代码可以看出，这是一个左闭右闭区间
+//[start,end]
 #[derive(Copy, Clone)]
 pub struct SimpleRange<T> where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug, {
