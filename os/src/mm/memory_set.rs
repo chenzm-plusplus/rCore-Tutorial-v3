@@ -298,6 +298,21 @@ impl MapArea {
         }
         return true;
     }
+    //fine the area
+    // pub fn match_area_with_vpnrange(&mut self, range: VPNRange)->Option<&mut Self>{
+    //     if (self.vpn_range.get_start() == range.get_start()) && (self.vpn_range.get_end() == range.get_end()){
+    //         Some(self)
+    //     }else{
+    //         None
+    //     }
+    // }
+    pub fn match_area_with_vpnrange(&self, range: VPNRange)->bool{
+        if (self.vpn_range.get_start() == range.get_start()) && (self.vpn_range.get_end() == range.get_end()){
+            true
+        }else{
+            false
+        }
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -416,13 +431,30 @@ pub fn munmap(start: usize, len: usize) -> isize{
     let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
     //向上取整,表示会用到几个page
 
+    let start_va: VirtAddr = start.into();
+    let end_va: VirtAddr = (start+len).into();
+    let start_vpn: VirtPageNum = start_va.floor();
+    let end_vpn: VirtPageNum = end_va.ceil();
+
+    //这是被映射过去的maparea里面的地址范围
+    let range = VPNRange::new(start_vpn, end_vpn);
+    let size = usize::from(range.get_end()) - usize::from(range.get_start());
+    let mut kernel_space = KERNEL_SPACE.lock();
+    // let mut areas = &mut kernel_space.areas
+    for area in &mut kernel_space.areas{
+        // let area_find: Some(&mut MapArea) ;
+        match area.match_area_with_vpnrange(range){
+            true => {
+                // area_find.unmap(&mut kernel_space.areas);
+                area.unmap(&mut kernel_space.page_table);
+                return size as isize;
+            }
+            false => {}
+        }
+    }
+
     //这个地址范围是不是有人没有映射过？
     //根据代码，调用translate检查即可
-    //todo：port to mappermission
-    // let mut area = MapArea::new((start).into(),
-    //                         (start+len).into(),
-    //                         MapType::Framed,
-    //                         permission.unwrap());
     //找到已经mapped过的一个area
     //调用translate，检查是否全部能完成映射
     //只要有一个没有被映射，就说明发生了错误，要返回-1
