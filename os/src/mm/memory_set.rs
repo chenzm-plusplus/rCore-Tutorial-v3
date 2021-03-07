@@ -279,8 +279,9 @@ impl MapArea {
     pub fn not_map_check(&self)-> bool{
         let kernel_space = KERNEL_SPACE.lock();
         for vpn in self.vpn_range{
-            if kernel_space.page_table.translate(vpn).unwrap() != None{
-                return false;//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
+            match kernel_space.page_table.translate(vpn){
+                Some(FrameTracker) => return false,//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
+                _ => {}
             }
         }
         return true;
@@ -299,6 +300,19 @@ bitflags! {
         const W = 1 << 2;
         const X = 1 << 3;
         const U = 1 << 4;
+    }
+}
+
+fn convert_usize_to_permission(port: usize)->Option<MapPermission>{
+    match port{
+        1 => Some(MapPermission::R),
+        2 => Some(MapPermission::W),
+        3 => Some(MapPermission::R | MapPermission::W),
+        4 => Some(MapPermission::X),
+        5 => Some(MapPermission::X | MapPermission::R),
+        6 => Some(MapPermission::X | MapPermission::W),
+        7 => Some(MapPermission::X | MapPermission::W | MapPermission::R),
+        _ => None
     }
 }
 
@@ -332,10 +346,19 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
         return -1 as isize;
     }
 
+    let permission = convert_usize_to_permission(port);
+    match permission{
+        Some(MapPermission) => {},
+        None => return -1 as isize,
+    }
+
     //这个地址范围是不是有人已经映射过了？
     //根据代码，调用translate检查即可
     //todo：port to mappermission
-    let area = MapArea::new((start).into(),(start+len).into(),MapType::Framed,port);
+    let area = MapArea::new((start).into(),
+                            (start+len).into(),
+                            MapType::Framed,
+                            permission.unwrap());
     //调用translate，检查是否全部能完成映射
     if area.not_map_check()==false {
         return -1 as isize;

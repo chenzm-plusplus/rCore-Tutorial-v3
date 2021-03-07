@@ -130,7 +130,7 @@ impl PageTable {
         *pte = PageTableEntry::empty();
     }
 
-    //注意，在外面调用的时候还是调用这个函数的
+    //
     //如果这个虚拟地址已经被映射了，那么就返回pte，否则返回None
     //所以想要建立新的映射，应该先检查地址范围内返回值是不是None，如果有一个返回值为None，那么就不能用
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
