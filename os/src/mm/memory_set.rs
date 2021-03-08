@@ -193,6 +193,25 @@ impl MemorySet {
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
     }
+    pub fn unmap_the_chosen_area(&mut self,range: VPNRange)->isize{
+        for area in &mut self.areas{
+            // let area_find: Some(&mut MapArea) ;
+            // match area.match_area_with_vpnrange(range){
+            //     true => {
+            //         // area_find.unmap(&mut kernel_space.areas);
+            //         let size = usize::from(range.get_end()) - usize::from(range.get_start());
+            //         area.unmap(page_table);
+            //         return size as isize;
+            //     }
+            //     false => {}
+            // }
+            let size = area.unmap_the_chosen_area(&mut self.page_table,range) as isize;
+            if size != -1 {
+                return size;
+            }
+        }
+        return -1 as isize;
+    }
 }
 
 pub struct MapArea {
@@ -312,6 +331,26 @@ impl MapArea {
         }else{
             false
         }
+    }
+    pub fn unmap_the_chosen_area(&mut self,page_table: &mut PageTable,range: VPNRange)->isize{
+        if self.match_area_with_vpnrange(range){
+            self.unmap(page_table);
+            let size = usize::from(range.get_end()) - usize::from(range.get_start());
+            return size as isize;
+        }
+        // for area in self.areas{
+        //     // let area_find: Some(&mut MapArea) ;
+        //     match area.match_area_with_vpnrange(range){
+        //         true => {
+        //             // area_find.unmap(&mut kernel_space.areas);
+        //             let size = usize::from(range.get_end()) - usize::from(range.get_start());
+        //             area.unmap(&mut self.page_table);
+        //             return size as isize;
+        //         }
+        //         false => {}
+        //     }
+        // }
+        return -1 as isize;
     }
 }
 
@@ -443,17 +482,18 @@ pub fn munmap(start: usize, len: usize) -> isize{
     // let mut areas = &mut kernel_space.areas
 
     //todo：把
-    for area in &mut kernel_space.areas{
-        // let area_find: Some(&mut MapArea) ;
-        match area.match_area_with_vpnrange(range){
-            true => {
-                // area_find.unmap(&mut kernel_space.areas);
-                area.unmap(&mut kernel_space.page_table);
-                return size as isize;
-            }
-            false => {}
-        }
-    }
+    // for area in &mut kernel_space.areas{
+    //     // let area_find: Some(&mut MapArea) ;
+    //     match area.match_area_with_vpnrange(range){
+    //         true => {
+    //             // area_find.unmap(&mut kernel_space.areas);
+    //             area.unmap(&mut kernel_space.page_table);
+    //             return size as isize;
+    //         }
+    //         false => {}
+    //     }
+    // return -1 as isize;
+    // }
 
     //这个地址范围是不是有人没有映射过？
     //根据代码，调用translate检查即可
@@ -485,7 +525,8 @@ pub fn munmap(start: usize, len: usize) -> isize{
     return (size*PAGE_SIZE) as isize;
     //2，放入map里面
 */
-    return -1 as isize;
+    return kernel_space.unmap_the_chosen_area(range);
+    // return -1 as isize;
 }
 
 
