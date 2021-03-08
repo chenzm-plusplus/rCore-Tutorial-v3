@@ -441,6 +441,8 @@ pub fn munmap(start: usize, len: usize) -> isize{
     let size = usize::from(range.get_end()) - usize::from(range.get_start());
     let mut kernel_space = KERNEL_SPACE.lock();
     // let mut areas = &mut kernel_space.areas
+
+    //todo：把
     for area in &mut kernel_space.areas{
         // let area_find: Some(&mut MapArea) ;
         match area.match_area_with_vpnrange(range){
