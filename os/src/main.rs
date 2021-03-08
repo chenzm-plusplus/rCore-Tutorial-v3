@@ -40,12 +40,12 @@ pub fn rust_main() -> ! {
     println!("[kernel] Hello, world!");
     mm::init();
     println!("[kernel] back to world!");
-    mm::remap_test();
+    // mm::remap_test();
     trap::init();
     //trap::enable_interrupt();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     task::run_first_task();
-    mm::frame_allocator_test();
+    // mm::frame_allocator_test();
     panic!("Unreachable in rust_main!");
 }

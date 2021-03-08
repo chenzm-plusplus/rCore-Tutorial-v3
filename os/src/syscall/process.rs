@@ -97,7 +97,7 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
 }
 
 pub fn sys_munmap(start: usize, len: usize) -> isize{
-    debug!("sys_mmap...start = {:#x}, len = {}",start,len);
+    debug!("sys_munmap...start = {:#x}, len = {}",start,len);
     //需要做几件事：
     //1.检查数据类型是否合法：
     //- start和页对齐
