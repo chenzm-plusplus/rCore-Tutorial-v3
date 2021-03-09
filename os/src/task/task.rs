@@ -74,6 +74,18 @@ impl TaskControlBlock {
     pub fn get_priority(&self) -> usize{
         self.task_priority.get_priority()
     }
+
+    pub fn get_current_memoryset(&mut self)->&mut MemorySet{
+        &mut self.memory_set
+    }
+
+    pub fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
+        self.memory_set.mmap(start, len, port)
+    }
+
+    pub fn munmap(&mut self,start: usize, len: usize) -> isize{
+        self.memory_set.munmap(start, len)
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)]

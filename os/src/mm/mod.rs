@@ -20,8 +20,8 @@ pub use page_table::{PageTableEntry, translated_byte_buffer};
 pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
 pub use memory_set::{
     remap_test,
-    mmap,
-    munmap,
+    // mmap,
+    // munmap,
 };
 
 pub fn init() {

@@ -1,4 +1,7 @@
-use crate::mm::translated_byte_buffer;
+use crate::mm::{
+    translated_byte_buffer,
+    MemorySet,
+};
 use crate::task::current_user_token;
 
 const FD_STDOUT: usize = 1;
@@ -21,6 +24,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     // trace!("[kernel] now app {} is writing...",get_task_current());
     // trace!("call sys_write......");
     debug!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
+    // let v = translated_byte_buffer
     
     // let (left,right) = get_user_stack_space_current();
     // let (left2,right2) = get_app_address_space_current();
@@ -37,15 +41,16 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
             for buffer in buffers {
                 print!("{}", core::str::from_utf8(buffer).unwrap());
             }
+            len as isize
             
             // len as isize
             //检查地址范围，如果安全就允许输出
             // if (left<=buf as usize && right>buf as usize+len) 
             //     || (buf as usize>=left2 && buf as usize + len < right2){
-                let slice = unsafe { core::slice::from_raw_parts(buf, len) };
-                let str = core::str::from_utf8(slice).unwrap();
-                print!("{}", str);
-                len as isize
+                // let slice = unsafe { core::slice::from_raw_parts(buf, len) };
+                // let str = core::str::from_utf8(slice).unwrap();
+                // print!("{}", str);
+                // len as isize
             // }else{
             //     warn!("ILLEGAL OUTPUT");
             //     print!("{}",-1);

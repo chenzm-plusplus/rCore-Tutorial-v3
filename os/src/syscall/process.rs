@@ -3,15 +3,20 @@ use crate::task::{
     exit_current_and_run_next,
 };
 use crate::timer::{get_time,get_time_ms,TimeVal};
-use crate::task::set_task_priority;
+use crate::task::{
+    set_task_priority,
+    mmap,
+    munmap,
+};
 use crate::config::{
     ISIZI_MAX,
     PAGE_SIZE,
     MEMORY_MAP_SIZE,
 };
 use crate::mm::{
-    mmap,
-    munmap,
+    // mmap,
+    // munmap,
+    MemorySet,
 };
 
 
@@ -91,7 +96,7 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
         return -1 as isize;
     }
     //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
-    debug!("[kernel] sys_mmap...");
+    // debug!("[kernel] sys_mmap...");
 
     return mmap(start, len, port);
 }

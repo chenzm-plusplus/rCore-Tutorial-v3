@@ -10,6 +10,9 @@ use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
+use crate::mm::{
+    MemorySet,
+};
 // use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
@@ -239,6 +242,22 @@ impl TaskManager {
         let current = inner.current_task;
         inner.tasks[current].set_priority(prio);
     }
+
+    // fn get_current_memoryset(&self)->&mut MemorySet{
+    //     let mut inner = self.inner.borrow_mut();
+    //     let current = inner.current_task;
+    //     inner.tasks[current].get_current_memoryset()
+    // }
+    fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        inner.tasks[current].mmap(start, len, port)
+    }
+    fn munmap(&mut self,start: usize, len: usize) -> isize{
+        let mut inner = self.inner.borrow_mut();
+        let current = inner.current_task;
+        inner.tasks[current].munmap(start, len)
+    }
 }
 
 pub fn run_first_task() {
@@ -302,4 +321,12 @@ pub fn set_task_priority(prio:usize){
 
 pub fn get_task_priority(task:usize)->usize{
     TASK_MANAGER.get_task_priority(task)
+}
+
+pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+    TASK_MANAGER.mmap(start, len, port)
+}
+
+pub fn munmap(start: usize, len: usize) -> isize{
+    TASK_MANAGER.munmap(start, len)
 }
