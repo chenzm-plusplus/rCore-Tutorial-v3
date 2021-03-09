@@ -66,9 +66,9 @@ impl MemorySet {
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
-    pub fn my_pagetable(&mut self) ->&mut PageTable{
-        &mut self.page_table
-    }
+    // pub fn my_pagetable(&self) ->&mut PageTable{
+    //     &mut self.page_table
+    // }
     /// Assume that no conflicts.
     /// 假设已经分配好了物理页面，建立一个对应关系
     /// 这个函数只能在已经申请完空间才能调用

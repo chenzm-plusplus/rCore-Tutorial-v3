@@ -25,6 +25,9 @@ use stride::TaskStride;
 
 pub use context::TaskContext;
 
+use alloc::sync::Arc;
+use spin::Mutex;
+
 pub struct TaskManager {
     num_app: usize,
     inner: RefCell<TaskManagerInner>,
@@ -43,12 +46,18 @@ struct StrideInner{
 
 unsafe impl Sync for TaskManager {}
 
+// lazy_static! {
+//     pub static ref KERNEL_SPACE: Arc<Mutex<MemorySet>> = Arc::new(Mutex::new(
+//         MemorySet::new_kernel()
+//     ));
+// }
+
 lazy_static! {
-    pub static ref TASK_MANAGER: TaskManager = {
+    pub static ref TASK_MANAGER: Arc<Mutex<TaskManager>> = {
         println!("init TASK_MANAGER");
         let num_app = get_num_app();
         println!("num_app = {}", num_app);
-        //NOTICE: add stride initialize
+        // NOTICE: add stride initialize
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
         let mut strides: Vec<TaskStride> = Vec::new();
         for i in 0..num_app {
@@ -58,38 +67,68 @@ lazy_static! {
             ));
             strides.push(TaskStride::new(i));
         }
-/*
-        // debug!("TASK_MANAGERL::init");
-        // let num_app = get_num_app();
-        // debug!("num_app is {}",num_app);
-        // let mut tasks = [
-        //     TaskControlBlock { task_cx_ptr: 0, 
-        //                         task_status: TaskStatus::UnInit, 
-        //                         task_priority: TaskPriority::new(), 
-        //                     };
-        //     MAX_APP_NUM
-        // ];
-        // for i in 0..num_app {
-        //     debug!("i...{}",i);
-        //     tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
-        //     tasks[i].task_status = TaskStatus::Ready;
-        // }
-        // let mut strides = [TaskStride::new(); MAX_APP_NUM];
-        // for i in 0..num_app{
-        //     strides[i].set_task_number(i);
-        // }
-*/
-        TaskManager {
-            num_app,
-            inner: RefCell::new(TaskManagerInner {
-                tasks,
-                current_task: 0,
-            }),
-            inner_strides: RefCell::new(StrideInner{
-                strides,
-            })
-        }
+        Arc::new(Mutex::new(
+            TaskManager {
+                num_app,
+                inner: RefCell::new(TaskManagerInner {
+                    tasks,
+                    current_task: 0,
+                }),
+                inner_strides: RefCell::new(StrideInner{
+                    strides,
+                })
+            }
+        ))
     };
+
+    
+//     TaskManager =
+//     {
+//         println!("init TASK_MANAGER");
+//         let num_app = get_num_app();
+//         println!("num_app = {}", num_app);
+//         //NOTICE: add stride initialize
+//         let mut tasks: Vec<TaskControlBlock> = Vec::new();
+//         let mut strides: Vec<TaskStride> = Vec::new();
+//         for i in 0..num_app {
+//             tasks.push(TaskControlBlock::new(
+//                 get_app_data(i),
+//                 i,
+//             ));
+//             strides.push(TaskStride::new(i));
+//         }
+// /*
+//         // debug!("TASK_MANAGERL::init");
+//         // let num_app = get_num_app();
+//         // debug!("num_app is {}",num_app);
+//         // let mut tasks = [
+//         //     TaskControlBlock { task_cx_ptr: 0, 
+//         //                         task_status: TaskStatus::UnInit, 
+//         //                         task_priority: TaskPriority::new(), 
+//         //                     };
+//         //     MAX_APP_NUM
+//         // ];
+//         // for i in 0..num_app {
+//         //     debug!("i...{}",i);
+//         //     tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
+//         //     tasks[i].task_status = TaskStatus::Ready;
+//         // }
+//         // let mut strides = [TaskStride::new(); MAX_APP_NUM];
+//         // for i in 0..num_app{
+//         //     strides[i].set_task_number(i);
+//         // }
+// */
+//         TaskManager {
+//             num_app,
+//             inner: RefCell::new(TaskManagerInner {
+//                 tasks,
+//                 current_task: 0,
+//             }),
+//             inner_strides: RefCell::new(StrideInner{
+//                 strides,
+//             })
+//         }
+//     };
 }
 
 impl TaskManager {
@@ -248,6 +287,7 @@ impl TaskManager {
     //     let current = inner.current_task;
     //     inner.tasks[current].get_current_memoryset()
     // }
+
     fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
@@ -261,19 +301,19 @@ impl TaskManager {
 }
 
 pub fn run_first_task() {
-    TASK_MANAGER.run_first_task();
+    TASK_MANAGER.lock().run_first_task();
 }
 
 fn run_next_task() {
-    TASK_MANAGER.run_next_task();
+    TASK_MANAGER.lock().run_next_task();
 }
 
 fn mark_current_suspended() {
-    TASK_MANAGER.mark_current_suspended();
+    TASK_MANAGER.lock().mark_current_suspended();
 }
 
 fn mark_current_exited() {
-    TASK_MANAGER.mark_current_exited();
+    TASK_MANAGER.lock().mark_current_exited();
 }
 
 pub fn suspend_current_and_run_next() {
@@ -287,46 +327,47 @@ pub fn exit_current_and_run_next() {
 }
 
 pub fn current_user_token() -> usize {
-    TASK_MANAGER.get_current_token()
+    TASK_MANAGER.lock().get_current_token()
 }
 
 pub fn current_trap_cx() -> &'static mut TrapContext {
-    TASK_MANAGER.get_current_trap_cx()
+    TASK_MANAGER.lock().get_current_trap_cx()
 }
 
 pub fn get_my_num_app()->usize{
-    TASK_MANAGER.get_num_app()
+    TASK_MANAGER.lock().get_num_app()
 }
 
 // //for sys_write check
 pub fn get_task_current()->usize{
-    TASK_MANAGER.get_task_current()
+    TASK_MANAGER.lock().get_task_current()
 }
 
-// pub fn get_user_stack_space_current()->(usize,usize){
-//     get_user_stack_space(TASK_MANAGER.get_task_current())
-// }
-
-// pub fn get_app_address_space_current()-> (usize,usize){
-//     TASK_MANAGER.get_app_address_space_current()
-// }
-
-// pub fn get_task_priority_current() -> usize{
-//     TASK_MANAGER.get_task_priority_current()
-// }
-
 pub fn set_task_priority(prio:usize){
-    TASK_MANAGER.set_task_priority(prio);
+    TASK_MANAGER.lock().set_task_priority(prio);
 }
 
 pub fn get_task_priority(task:usize)->usize{
-    TASK_MANAGER.get_task_priority(task)
+    TASK_MANAGER.lock().get_task_priority(task)
 }
 
+// pub fn get_current_memoryset()->&'static mut MemorySet{
+//     TASK_MANAGER.lock().get_current_memoryset()
+// }
+
 pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-    TASK_MANAGER.mmap(start, len, port)
+    TASK_MANAGER.lock().mmap(start, len, port)
 }
 
 pub fn munmap(start: usize, len: usize) -> isize{
-    TASK_MANAGER.munmap(start, len)
+    TASK_MANAGER.lock().munmap(start, len)
 }
+
+// pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+//     // TASK_MANAGER.mmap(start, len, port)
+//     TASK_MANAGER.get_current_memoryset().mmap(start,len,port)
+// }
+
+// pub fn munmap(start: usize, len: usize) -> isize{
+//     TASK_MANAGER.get_current_memoryset().munmap(start, len)
+// }
