@@ -214,9 +214,10 @@ impl MemorySet {
     pub fn v2p(&self,va:VirtAddr)->Option<PhysAddr>{
         let vpn = va.floor();
         let page_offset = va.page_offset();
+        info!("my offset is ...{:#x}",page_offset);
         // let pte = self.translate(vpn);
         if let Some(pte) = self.translate(vpn){
-            return Some(PhysAddr((usize::from(pte.ppn())<<PAGE_SIZE_BITS + page_offset) as usize));
+            return Some(PhysAddr(((usize::from(pte.ppn())<< PAGE_SIZE_BITS) + page_offset) as usize));
         }
         return None;
     }
@@ -264,11 +265,12 @@ impl MemorySet {
     
         //这个地址范围是不是有人已经映射过了？
         //根据代码，调用translate检查即可
-        //todo：port to mappermission
+        //done：port to mappermission
+        //mmap给分配的空间都是在用户态下使用的，因此可以给U权限哦
         let mut area = MapArea::new((start).into(),
                                 (start+len).into(),
                                 MapType::Framed,
-                                permission.unwrap());
+                                permission.unwrap() | MapPermission::U);
         //调用translate，检查是否全部能完成映射
         if area.not_map_check()==false {
             return -1 as isize;
@@ -475,6 +477,8 @@ pub enum MapType {
     Identical,
     Framed,
 }
+
+//done:在MapArea这里，要给Permission加上U权限啊
 
 bitflags! {
     pub struct MapPermission: u8 {

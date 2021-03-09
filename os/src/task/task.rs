@@ -7,7 +7,8 @@ const TASK_PRIORITY_INIT:usize = 16;
 
 // #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
-    pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
+    // pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
+    pub task_cx_ptr: VirtAddr,
     pub task_status: TaskStatus,
     pub memory_set: MemorySet,
     pub trap_cx_ppn: PhysPageNum,
@@ -16,8 +17,8 @@ pub struct TaskControlBlock {
 }
 
 impl TaskControlBlock {
-    pub fn get_task_cx_ptr2(&self) -> *const usize {
-        &self.task_cx_ptr as *const usize
+    pub fn get_task_cx_ptr2(&self) -> VirtAddr{
+        self.task_cx_ptr
     }
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
@@ -43,17 +44,21 @@ impl TaskControlBlock {
                 MapPermission::R | MapPermission::W,
             );
         // let virt_task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        let virt_task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as usize;
+        let virt_task_cx_ptr = VirtAddr::from((kernel_stack_top - core::mem::size_of::<TaskContext>()) as usize);
         // pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         //     self.page_table.translate(vpn)
         // }
-        let va = VirtAddr::from(virt_task_cx_ptr); 
+        // let va = VirtAddr::from(virt_task_cx_ptr); 
+        let va = virt_task_cx_ptr;
         let pa = KERNEL_SPACE.lock().v2p(va).unwrap();
+        let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
+        let pa_bottom = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_bottom)).unwrap();
         // va.floor();
         // KERNEL_SPACE.lock().translate();
 
-        info!("kernel_stack_top is...{:#x}",kernel_stack_top);  
-        info!("virtual task_cx_ptr is...{:#x}, pn is {:#x}",virt_task_cx_ptr,usize::from(pa));
+        info!("kernel_stack_bottom is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
+        info!("kernel_stack_top is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top));  
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",usize::from(virt_task_cx_ptr),usize::from(pa));
         let task_cx_ptr = usize::from(pa) as *mut TaskContext;
         //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
         //得到一个地址，这个是实际地址
@@ -62,7 +67,8 @@ impl TaskControlBlock {
         //NOTICE
         let task_priority = TaskPriority::new();
         let task_control_block = Self {
-            task_cx_ptr: task_cx_ptr as usize,
+            // task_cx_ptr: task_cx_ptr as usize,
+            task_cx_ptr: virt_task_cx_ptr,//存的时候还是存虚拟地址......只不过每次调用都要使用实际地址
             task_status,
             memory_set,
             trap_cx_ppn,
