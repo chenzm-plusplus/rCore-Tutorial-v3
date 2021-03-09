@@ -214,7 +214,6 @@ impl MemorySet {
     pub fn v2p(&self,va:VirtAddr)->Option<PhysAddr>{
         let vpn = va.floor();
         let page_offset = va.page_offset();
-        info!("my offset is ...{:#x}",page_offset);
         // let pte = self.translate(vpn);
         if let Some(pte) = self.translate(vpn){
             return Some(PhysAddr(((usize::from(pte.ppn())<< PAGE_SIZE_BITS) + page_offset) as usize));
