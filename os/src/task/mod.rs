@@ -80,14 +80,14 @@ impl TaskManager {
         println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
-        let pa = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
+        // let pa = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
         let _unused: usize = 0;
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(pa) as usize);
+        // println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(pa) as usize);
         unsafe {
             __switch(
                 &_unused as *const _,
-                // next_task_cx_ptr2,
-                usize::from(pa) as *const usize,
+                next_task_cx_ptr2,
+                // usize::from(pa) as *const usize,
             );
         }
         println!("[kernel] first task running!");
@@ -175,17 +175,17 @@ impl TaskManager {
             inner.current_task = next;
             let current_task_cx_ptr2 = inner.tasks[current].get_task_cx_ptr2();
             // KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
-            let pa_current = KERNEL_SPACE.lock().v2p(current_task_cx_ptr2).unwrap();
+            // let pa_current = KERNEL_SPACE.lock().v2p(current_task_cx_ptr2).unwrap();
             let next_task_cx_ptr2 = inner.tasks[next].get_task_cx_ptr2();
-            let pa_next = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
+            // let pa_next = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
             //TODO: virtual to physics
             core::mem::drop(inner);
             unsafe {
                 __switch(
-                    // current_task_cx_ptr2,
-                    // next_task_cx_ptr2,
-                    usize::from(pa_current) as *const usize,
-                    usize::from(pa_next) as *const usize,
+                    current_task_cx_ptr2,
+                    next_task_cx_ptr2,
+                    // usize::from(pa_current) as *const usize,
+                    // usize::from(pa_next) as *const usize,
                 );
             }
         } else {
