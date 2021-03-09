@@ -10,9 +10,9 @@ use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
-use crate::mm::{
-    MemorySet,
-};
+// use crate::mm::{
+//     // MemorySet,
+// };
 // use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
@@ -77,15 +77,18 @@ lazy_static! {
 
 impl TaskManager {
     fn run_first_task(&self) {
+        println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
         let _unused: usize = 0;
+        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
         unsafe {
             __switch(
                 &_unused as *const _,
                 next_task_cx_ptr2,
             );
         }
+        println!("[kernel] first task running!");
     }
 
     fn mark_current_suspended(&self) {

@@ -42,8 +42,23 @@ impl TaskControlBlock {
                 kernel_stack_top.into(),
                 MapPermission::R | MapPermission::W,
             );
-        let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+        // let virt_task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
+        let virt_task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as usize;
+        // pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        //     self.page_table.translate(vpn)
+        // }
+        let va = VirtAddr::from(virt_task_cx_ptr); 
+        let pa = KERNEL_SPACE.lock().v2p(va).unwrap();
+        // va.floor();
+        // KERNEL_SPACE.lock().translate();
+
+        info!("kernel_stack_top is...{:#x}",kernel_stack_top);  
+        info!("virtual task_cx_ptr is...{:#x}, pn is {:#x}",virt_task_cx_ptr,usize::from(pa));
+        let task_cx_ptr = usize::from(pa) as *mut TaskContext;
+        //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
+        //得到一个地址，这个是实际地址
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
+        //把trap之后返回地址写进去，返回地址是在别的地方得到的
         //NOTICE
         let task_priority = TaskPriority::new();
         let task_control_block = Self {

@@ -7,7 +7,7 @@ pub struct TaskContext {
 }
 
 impl TaskContext {
-    pub fn goto_trap_return() -> Self {
+    pub fn goto_trap_return() -> Self {//这里是trap return的上下文，把返回地址写进了ra寄存器里面
         Self {
             ra: trap_return as usize,
             s: [0; 12],

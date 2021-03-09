@@ -45,6 +45,7 @@ pub fn rust_main() -> ! {
     //trap::enable_interrupt();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
+    println!("[kernel] timer trigger set");
     task::run_first_task();
     // mm::frame_allocator_test();
     panic!("Unreachable in rust_main!");

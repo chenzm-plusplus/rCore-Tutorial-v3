@@ -1,6 +1,5 @@
 use crate::mm::{
     translated_byte_buffer,
-    MemorySet,
 };
 use crate::task::current_user_token;
 

@@ -11,9 +11,10 @@ use spin::Mutex;
 use crate::config::{
     MEMORY_END,
     PAGE_SIZE,
+    PAGE_SIZE_BITS,
     TRAMPOLINE,
     TRAP_CONTEXT,
-    USER_STACK_SIZE
+    USER_STACK_SIZE,
 };
 
 extern "C" {
@@ -209,6 +210,17 @@ impl MemorySet {
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
     }
+
+    pub fn v2p(&self,va:VirtAddr)->Option<PhysAddr>{
+        let vpn = va.floor();
+        let page_offset = va.page_offset();
+        // let pte = self.translate(vpn);
+        if let Some(pte) = self.translate(vpn){
+            return Some(PhysAddr((usize::from(pte.ppn())<<PAGE_SIZE_BITS + page_offset) as usize));
+        }
+        return None;
+    }
+
     pub fn unmap_the_chosen_area(&mut self,range: VPNRange)->isize{
         for area in &mut self.areas{
             let size = area.unmap_the_chosen_area(&mut self.page_table,range) as isize;
@@ -267,7 +279,7 @@ impl MemorySet {
         // area.map(&mut kernel_space.page_table);
         area.map(&mut self.page_table);
     
-        let size = (usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start()) );
+        let size = usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start());
     
         self.areas.push(area);
     

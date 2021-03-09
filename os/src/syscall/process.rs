@@ -2,7 +2,11 @@ use crate::task::{
     suspend_current_and_run_next,
     exit_current_and_run_next,
 };
-use crate::timer::{get_time,get_time_ms,TimeVal};
+use crate::timer::{
+    // get_time,
+    get_time_ms,
+    TimeVal
+};
 use crate::task::{
     set_task_priority,
     mmap,
@@ -13,11 +17,10 @@ use crate::config::{
     PAGE_SIZE,
     MEMORY_MAP_SIZE,
 };
-use crate::mm::{
-    // mmap,
-    // munmap,
-    MemorySet,
-};
+// use crate::mm::{
+//     // mmap,
+//     // munmap,
+// };
 
 
 pub fn sys_exit(exit_code: i32) -> ! {

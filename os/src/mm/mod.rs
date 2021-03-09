@@ -4,9 +4,9 @@ mod frame_allocator;
 mod page_table;
 mod memory_set;
 
-use crate::config::{
-    PAGE_SIZE,
-};
+// use crate::config::{
+//     PAGE_SIZE,
+// };
 use page_table::{PageTable, PTEFlags};
 use address::{VPNRange, StepByOne};
 pub use address::{PhysAddr, VirtAddr, PhysPageNum, VirtPageNum};

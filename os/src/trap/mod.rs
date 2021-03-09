@@ -19,16 +19,10 @@ use crate::task::{
     current_user_token,
     // current_trap_cx,
     TASK_MANAGER,
-    TaskManager,
     get_task_current,
-    get_my_num_app,
 };
 use crate::timer::set_next_trigger;
 use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
-
-//     get_task_current,
-//     get_my_num_app,
-// };
 // use crate::timer::set_next_trigger;
 // use crate::timer::{get_time,get_time_ms};
 // use crate::config::MAX_RUN_TIME_MS;
@@ -82,13 +76,9 @@ pub fn trap_handler() -> ! {
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
             trace!("trap_handler::Exception::SupervisorTimer");
-            //TEMP::先检查是否已经超过了规定的时间
-            // if get_time_ms()>MAX_RUN_TIME_MS*get_my_num_app(){
-            //     panic!("[kernel] Run toooooooo loooooooong time!");
-            // }
             set_next_trigger();//先重新设置一个 10ms 的计时器
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
-            trace!("[kernel] now app {} is running...",get_task_current());
+            info!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
             println!("[kernel] Upsupported trap of app {}", get_task_current());
