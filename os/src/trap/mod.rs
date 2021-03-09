@@ -17,7 +17,9 @@ use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
     current_user_token,
-    current_trap_cx,
+    // current_trap_cx,
+    TASK_MANAGER,
+    TaskManager,
     get_task_current,
     get_my_num_app,
 };
@@ -55,8 +57,12 @@ pub fn enable_timer_interrupt() {
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
+    debug!("in trap_handler......");
     set_kernel_trap_entry();
-    let cx = current_trap_cx();
+    // 
+    let tm = TASK_MANAGER.lock();
+    // let cx = current_trap_cx();
+    let cx = tm.get_current_trap_cx();
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
@@ -90,6 +96,7 @@ pub fn trap_handler() -> ! {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
+    drop(tm);
     trap_return();
 }
 

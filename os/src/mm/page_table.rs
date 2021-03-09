@@ -80,10 +80,12 @@ impl PageTable {
     /// 注意在更新页表项的时候，不仅要更新物理页号，还要将标志位 V 置 1， 
     /// 不然硬件在查多级页表的时候，会认为这个页表项不合法，从而触发 Page Fault 而不能向下走。
     fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+        debug!("Pagetable::find_pte_create...token is {:#x}, vpn is {:#x}", self.token(), usize::from(vpn));
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&mut PageTableEntry> = None;
         for i in 0..3 {
+            // debug!("i is {}",i);
             let pte = &mut ppn.get_pte_array()[idxs[i]];
             if i == 2 {
                 result = Some(pte);
@@ -96,6 +98,7 @@ impl PageTable {
             }
             ppn = pte.ppn();
         }
+        // debug!("resule is...");
         result
     }
     //这个函数的功能是给出虚拟地址，然后找到其物理地址
@@ -119,14 +122,14 @@ impl PageTable {
     }
     #[allow(unused)]
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
-        debug!("mapping...vpn is {:#x}, ppn is {:#x}",usize::from(vpn), usize::from(ppn));
+        debug!("Pagetable::mapping...token is {:#x} \n vpn is {:#x}, ppn is {:#x}",self.token(), usize::from(vpn), usize::from(ppn));
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
     #[allow(unused)]
     pub fn unmap(&mut self, vpn: VirtPageNum) {
-        debug!("unmapping...vpn is {:#x}",usize::from(vpn));
+        debug!("Pagetable::unmapping...token is {:#x} \n vpn is {:#x}",self.token(),usize::from(vpn));
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
         *pte = PageTableEntry::empty();

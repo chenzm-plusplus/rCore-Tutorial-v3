@@ -40,17 +40,10 @@ struct TaskManagerInner {
 }
 
 struct StrideInner{
-    // strides: [TaskStride; MAX_APP_NUM],
     strides: Vec<TaskStride>,
 }
 
 unsafe impl Sync for TaskManager {}
-
-// lazy_static! {
-//     pub static ref KERNEL_SPACE: Arc<Mutex<MemorySet>> = Arc::new(Mutex::new(
-//         MemorySet::new_kernel()
-//     ));
-// }
 
 lazy_static! {
     pub static ref TASK_MANAGER: Arc<Mutex<TaskManager>> = {
@@ -80,55 +73,6 @@ lazy_static! {
             }
         ))
     };
-
-    
-//     TaskManager =
-//     {
-//         println!("init TASK_MANAGER");
-//         let num_app = get_num_app();
-//         println!("num_app = {}", num_app);
-//         //NOTICE: add stride initialize
-//         let mut tasks: Vec<TaskControlBlock> = Vec::new();
-//         let mut strides: Vec<TaskStride> = Vec::new();
-//         for i in 0..num_app {
-//             tasks.push(TaskControlBlock::new(
-//                 get_app_data(i),
-//                 i,
-//             ));
-//             strides.push(TaskStride::new(i));
-//         }
-// /*
-//         // debug!("TASK_MANAGERL::init");
-//         // let num_app = get_num_app();
-//         // debug!("num_app is {}",num_app);
-//         // let mut tasks = [
-//         //     TaskControlBlock { task_cx_ptr: 0, 
-//         //                         task_status: TaskStatus::UnInit, 
-//         //                         task_priority: TaskPriority::new(), 
-//         //                     };
-//         //     MAX_APP_NUM
-//         // ];
-//         // for i in 0..num_app {
-//         //     debug!("i...{}",i);
-//         //     tasks[i].task_cx_ptr = init_app_cx(i) as * const _ as usize;
-//         //     tasks[i].task_status = TaskStatus::Ready;
-//         // }
-//         // let mut strides = [TaskStride::new(); MAX_APP_NUM];
-//         // for i in 0..num_app{
-//         //     strides[i].set_task_number(i);
-//         // }
-// */
-//         TaskManager {
-//             num_app,
-//             inner: RefCell::new(TaskManagerInner {
-//                 tasks,
-//                 current_task: 0,
-//             }),
-//             inner_strides: RefCell::new(StrideInner{
-//                 strides,
-//             })
-//         }
-//     };
 }
 
 impl TaskManager {
@@ -173,7 +117,7 @@ impl TaskManager {
         inner.tasks[current].get_user_token()
     }
 
-    fn get_current_trap_cx(&self) -> &mut TrapContext {
+    pub fn get_current_trap_cx(&self) -> &mut TrapContext {
         let inner = self.inner.borrow();
         let current = inner.current_task;
         inner.tasks[current].get_trap_cx()
@@ -185,19 +129,10 @@ impl TaskManager {
         let inner = self.inner.borrow();
         let current = inner.current_task;
         //修改调度算法，返回不同的值
-        /*
-        为每个进程设置一个当前 stride，表示该进程当前已经运行的“长度”。
-        另外设置其对应的 pass 值（只与进程的优先权有关系），表示对应进程在调度后，stride 需要进行的累加值。
-        每次需要调度时，从当前 runnable 态的进程中选择 stride 最小的进程调度。对于获得调度的进程 P，将对应的 stride 加上其对应的步长 pass。
-        一个时间片后，回到上一步骤，重新调度当前 stride 最小的进程。
-        */
-        //获得下一个替换的进程
-        //在状态为ready的进程当中，寻找sstride最小的进行进行调度
-        // (current + 1..current + self.num_app + 1)
-        //     .map(|id| id % self.num_app)
-        //     .find(|id| {
-        //         inner.tasks[*id].task_status == TaskStatus::Ready
-        //     })
+        // 为每个进程设置一个当前 stride，表示该进程当前已经运行的“长度”。
+        // 另外设置其对应的 pass 值（只与进程的优先权有关系），表示对应进程在调度后，stride 需要进行的累加值。
+        // 每次需要调度时，从当前 runnable 态的进程中选择 stride 最小的进程调度。对于获得调度的进程 P，将对应的 stride 加上其对应的步长 pass。
+        // 一个时间片后，回到上一步骤，重新调度当前 stride 最小的进程。
         //遍历一遍所有进程
         //查找Ready且stride最小的，对这个进程++
         //也可以是当前进程
@@ -216,10 +151,10 @@ impl TaskManager {
             }
         }
         if min_task == self.num_app{
-            // debug!("find no task...");
+            info!("find no task...");
             None
         }else{
-            debug!("find next task...{}, stride is {}",min_task,inner_strides.strides[min_task].get_my_stride());
+            info!("find next task...{}, stride is {}",min_task,inner_strides.strides[min_task].get_my_stride());
             inner_strides.strides[min_task].run_me();
             Some(min_task)
         }
@@ -330,9 +265,13 @@ pub fn current_user_token() -> usize {
     TASK_MANAGER.lock().get_current_token()
 }
 
-pub fn current_trap_cx() -> &'static mut TrapContext {
-    TASK_MANAGER.lock().get_current_trap_cx()
-}
+// pub fn current_trap_cx() -> &'static mut TrapContext {
+//     TASK_MANAGER.lock().get_current_trap_cx()
+// }
+// pub fn current_trap_cx() -> &'static mut TrapContext {
+//     let tm = TASK_MANAGER.lock();
+//     tm.get_current_trap_cx()
+// }
 
 pub fn get_my_num_app()->usize{
     TASK_MANAGER.lock().get_num_app()
