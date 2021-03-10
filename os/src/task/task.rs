@@ -8,7 +8,7 @@ const TASK_PRIORITY_INIT:usize = 16;
 // #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
     // pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
-    pub task_cx_ptr: usize,
+    pub task_cx_ptr: VirtAddr,
     pub task_status: TaskStatus,
     pub memory_set: MemorySet,
     pub trap_cx_ppn: PhysPageNum,
@@ -17,8 +17,8 @@ pub struct TaskControlBlock {
 }
 
 impl TaskControlBlock {
-    pub fn get_task_cx_ptr2(&self) -> *const usize{
-        &self.task_cx_ptr as *const usize
+    pub fn get_task_cx_ptr2(&self) -> VirtAddr{
+        self.task_cx_ptr
     }
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
@@ -44,7 +44,7 @@ impl TaskControlBlock {
                 MapPermission::R | MapPermission::W,
             );
         let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        // let virt_task_cx_ptr = VirtAddr::from((kernel_stack_top - core::mem::size_of::<TaskContext>()) as usize);
+        let virt_task_cx_ptr = VirtAddr::from(task_cx_ptr as usize);
         let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(task_cx_ptr as usize)).unwrap();
         let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
         let pa_bottom = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_bottom)).unwrap();
@@ -63,7 +63,7 @@ impl TaskControlBlock {
         let task_priority = TaskPriority::new();
         let task_control_block = Self {
             // task_cx_ptr: task_cx_ptr as usize,
-            task_cx_ptr: task_cx_ptr as usize,//存的时候还是存虚拟地址......只不过每次调用都要使用实际地址
+            task_cx_ptr: virt_task_cx_ptr,//存的时候还是存虚拟地址......只不过每次调用都要使用实际地址
             task_status,
             memory_set,
             trap_cx_ppn,
@@ -80,8 +80,8 @@ impl TaskControlBlock {
             kernel_stack_top,
             trap_handler as usize,
         );
-        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
-        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",usize::from(task_control_block.task_cx_ptr) as usize,usize::from(pa));
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",usize::from(task_control_block.get_task_cx_ptr2()) as usize,usize::from(pa));
         task_control_block
     }
 

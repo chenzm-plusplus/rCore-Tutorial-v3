@@ -80,14 +80,16 @@ impl TaskManager {
         println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
-        // let pa = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
+        let pa = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
         //TODO!奇怪了，明明构造函数里面，给存的就是虚拟地址啊？为什么这里print出来竟然是物理地址了
         let _unused: usize = 0;
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
+        println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(next_task_cx_ptr2) as usize);
+        println!("[kernel] next_task_cx_ptr2_pa is {:#x}",usize::from(pa) as usize);
+        println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(next_task_cx_ptr2) as *const usize as usize);
         unsafe {
             __switch(
                 &_unused as *const _,
-                next_task_cx_ptr2,
+                usize::from(next_task_cx_ptr2) as *const usize,
                 // usize::from(pa) as *const usize,
             );
         }
@@ -183,10 +185,10 @@ impl TaskManager {
             core::mem::drop(inner);
             unsafe {
                 __switch(
-                    current_task_cx_ptr2,
-                    next_task_cx_ptr2,
-                    // usize::from(pa_current) as *const usize,
-                    // usize::from(pa_next) as *const usize,
+                    // current_task_cx_ptr2,
+                    // next_task_cx_ptr2,
+                    usize::from(current_task_cx_ptr2) as *const usize,
+                    usize::from(next_task_cx_ptr2) as *const usize,
                 );
             }
         } else {
