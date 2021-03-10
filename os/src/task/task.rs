@@ -48,6 +48,7 @@ impl TaskControlBlock {
         let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(task_cx_ptr as usize)).unwrap();
         let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
         let pa_bottom = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_bottom)).unwrap();
+        //很多个app的top发现物理地址是0，这是正常现象。
 
         info!("kernel_stack_bottom is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
         info!("kernel_stack_top is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top));  
@@ -56,6 +57,7 @@ impl TaskControlBlock {
         //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
         //得到一个地址，这个是实际地址
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",task_cx_ptr as usize,usize::from(pa));
         //把trap之后返回地址写进去，返回地址是在别的地方得到的
         //NOTICE
         let task_priority = TaskPriority::new();
@@ -78,6 +80,8 @@ impl TaskControlBlock {
             kernel_stack_top,
             trap_handler as usize,
         );
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
+        info!("virtual task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
         task_control_block
     }
 
