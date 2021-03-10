@@ -13,6 +13,10 @@ use alloc::vec::Vec;
 use crate::mm::{
     KERNEL_SPACE,
 };
+use crate::mm::{
+    VirtAddr,
+    PhysPageNum,
+};
 // use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
@@ -79,18 +83,19 @@ impl TaskManager {
     fn run_first_task(&self) {
         println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
-        let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2();
-        let pa = KERNEL_SPACE.lock().v2p(next_task_cx_ptr2).unwrap();
+        let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2_usize() as *mut usize;
+        let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(next_task_cx_ptr2 as usize)).unwrap();
         //TODO!奇怪了，明明构造函数里面，给存的就是虚拟地址啊？为什么这里print出来竟然是物理地址了
         let _unused: usize = 0;
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(next_task_cx_ptr2) as usize);
+        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
         println!("[kernel] next_task_cx_ptr2_pa is {:#x}",usize::from(pa) as usize);
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",usize::from(next_task_cx_ptr2) as *const usize as usize);
+        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as *const usize as usize);
         unsafe {
             __switch(
                 &_unused as *const _,
-                usize::from(next_task_cx_ptr2) as *const usize,
+                // usize::from(next_task_cx_ptr2) as *const usize,
                 // usize::from(pa) as *const usize,
+                next_task_cx_ptr2,
             );
         }
         println!("[kernel] first task running!");
@@ -125,7 +130,7 @@ impl TaskManager {
         inner.tasks[current].get_user_token()
     }
 
-    pub fn get_current_trap_cx(&self) -> &mut TrapContext {
+    pub fn get_current_trap_cx(&self) -> &mut TrapContext{
         let inner = self.inner.borrow();
         let current = inner.current_task;
         inner.tasks[current].get_trap_cx()
@@ -185,10 +190,10 @@ impl TaskManager {
             core::mem::drop(inner);
             unsafe {
                 __switch(
-                    // current_task_cx_ptr2,
-                    // next_task_cx_ptr2,
-                    usize::from(current_task_cx_ptr2) as *const usize,
-                    usize::from(next_task_cx_ptr2) as *const usize,
+                    current_task_cx_ptr2,
+                    next_task_cx_ptr2,
+                    // usize::from(current_task_cx_ptr2) as *const usize,
+                //    next_task_cx_ptr2) as *const usize,
                 );
             }
         } else {

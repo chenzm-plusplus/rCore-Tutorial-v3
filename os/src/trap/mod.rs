@@ -19,6 +19,7 @@ use crate::task::{
     current_user_token,
     // current_trap_cx,
     TASK_MANAGER,
+    TaskContext,
     get_task_current,
 };
 use crate::timer::set_next_trigger;
@@ -57,6 +58,7 @@ pub fn trap_handler() -> ! {
     let tm = TASK_MANAGER.lock();
     // let cx = current_trap_cx();
     let cx = tm.get_current_trap_cx();
+
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {

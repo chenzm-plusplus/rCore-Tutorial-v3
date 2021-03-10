@@ -221,6 +221,16 @@ impl MemorySet {
         return None;
     }
 
+    // pub fn p2v(&self,pa:PhysAddr)->Option<VirtAddr>{
+    //     let ppn = pa.floor();
+    //     let page_offset = pa.page_offset();
+    //     // let pte = self.translate(vpn);
+    //     if let Some(pte) = self.translate(vpn){
+    //         return Some(PhysAddr(((usize::from(pte.ppn())<< PAGE_SIZE_BITS) + page_offset) as usize));
+    //     }
+    //     return None;
+    // }
+
     pub fn unmap_the_chosen_area(&mut self,range: VPNRange)->isize{
         for area in &mut self.areas{
             let size = area.unmap_the_chosen_area(&mut self.page_table,range) as isize;
