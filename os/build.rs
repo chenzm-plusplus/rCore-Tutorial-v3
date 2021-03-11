@@ -6,9 +6,9 @@ fn main() {
     println!("cargo:rerun-if-changed={}", TARGET_PATH);
     insert_app_data().unwrap();
 }
-//本文件目录：project/rCore-tutorial-v3/os/build.rs
-//我本人把测试用例放在：
-// project/rCore_turorial_tests/
+//本文件目录：my_rust_projects/rCore-tutorial-v3/os/build.rs
+//我本人把测试用例仓库放在：
+// my_rust_projects/rCore_turorial_tests/
 //请根据自己的实际情况进行修改
 
 // static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
@@ -20,7 +20,7 @@ static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/target/riscv64gc-unk
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
-    let mut apps: Vec<_> = read_dir("../user/src/bin4")//这个路径的意思是：我这次要测试哪些用户程序运行的结果？
+    let mut apps: Vec<_> = read_dir("../user/src/bin")//这个路径的意思是：我这次要测试哪些用户程序运行的结果？
     //把这些程序的rs文件放在这个文件夹下面
     // let mut apps: Vec<_> = read_dir("../../rCore_tutorial_tests/user/build/elf/")
         .unwrap()

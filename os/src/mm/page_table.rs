@@ -37,7 +37,7 @@ impl PageTableEntry {
     pub fn ppn(&self) -> PhysPageNum {
         (self.bits >> 10 & ((1usize << 44) - 1)).into()
     }
-    pub fn flags(&self) -> PTEFlags {
+    pub fn flags(&self) -> PTEFlags {//页表的低8位是flags
         PTEFlags::from_bits(self.bits as u8).unwrap()
     }
     pub fn is_valid(&self) -> bool {
