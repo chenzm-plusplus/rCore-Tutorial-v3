@@ -84,6 +84,12 @@ impl TaskManager {
         println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2_usize() as *mut usize;
+        //TODO:检查这里的函数返回地址
+        unsafe{
+            let task_cx_ptr = next_task_cx_ptr2 as *mut TaskContext;
+            info!("[kernel]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
+            usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); 
+        }
         let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(next_task_cx_ptr2 as usize)).unwrap();
         //TODO!奇怪了，明明构造函数里面，给存的就是虚拟地址啊？为什么这里print出来竟然是物理地址了
         let _unused: usize = 0;
