@@ -65,13 +65,9 @@ impl MemorySet {
         }
     }
     pub fn token(&self) -> usize {
-        // println!("[kernel] MemorySet::token is {:#x}",self.page_table.token());
         self.page_table.token()
     }
-    // pub fn my_pagetable(&self) ->&mut PageTable{
-    //     &mut self.page_table
-    // }
-    /// Assume that no conflicts.
+
     /// 假设已经分配好了物理页面，建立一个对应关系
     /// 这个函数只能在已经申请完空间才能调用
     pub fn insert_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr, permission: MapPermission) {
@@ -222,16 +218,6 @@ impl MemorySet {
         return None;
     }
 
-    // pub fn p2v(&self,pa:PhysAddr)->Option<VirtAddr>{
-    //     let ppn = pa.floor();
-    //     let page_offset = pa.page_offset();
-    //     // let pte = self.translate(vpn);
-    //     if let Some(pte) = self.translate(vpn){
-    //         return Some(PhysAddr(((usize::from(pte.ppn())<< PAGE_SIZE_BITS) + page_offset) as usize));
-    //     }
-    //     return None;
-    // }
-
     pub fn unmap_the_chosen_area(&mut self,range: VPNRange)->isize{
         for area in &mut self.areas{
             let size = area.unmap_the_chosen_area(&mut self.page_table,range) as isize;
@@ -288,10 +274,7 @@ impl MemorySet {
             println!("[kernel] have mapped!");
             return -1 as isize;
         }
-    
-        // let mut kernel_space = KERNEL_SPACE.lock();
-        // let mut my_space = 
-        // area.map(&mut kernel_space.page_table);
+
         area.map(&mut self.page_table);
     
         let size = usize::from(area.vpn_range.get_end()) - usize::from(area.vpn_range.get_start());
@@ -438,22 +421,10 @@ impl MapArea {
     //而是寻找当前的页表是否有映射。。。
     pub fn not_map_check(&self,page_table: &PageTable)-> bool{
         self.print_range();
-        // for vpn in self.vpn_range{
-        //     info!("[kernel] vpn is {:#x}",usize::from(vpn));
-        //     match kernel_space.page_table.translate(vpn){
-        //         Some(PageTableEntry) => {
-        //             warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte));
-        //             return false
-        //         },//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
-        //         _ => {}
-        //     }
-        // }
         for vpn in self.vpn_range{
-            // info!("[kernel] vpn is {:#x}",usize::from(vpn));
             if let Some(pte) = page_table.translate(vpn){
                 if pte.is_valid(){
                     warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte.ppn()));
-                    // println!("{}",pte.is_valid());
                     return false
                 }
             }
@@ -471,14 +442,6 @@ impl MapArea {
         }
         return true;
     }
-    //fine the area
-    // pub fn match_area_with_vpnrange(&mut self, range: VPNRange)->Option<&mut Self>{
-    //     if (self.vpn_range.get_start() == range.get_start()) && (self.vpn_range.get_end() == range.get_end()){
-    //         Some(self)
-    //     }else{
-    //         None
-    //     }
-    // }
     pub fn match_area_with_vpnrange(&self, range: VPNRange)->bool{
         if (self.vpn_range.get_start() == range.get_start()) && (self.vpn_range.get_end() == range.get_end()){
             true
@@ -492,18 +455,6 @@ impl MapArea {
             let size = usize::from(range.get_end()) - usize::from(range.get_start());
             return size as isize;
         }
-        // for area in self.areas{
-        //     // let area_find: Some(&mut MapArea) ;
-        //     match area.match_area_with_vpnrange(range){
-        //         true => {
-        //             // area_find.unmap(&mut kernel_space.areas);
-        //             let size = usize::from(range.get_end()) - usize::from(range.get_start());
-        //             area.unmap(&mut self.page_table);
-        //             return size as isize;
-        //         }
-        //         false => {}
-        //     }
-        // }
         return -1 as isize;
     }
 }
@@ -524,30 +475,6 @@ bitflags! {
         const U = 1 << 4;
     }
 }
-
-
-/// 接口：fn mmap(start: usize, len: usize, port: usize) -> isize
-/// 在系统调用处已经进行了数据合法性检查，因此在这里可以直接进行分配
-/// start：开始地址
-/// number：要分配几个page
-/// port：读写权限
-// pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-//     //要检查的内容：
-//     //1. 物理内存还够用吗
-//     //2. 这个地址范围内是不是有哪些已经被映射过了
-
-//     return (size*PAGE_SIZE) as isize;
-//     //2，放入map里面
-// }
-
-// /// 接口：fn unmmap(start: usize, len: usize) -> isize
-// /// 在系统调用处已经进行了数据合法性检查，因此在这里可以直接进行分配
-// /// start：开始地址
-// /// number：要分配几个page
-// pub fn munmap(start: usize, len: usize) -> isize{
-//     return kernel_space.unmap_the_chosen_area(range);
-// }
-
 
 #[allow(unused)]
 pub fn remap_test() {
