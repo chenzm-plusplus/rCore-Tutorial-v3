@@ -124,11 +124,14 @@ impl PageTable {
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) ->bool{
         debug!("Pagetable::mapping...token is {:#x} \n vpn is {:#x}, ppn is {:#x}",self.token(), usize::from(vpn), usize::from(ppn));
         let pte = self.find_pte_create(vpn).unwrap();
-        assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
-        // if !pte.is_valid(){
+        // if (!pte.is_valid()){
+        //     并不能这样魔改，还必须退出······但是发现我设置的检查remap机制竟然没有发挥作用。怎么回事？？？
+        // 问题：为什么这里发现页表是已经not-valid的，就能说明之前map过了？
+        // 因为create函数无论如何都会返回一个pte的。如果是新创建的自然不会有问题，一定是valid的。
         //     println!("[kernel] vpn {:?} is mapped before mapping", vpn);
         //     return false;
         // }
+        assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
         return true;
     }

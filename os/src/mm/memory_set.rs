@@ -282,8 +282,9 @@ impl MemorySet {
                                 MapType::Framed,
                                 permission.unwrap() | MapPermission::U);
                                 
+        area.print_range();
         //调用translate，检查是否全部能完成映射
-        if area.not_map_check()==false {
+        if area.not_map_check(&self.page_table)==false {
             println!("[kernel] have mapped!");
             return -1 as isize;
         }
@@ -425,13 +426,36 @@ impl MapArea {
             current_vpn.step();
         }
     }
+    //print range
+    pub fn print_range(&self) {
+        info!("[kernel] MapArea::range  ({:#x},{:#x})",
+            usize::from(self.vpn_range.get_start()),
+            usize::from(self.vpn_range.get_end())
+        );
+    }
     //check if has mapped...
-    pub fn not_map_check(&self)-> bool{
-        let kernel_space = KERNEL_SPACE.lock();
+    //找到问题了！这里不是应该寻找kernel space的页表
+    //而是寻找当前的页表是否有映射。。。
+    pub fn not_map_check(&self,page_table: &PageTable)-> bool{
+        self.print_range();
+        // for vpn in self.vpn_range{
+        //     info!("[kernel] vpn is {:#x}",usize::from(vpn));
+        //     match kernel_space.page_table.translate(vpn){
+        //         Some(PageTableEntry) => {
+        //             warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte));
+        //             return false
+        //         },//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
+        //         _ => {}
+        //     }
+        // }
         for vpn in self.vpn_range{
-            match kernel_space.page_table.translate(vpn){
-                Some(FrameTracker) => return false,//只要有一个虚拟地址已经被映射了，那么就发生错误，报错返回
-                _ => {}
+            // info!("[kernel] vpn is {:#x}",usize::from(vpn));
+            if let Some(pte) = page_table.translate(vpn){
+                if pte.is_valid(){
+                    warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte.ppn()));
+                    // println!("{}",pte.is_valid());
+                    return false
+                }
             }
         }
         return true;
