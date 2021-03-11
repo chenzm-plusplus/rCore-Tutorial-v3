@@ -109,23 +109,23 @@ lazy_static! {
 
 impl TaskManager {
     fn run_first_task(&self) {
-        println!("[kernel] run first task...");
+        // println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2() as *mut usize;
         //TODO:检查这里的函数返回地址
-        unsafe{
-            let task_cx_ptr = *next_task_cx_ptr2 as *mut TaskContext;
-            info!("[kernel]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
-            usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); 
-        }
+        // unsafe{
+        //     let task_cx_ptr = *next_task_cx_ptr2 as *mut TaskContext;
+        //     // info!("[kernel]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
+        //     // usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); 
+        // }
         let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(next_task_cx_ptr2 as usize)).unwrap();
         //TODO!奇怪了，明明构造函数里面，给存的就是虚拟地址啊？为什么这里print出来竟然是物理地址了
         let _unused: usize = 0;
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
-        println!("[kernel] next_task_cx_ptr2_pa is {:#x}",usize::from(pa) as usize);
+        // println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
+        // println!("[kernel] next_task_cx_ptr2_pa is {:#x}",usize::from(pa) as usize);
         // println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as *const usize as usize);
         unsafe { 
-            println!("[kernel] __switch( {:#x}, {:#x})",&_unused as *const _ as usize, next_task_cx_ptr2 as usize);
+            // println!("[kernel] __switch( {:#x}, {:#x})",&_unused as *const _ as usize, next_task_cx_ptr2 as usize);
             //在进入之前好像还什么问题也没有。
             //怎么回事，似乎是进入__switch函数了但是又没有在断电处停下。
             __switch(
@@ -162,10 +162,10 @@ impl TaskManager {
     }
 */
     fn get_current_token(&self) -> usize {
-        println!("[kernel] TaskManager::token");
+        // println!("[kernel] TaskManager::token");
         let inner = self.inner.borrow();
         let current = inner.current_task;
-        println!("[kernel] TaskManager::token is {:#x}",inner.tasks[current].get_user_token());
+        // println!("[kernel] TaskManager::token is {:#x}",inner.tasks[current].get_user_token());
         inner.tasks[current].get_user_token()
     }
 
@@ -176,7 +176,7 @@ impl TaskManager {
     }
 
     ///!!!
-    fn find_next_TaskStride(&self) -> Option<usize> {
+    fn find_next_task_stride(&self) -> Option<usize> {
         trace!("in find next task stride...");
         let inner = self.inner.borrow();
         let current = inner.current_task;
@@ -214,7 +214,7 @@ impl TaskManager {
 
     fn run_next_task(&self) {
         trace!("run_next_task......");
-        if let Some(next) = self.find_next_TaskStride() {
+        if let Some(next) = self.find_next_task_stride() {
             trace!("next task is....{}",next);
             let mut inner = self.inner.borrow_mut();
             let current = inner.current_task;
@@ -320,7 +320,7 @@ pub fn exit_current_and_run_next() {
 }
 
 pub fn current_user_token() -> usize {
-    println!("[kernel] task::mod current_user_token");
+    // println!("[kernel] task::mod current_user_token");
     TASK_MANAGER.get_current_token()
 }
 

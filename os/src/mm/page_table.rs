@@ -121,18 +121,28 @@ impl PageTable {
         result
     }
     #[allow(unused)]
-    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) ->bool{
         debug!("Pagetable::mapping...token is {:#x} \n vpn is {:#x}, ppn is {:#x}",self.token(), usize::from(vpn), usize::from(ppn));
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(!pte.is_valid(), "vpn {:?} is mapped before mapping", vpn);
+        // if !pte.is_valid(){
+        //     println!("[kernel] vpn {:?} is mapped before mapping", vpn);
+        //     return false;
+        // }
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
+        return true;
     }
     #[allow(unused)]
-    pub fn unmap(&mut self, vpn: VirtPageNum) {
+    pub fn unmap(&mut self, vpn: VirtPageNum) ->bool{
         debug!("Pagetable::unmapping...token is {:#x} \n vpn is {:#x}",self.token(),usize::from(vpn));
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
+        // if pte.is_valid(){
+        //     println!("[kernel] vpn {:?} is invalid before unmapping", vpn);
+        //     return false;
+        // }
         *pte = PageTableEntry::empty();
+        return true;
     }
 
     //
@@ -142,8 +152,9 @@ impl PageTable {
         self.find_pte(vpn)
             .map(|pte| {pte.clone()})
     }
+    //注意！这里的token给出的并不是物理页号啊······
     pub fn token(&self) -> usize {
-        println!("[kernel] PageTable::token is {:#x}",8usize << 60 | self.root_ppn.0);
+        // println!("[kernel] PageTable::token is {:#x}",8usize << 60 | self.root_ppn.0);
         8usize << 60 | self.root_ppn.0
     }
 }

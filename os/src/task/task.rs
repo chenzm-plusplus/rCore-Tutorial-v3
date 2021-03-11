@@ -69,18 +69,16 @@ impl TaskControlBlock {
 
         info!("kernel_stack_bottom  is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
         info!("kernel_stack_top     is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top)); 
-        info!("task_cx_ptr is...{:#x}",task_cx_ptr as usize); 
+        // info!("task_cx_ptr is...{:#x}",task_cx_ptr as usize); 
         //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
         //得到一个地址，这个似乎也是虚拟地址，只不过OS启动的时候建立了分页机制，先给物理地址进行了一一对应的自映射
         //所以这个0x80xxxxxx也可以当成虚拟地址来看
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
         //这里的ra是物理地址。是因为产生trap的时候，是要进入S态进行处理的，所以返回地址确实必须是真实的物理地址（？？？）
 
-        unsafe {
-            info!("[trap_return]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
-            usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); }
-        // unsafe{let pa_ra = KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap();
-        // info!("2,task_cx_ptr is...{:#x},pa_ra is {:#x}",task_cx_ptr as usize,usize::from(pa_ra));}
+        // unsafe {
+        //     info!("[trap_return]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
+        //     usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); }
         //把trap之后返回地址写进去，返回地址是在别的地方得到的
         //NOTICE
         let task_priority = TaskPriority::new();
@@ -106,11 +104,10 @@ impl TaskControlBlock {
         //破案了！！！原来这个函数返回的是物理地址啊！！！！！
         //TODO:明天要搞清楚的问题是，到底什么时候返回物理地址什么时候返回虚拟地址？
         //S态trap的过程
-        info!("3,task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
-        info!("4,task_cx_ptr_2 is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
+        // info!("3,task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
+        // info!("4,task_cx_ptr_2 is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
         //感觉不管返回ptr还是ptr2都没有什么区别啊，因为执行了地址转换之后都在同一个物理地址上
-        info!("trap cx ppn is...{:#x}",usize::from(trap_cx_ppn) as usize);
-        // info!("trap cx ppn is...{:#x}",usize::from(task_control_block.trsap_cx_ppn) as usize);
+        // info!("trap cx ppn is...{:#x}",usize::from(trap_cx_ppn) as usize);
         task_control_block
     }
 

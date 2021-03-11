@@ -65,7 +65,7 @@ impl MemorySet {
         }
     }
     pub fn token(&self) -> usize {
-        println!("[kernel] MemorySet::token is {:#x}",self.page_table.token());
+        // println!("[kernel] MemorySet::token is {:#x}",self.page_table.token());
         self.page_table.token()
     }
     // pub fn my_pagetable(&self) ->&mut PageTable{
@@ -281,8 +281,10 @@ impl MemorySet {
                                 (start+len).into(),
                                 MapType::Framed,
                                 permission.unwrap() | MapPermission::U);
+                                
         //调用translate，检查是否全部能完成映射
         if area.not_map_check()==false {
+            println!("[kernel] have mapped!");
             return -1 as isize;
         }
     
