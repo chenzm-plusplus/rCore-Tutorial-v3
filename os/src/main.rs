@@ -45,6 +45,7 @@ pub fn rust_main() -> ! {
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
+    println!("token is...{:#x}",mm::KERNEL_SPACE.lock().token());
     println!("[kernel] timer trigger set");
     task::run_first_task();
     // mm::frame_allocator_test();

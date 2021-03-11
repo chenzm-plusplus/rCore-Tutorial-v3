@@ -7,7 +7,7 @@ const TASK_PRIORITY_INIT:usize = 16;
 
 // #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
-    pub task_cx_ptr: usize,//这个是进程内核栈指针，不是用户栈指针
+    pub task_cx_ptr: usize,//task_cx_ptr指的就是保存上下文的地址啊
     // pub task_cx_ptr: VirtAddr,
     // pub virt_task_cx_ptr_usize: usize,
     pub task_status: TaskStatus,
@@ -59,7 +59,6 @@ impl TaskControlBlock {
                 kernel_stack_top.into(),
                 MapPermission::R | MapPermission::W,
             );
-        //TODO：试着把这里改成虚拟地址，改好就睡觉······
         let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
         let virt_task_cx_ptr = VirtAddr::from(task_cx_ptr as usize);
         let virt_task_cx_ptr_usize = usize::from(virt_task_cx_ptr) as *mut TaskContext;
@@ -77,7 +76,8 @@ impl TaskControlBlock {
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
         //这里的ra是物理地址。是因为产生trap的时候，是要进入S态进行处理的，所以返回地址确实必须是真实的物理地址（？？？）
 
-        unsafe {info!("[trap_return]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
+        unsafe {
+            info!("[trap_return]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
             usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); }
         // unsafe{let pa_ra = KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap();
         // info!("2,task_cx_ptr is...{:#x},pa_ra is {:#x}",task_cx_ptr as usize,usize::from(pa_ra));}
@@ -107,7 +107,8 @@ impl TaskControlBlock {
         //TODO:明天要搞清楚的问题是，到底什么时候返回物理地址什么时候返回虚拟地址？
         //S态trap的过程
         info!("3,task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
-        info!("4,task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
+        info!("4,task_cx_ptr_2 is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
+        //感觉不管返回ptr还是ptr2都没有什么区别啊，因为执行了地址转换之后都在同一个物理地址上
         info!("trap cx ppn is...{:#x}",usize::from(trap_cx_ppn) as usize);
         // info!("trap cx ppn is...{:#x}",usize::from(task_control_block.trsap_cx_ppn) as usize);
         task_control_block

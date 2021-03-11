@@ -65,6 +65,7 @@ impl MemorySet {
         }
     }
     pub fn token(&self) -> usize {
+        println!("[kernel] MemorySet::token is {:#x}",self.page_table.token());
         self.page_table.token()
     }
     // pub fn my_pagetable(&self) ->&mut PageTable{

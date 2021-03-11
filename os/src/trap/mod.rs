@@ -55,9 +55,10 @@ pub fn trap_handler() -> ! {
     debug!("in trap_handler......");
     set_kernel_trap_entry();
     // 
-    let tm = TASK_MANAGER.lock();
+    // let tm = TASK_MANAGER;
     // let cx = current_trap_cx();
-    let cx = tm.get_current_trap_cx();
+    let cx = TASK_MANAGER.get_current_trap_cx();
+    debug!("in trap_handler......");
 
     let scause = scause::read();
     let stval = stval::read();
@@ -88,20 +89,25 @@ pub fn trap_handler() -> ! {
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
-    drop(tm);
+    // drop(tm);
     trap_return();
 }
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    //根据汇编的结果，确实是进入了trap return函数没错
+    println!("[kernel] in trap_return...");
     set_user_trap_entry();
+    println!("[kernel] after set user trap entry");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
+    info!("[kernel] user_satp is...{:#x}",user_satp);
     extern "C" {
         fn __alltraps();
         fn __restore();
     }
     let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
+    info!("[kernel] restore_va is...{:#x}",restore_va);
     unsafe {
         llvm_asm!("fence.i" :::: "volatile");
         llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");

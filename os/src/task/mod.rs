@@ -50,7 +50,7 @@ struct StrideInner{
 unsafe impl Sync for TaskManager {}
 
 lazy_static! {
-    pub static ref TASK_MANAGER: Arc<Mutex<TaskManager>> = {
+    pub static ref TASK_MANAGER: TaskManager = {
         println!("init TASK_MANAGER");
         let num_app = get_num_app();
         println!("num_app = {}", num_app);
@@ -64,29 +64,57 @@ lazy_static! {
             ));
             strides.push(TaskStride::new(i));
         }
-        Arc::new(Mutex::new(
-            TaskManager {
-                num_app,
-                inner: RefCell::new(TaskManagerInner {
-                    tasks,
-                    current_task: 0,
-                }),
-                inner_strides: RefCell::new(StrideInner{
-                    strides,
-                })
-            }
-        ))
+        println!("[kernel] building TaskManager...");
+        TaskManager {
+            num_app,
+            inner: RefCell::new(TaskManagerInner {
+                tasks,
+                current_task: 0,
+            }),
+            inner_strides: RefCell::new(StrideInner{
+                strides,
+            })
+        }
     };
 }
+    // pub static ref TASK_MANAGER: Arc<Mutex<TaskManager>> = {
+    //     println!("init TASK_MANAGER");
+    //     let num_app = get_num_app();
+    //     println!("num_app = {}", num_app);
+    //     // NOTICE: add stride initialize
+    //     let mut tasks: Vec<TaskControlBlock> = Vec::new();
+    //     let mut strides: Vec<TaskStride> = Vec::new();
+    //     for i in 0..num_app {
+    //         tasks.push(TaskControlBlock::new(
+    //             get_app_data(i),
+    //             i,
+    //         ));
+    //         strides.push(TaskStride::new(i));
+    //     }
+    //     println!("[kernel] building TaskManager...");
+    //     Arc::new(Mutex::new(
+    //         TaskManager {
+    //             num_app,
+    //             inner: RefCell::new(TaskManagerInner {
+    //                 tasks,
+    //                 current_task: 0,
+    //             }),
+    //             inner_strides: RefCell::new(StrideInner{
+    //                 strides,
+    //             })
+    //         }
+    //     ))
+    // };
+// }
 
 impl TaskManager {
     fn run_first_task(&self) {
         println!("[kernel] run first task...");
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
-        let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2_usize() as *mut usize;
+        let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2() as *mut usize;
         //TODO:检查这里的函数返回地址
         unsafe{
-            let task_cx_ptr = next_task_cx_ptr2 as *mut TaskContext;
+            let task_cx_ptr = *next_task_cx_ptr2 as *mut TaskContext;
             info!("[kernel]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
             usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); 
         }
@@ -95,8 +123,11 @@ impl TaskManager {
         let _unused: usize = 0;
         println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as usize);
         println!("[kernel] next_task_cx_ptr2_pa is {:#x}",usize::from(pa) as usize);
-        println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as *const usize as usize);
-        unsafe {
+        // println!("[kernel] next_task_cx_ptr2 is {:#x}",next_task_cx_ptr2 as *const usize as usize);
+        unsafe { 
+            println!("[kernel] __switch( {:#x}, {:#x})",&_unused as *const _ as usize, next_task_cx_ptr2 as usize);
+            //在进入之前好像还什么问题也没有。
+            //怎么回事，似乎是进入__switch函数了但是又没有在断电处停下。
             __switch(
                 &_unused as *const _,
                 // usize::from(next_task_cx_ptr2) as *const usize,
@@ -131,8 +162,10 @@ impl TaskManager {
     }
 */
     fn get_current_token(&self) -> usize {
+        println!("[kernel] TaskManager::token");
         let inner = self.inner.borrow();
         let current = inner.current_task;
+        println!("[kernel] TaskManager::token is {:#x}",inner.tasks[current].get_user_token());
         inner.tasks[current].get_user_token()
     }
 
@@ -248,12 +281,12 @@ impl TaskManager {
     //     inner.tasks[current].get_current_memoryset()
     // }
 
-    fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
+    fn mmap(&self,start: usize, len: usize, port: usize) -> isize{
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         inner.tasks[current].mmap(start, len, port)
     }
-    fn munmap(&mut self,start: usize, len: usize) -> isize{
+    fn munmap(&self,start: usize, len: usize) -> isize{
         let mut inner = self.inner.borrow_mut();
         let current = inner.current_task;
         inner.tasks[current].munmap(start, len)
@@ -261,19 +294,19 @@ impl TaskManager {
 }
 
 pub fn run_first_task() {
-    TASK_MANAGER.lock().run_first_task();
+    TASK_MANAGER.run_first_task();
 }
 
 fn run_next_task() {
-    TASK_MANAGER.lock().run_next_task();
+    TASK_MANAGER.run_next_task();
 }
 
 fn mark_current_suspended() {
-    TASK_MANAGER.lock().mark_current_suspended();
+    TASK_MANAGER.mark_current_suspended();
 }
 
 fn mark_current_exited() {
-    TASK_MANAGER.lock().mark_current_exited();
+    TASK_MANAGER.mark_current_exited();
 }
 
 pub fn suspend_current_and_run_next() {
@@ -287,7 +320,8 @@ pub fn exit_current_and_run_next() {
 }
 
 pub fn current_user_token() -> usize {
-    TASK_MANAGER.lock().get_current_token()
+    println!("[kernel] task::mod current_user_token");
+    TASK_MANAGER.get_current_token()
 }
 
 // pub fn current_trap_cx() -> &'static mut TrapContext {
@@ -299,20 +333,20 @@ pub fn current_user_token() -> usize {
 // }
 
 pub fn get_my_num_app()->usize{
-    TASK_MANAGER.lock().get_num_app()
+    TASK_MANAGER.get_num_app()
 }
 
 // //for sys_write check
 pub fn get_task_current()->usize{
-    TASK_MANAGER.lock().get_task_current()
+    TASK_MANAGER.get_task_current()
 }
 
 pub fn set_task_priority(prio:usize){
-    TASK_MANAGER.lock().set_task_priority(prio);
+    TASK_MANAGER.set_task_priority(prio);
 }
 
 pub fn get_task_priority(task:usize)->usize{
-    TASK_MANAGER.lock().get_task_priority(task)
+    TASK_MANAGER.get_task_priority(task)
 }
 
 // pub fn get_current_memoryset()->&'static mut MemorySet{
@@ -320,11 +354,11 @@ pub fn get_task_priority(task:usize)->usize{
 // }
 
 pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-    TASK_MANAGER.lock().mmap(start, len, port)
+    TASK_MANAGER.mmap(start, len, port)
 }
 
 pub fn munmap(start: usize, len: usize) -> isize{
-    TASK_MANAGER.lock().munmap(start, len)
+    TASK_MANAGER.munmap(start, len)
 }
 
 // pub fn mmap(start: usize, len: usize, port: usize) -> isize{
