@@ -67,8 +67,8 @@ impl TaskControlBlock {
         let pa_bottom = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_bottom)).unwrap();
         //很多个app的top发现物理地址是0，这是正常现象。
 
-        info!("kernel_stack_bottom  is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
-        info!("kernel_stack_top     is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top)); 
+        debug!("kernel_stack_bottom  is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
+        debug!("kernel_stack_top     is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top)); 
         // info!("task_cx_ptr is...{:#x}",task_cx_ptr as usize); 
         //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
         //得到一个地址，这个似乎也是虚拟地址，只不过OS启动的时候建立了分页机制，先给物理地址进行了一一对应的自映射

@@ -122,7 +122,7 @@ impl PageTable {
     }
     #[allow(unused)]
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) ->bool{
-        debug!("Pagetable::mapping...token is {:#x} \n vpn is {:#x}, ppn is {:#x}",self.token(), usize::from(vpn), usize::from(ppn));
+        trace!("Pagetable::mapping...token is {:#x} \n vpn is {:#x}, ppn is {:#x}",self.token(), usize::from(vpn), usize::from(ppn));
         let pte = self.find_pte_create(vpn).unwrap();
         // 问题：为什么这里发现页表是已经not-valid的，就能说明之前map过了？
         // 因为create函数无论如何都会返回一个pte的。如果是新创建的自然不会有问题，一定是valid的。
@@ -132,13 +132,9 @@ impl PageTable {
     }
     #[allow(unused)]
     pub fn unmap(&mut self, vpn: VirtPageNum) ->bool{
-        debug!("Pagetable::unmapping...token is {:#x} \n vpn is {:#x}",self.token(),usize::from(vpn));
+        trace!("Pagetable::unmapping...token is {:#x} \n vpn is {:#x}",self.token(),usize::from(vpn));
         let pte = self.find_pte_create(vpn).unwrap();
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
-        // if pte.is_valid(){
-        //     println!("[kernel] vpn {:?} is invalid before unmapping", vpn);
-        //     return false;
-        // }
         *pte = PageTableEntry::empty();
         return true;
     }
@@ -152,7 +148,7 @@ impl PageTable {
     }
     //注意！这里的token给出的并不是物理页号啊······
     pub fn token(&self) -> usize {
-        // println!("[kernel] PageTable::token is {:#x}",8usize << 60 | self.root_ppn.0);
+        trace!("[kernel] PageTable::token is {:#x}",8usize << 60 | self.root_ppn.0);
         8usize << 60 | self.root_ppn.0
     }
 }

@@ -237,7 +237,7 @@ impl MemorySet {
             return -1 as isize;
         }
         if len == 0 {
-            warn!("in mmap...number=0");
+            // warn!("in mmap...number=0");
             return 0 as isize;
         }
         let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
@@ -261,17 +261,15 @@ impl MemorySet {
     
         //这个地址范围是不是有人已经映射过了？
         //根据代码，调用translate检查即可
-        //done：port to mappermission
         //mmap给分配的空间都是在用户态下使用的，因此可以给U权限哦
         let mut area = MapArea::new((start).into(),
                                 (start+len).into(),
                                 MapType::Framed,
                                 permission.unwrap() | MapPermission::U);
                                 
-        // area.print_range();
         //调用translate，检查是否全部能完成映射
         if area.not_map_check(&self.page_table)==false {
-            println!("[kernel] have mapped!");
+            // warn!("[kernel] have mapped!");
             return -1 as isize;
         }
 
@@ -307,7 +305,7 @@ impl MemorySet {
             return -1 as isize;
         }
         if len == 0 {
-            warn!("in mmap...number=0");
+            // warn!("in mmap...number=0");
             return 0 as isize;
         }
         let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
@@ -411,7 +409,7 @@ impl MapArea {
     }
     //print range
     pub fn print_range(&self) {
-        info!("[kernel] MapArea::range  ({:#x},{:#x})",
+        debug!("[kernel] MapArea::range  ({:#x},{:#x})",
             usize::from(self.vpn_range.get_start()),
             usize::from(self.vpn_range.get_end())
         );
@@ -420,11 +418,10 @@ impl MapArea {
     //找到问题了！这里不是应该寻找kernel space的页表
     //而是寻找当前的页表是否有映射。。。
     pub fn not_map_check(&self,page_table: &PageTable)-> bool{
-        self.print_range();
         for vpn in self.vpn_range{
             if let Some(pte) = page_table.translate(vpn){
                 if pte.is_valid(){
-                    warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte.ppn()));
+                    // warn!("[kernel] vpn have mapped is {:#x}",usize::from(pte.ppn()));
                     return false
                 }
             }
@@ -433,12 +430,11 @@ impl MapArea {
     }
     //check if not mapped...
     pub fn have_mapped_check(&self,page_table: &PageTable)-> bool{
-        println!("in unmapp...");
         self.print_range();
         for vpn in self.vpn_range{
             if let Some(pte) = page_table.translate(vpn){
                 if !pte.is_valid(){
-                    warn!("[kernel] vpn not mapped is {:#x}",usize::from(pte.ppn()));
+                    // warn!("[kernel] vpn not mapped is {:#x}",usize::from(pte.ppn()));
                     return false
                 }
             }
