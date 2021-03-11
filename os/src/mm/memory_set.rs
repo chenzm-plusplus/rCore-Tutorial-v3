@@ -268,7 +268,7 @@ impl MemorySet {
                                 MapType::Framed,
                                 permission.unwrap() | MapPermission::U);
                                 
-        area.print_range();
+        // area.print_range();
         //调用translate，检查是否全部能完成映射
         if area.not_map_check(&self.page_table)==false {
             println!("[kernel] have mapped!");
@@ -321,7 +321,7 @@ impl MemorySet {
         //这是被映射过去的maparea里面的地址范围
         let range = VPNRange::new(start_vpn, end_vpn);
         let size = usize::from(range.get_end()) - usize::from(range.get_start());
-        // let mut kernel_space = KERNEL_SPACE.lock();
+
         return self.unmap_the_chosen_area(range);
         // return -1 as isize;
     }
@@ -432,12 +432,15 @@ impl MapArea {
         return true;
     }
     //check if not mapped...
-    pub fn have_mapped_check(&self)-> bool{
-        let kernel_space = KERNEL_SPACE.lock();
+    pub fn have_mapped_check(&self,page_table: &PageTable)-> bool{
+        println!("in unmapp...");
+        self.print_range();
         for vpn in self.vpn_range{
-            match kernel_space.page_table.translate(vpn){
-                None => return false,//只要有一个虚拟地址没有被映射，那么就发生错误，报错返回
-                _ => {}
+            if let Some(pte) = page_table.translate(vpn){
+                if !pte.is_valid(){
+                    warn!("[kernel] vpn not mapped is {:#x}",usize::from(pte.ppn()));
+                    return false
+                }
             }
         }
         return true;
@@ -451,6 +454,11 @@ impl MapArea {
     }
     pub fn unmap_the_chosen_area(&mut self,page_table: &mut PageTable,range: VPNRange)->isize{
         if self.match_area_with_vpnrange(range){
+            if !self.have_mapped_check(page_table){
+                //如果发现有还没有map过的页表项想要unmap
+                // warn!("[kernel] vpn not mapped yet ");
+                return -1 as isize;
+            }
             self.unmap(page_table);
             let size = usize::from(range.get_end()) - usize::from(range.get_start());
             return size as isize;
