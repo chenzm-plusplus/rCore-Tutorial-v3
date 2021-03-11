@@ -70,7 +70,7 @@ impl TaskControlBlock {
 
         info!("kernel_stack_bottom  is...{:#x},pa is {:#x}",kernel_stack_bottom,usize::from(pa_bottom)); 
         info!("kernel_stack_top     is...{:#x},pa is {:#x}",kernel_stack_top,usize::from(pa_top)); 
-        info!("1,task_cx_ptr is...{:#x}",task_cx_ptr as usize); 
+        info!("task_cx_ptr is...{:#x}",task_cx_ptr as usize); 
         //能不能得到正确的返回地址，关键在于这里得到的task_cx_ptr是否正确
         //得到一个地址，这个似乎也是虚拟地址，只不过OS启动的时候建立了分页机制，先给物理地址进行了一一对应的自映射
         //所以这个0x80xxxxxx也可以当成虚拟地址来看

@@ -63,7 +63,7 @@ pub fn trap_handler() -> ! {
     let stval = stval::read();
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
-            trace!("trap_handler::Exception::UserEnvCall");
+            println!("[kernel]trap_handler::Exception::UserEnvCall");
             cx.sepc += 4;
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
@@ -77,7 +77,7 @@ pub fn trap_handler() -> ! {
             exit_current_and_run_next();
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
-            trace!("trap_handler::Exception::SupervisorTimer");
+            println!("[kernel] trap_handler::Exception::SupervisorTimer");
             set_next_trigger();//先重新设置一个 10ms 的计时器
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
             info!("[kernel] now app {} is running...",get_task_current());
