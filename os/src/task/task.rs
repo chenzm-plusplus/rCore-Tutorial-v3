@@ -24,21 +24,9 @@ impl TaskControlBlock {
         // info!("[function],task_cx_ptr is...{:#x}",&self.task_cx_ptr as *const usize as usize);
         &self.task_cx_ptr as *const usize
     }
-    pub fn get_task_cx_ptr2_usize(&self) -> usize{
-        self.task_cx_ptr
-    }
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
     }
-    pub fn get_trap_ppn(&self) -> PhysPageNum{
-        self.trap_cx_ppn
-    }
-    // fn get_trap_cx_inner(&self)->TrapContext{
-    //     self.trap_cx_ppn.get_mut()
-    // }
-    // pub fn get_trap_cx(&self) -> PhysPageNum {
-    //     self.trap_cx_ppn
-    // }
     pub fn get_user_token(&self) -> usize {
         self.memory_set.token()
     }
@@ -60,9 +48,6 @@ impl TaskControlBlock {
                 MapPermission::R | MapPermission::W,
             );
         let task_cx_ptr = (kernel_stack_top - core::mem::size_of::<TaskContext>()) as *mut TaskContext;
-        let virt_task_cx_ptr = VirtAddr::from(task_cx_ptr as usize);
-        let virt_task_cx_ptr_usize = usize::from(virt_task_cx_ptr) as *mut TaskContext;
-        let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(task_cx_ptr as usize)).unwrap();
         let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
         let pa_bottom = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_bottom)).unwrap();
         //很多个app的top发现物理地址是0，这是正常现象。
@@ -76,15 +61,11 @@ impl TaskControlBlock {
         unsafe { *task_cx_ptr = TaskContext::goto_trap_return(); }
         //这里的ra是物理地址。是因为产生trap的时候，是要进入S态进行处理的，所以返回地址确实必须是真实的物理地址（？？？）
 
-        // unsafe {
-        //     info!("[trap_return]...ra is {:#x},pa_ra is {:#x}",(*task_cx_ptr).ra,
-        //     usize::from(KERNEL_SPACE.lock().v2p(VirtAddr::from((*task_cx_ptr).ra as usize)).unwrap())); }
         //把trap之后返回地址写进去，返回地址是在别的地方得到的
         //NOTICE
         let task_priority = TaskPriority::new();
         let task_control_block = Self {
             task_cx_ptr: task_cx_ptr as usize,
-            // task_cx_ptr: virt_task_cx_ptr,//存的时候还是存虚拟地址......
             task_status,
             memory_set,
             trap_cx_ppn,
@@ -102,12 +83,9 @@ impl TaskControlBlock {
             trap_handler as usize,
         );
         //破案了！！！原来这个函数返回的是物理地址啊！！！！！
-        //TODO:明天要搞清楚的问题是，到底什么时候返回物理地址什么时候返回虚拟地址？
+        //明天要搞清楚的问题是，到底什么时候返回物理地址什么时候返回虚拟地址？
         //S态trap的过程
-        // info!("3,task_cx_ptr is...{:#x}, pa is {:#x}",task_control_block.task_cx_ptr as usize,usize::from(pa));
-        // info!("4,task_cx_ptr_2 is...{:#x}, pa is {:#x}",task_control_block.get_task_cx_ptr2() as usize,usize::from(pa));
         //感觉不管返回ptr还是ptr2都没有什么区别啊，因为执行了地址转换之后都在同一个物理地址上
-        // info!("trap cx ppn is...{:#x}",usize::from(trap_cx_ppn) as usize);
         task_control_block
     }
 
@@ -118,11 +96,6 @@ impl TaskControlBlock {
     pub fn get_priority(&self) -> usize{
         self.task_priority.get_priority()
     }
-
-    pub fn get_current_memoryset(&mut self)->&mut MemorySet{
-        &mut self.memory_set
-    }
-
     pub fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
         self.memory_set.mmap(start, len, port)
     }

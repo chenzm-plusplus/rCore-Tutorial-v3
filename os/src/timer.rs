@@ -12,14 +12,14 @@ pub struct TimeVal {
     pub usec: usize,
 }
 
-impl TimeVal {
-    pub fn new() -> Self {
-        TimeVal {
-            sec: 0,
-            usec: 0,
-        }
-    }
-}
+// impl TimeVal {
+    // pub fn new() -> Self {
+    //     TimeVal {
+    //         sec: 0,
+    //         usec: 0,
+    //     }
+    // }
+// }
 
 //时钟周期数
 pub fn get_time() -> usize {

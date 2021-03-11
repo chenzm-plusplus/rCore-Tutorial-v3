@@ -10,13 +10,6 @@ use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
-use crate::mm::{
-    KERNEL_SPACE,
-};
-use crate::mm::{
-    VirtAddr,
-    PhysPageNum,
-};
 // use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
@@ -28,9 +21,6 @@ use crate::mm::{
 use stride::TaskStride;
 
 pub use context::TaskContext;
-
-use alloc::sync::Arc;
-use spin::Mutex;
 
 pub struct TaskManager {
     num_app: usize,
@@ -81,7 +71,6 @@ impl TaskManager {
     fn run_first_task(&self) {
         self.inner.borrow_mut().tasks[0].task_status = TaskStatus::Running;
         let next_task_cx_ptr2 = self.inner.borrow().tasks[0].get_task_cx_ptr2() as *mut usize;
-        let pa = KERNEL_SPACE.lock().v2p(VirtAddr::from(next_task_cx_ptr2 as usize)).unwrap();
         //奇怪了，明明构造函数里面，给存的就是虚拟地址啊？为什么这里print出来竟然是物理地址了
         //这是因为在OS启动的时候给物理地址建立了一一映射啊
         let _unused: usize = 0;
@@ -192,12 +181,6 @@ impl TaskManager {
 
     fn get_num_app(&self)->usize{
         self.num_app
-    }
-
-    fn get_task_priority_current(&self) -> usize{
-        let inner = self.inner.borrow();
-        let current = inner.current_task;
-        inner.tasks[current].get_priority()
     }
 
     fn get_task_priority(&self,task:usize) -> usize{
