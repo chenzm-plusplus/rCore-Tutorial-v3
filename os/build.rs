@@ -11,10 +11,10 @@ fn main() {
 // my_rust_projects/rCore_turorial_tests/
 //请根据自己的实际情况进行修改
 
-// static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
+static TARGET_PATH: &str = "../user/build/bin/";
 // static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 // static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/elf/";
-static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/target/riscv64gc-unknown-none-elf/release/";
+// static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/target/riscv64gc-unknown-none-elf/release/";
 //这个路径代表的含义是：我要执行的二进制文件（.bin/.elf/无后缀）放在哪个文件夹下面？
 //这个文件夹下面放了非常多的二进制文件也没有关系，下面的函数会告诉我们实际上只挑选其中的几个函数执行
 
