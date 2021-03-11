@@ -2,7 +2,6 @@
 // 代码结构还需要再优化一下
 extern crate alloc;
 
-// use alloc::collections::binary_heap::BinaryHeap;
 use crate::config::BIG_STRIDE;
 use super::get_task_priority;
 
@@ -25,9 +24,9 @@ impl TaskStride{
             stride:0 as usize,
         }
     }
-    pub fn set_task_number(&mut self,tsk:usize){
-        self.task = tsk;
-    }
+    // pub fn set_task_number(&mut self,tsk:usize){
+    //     self.task = tsk;
+    // }
     pub fn get_task_number(&self)->usize{
         self.task
     }
@@ -41,10 +40,3 @@ impl TaskStride{
         self.stride += self.get_stride_pass();
     }
 }
-
-// pub struct Manager_Stride{
-//     heap: BinaryHeap<Task_Stride>
-// }
-// impl Manager_Stride{
-
-// }

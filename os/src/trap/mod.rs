@@ -19,7 +19,6 @@ use crate::task::{
     current_user_token,
     // current_trap_cx,
     TASK_MANAGER,
-    TaskContext,
     get_task_current,
 };
 use crate::timer::set_next_trigger;

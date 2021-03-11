@@ -258,7 +258,7 @@ impl MemorySet {
             Some(MapPermission) => {},
             None => return -1 as isize,
         }
-    
+
         //这个地址范围是不是有人已经映射过了？
         //根据代码，调用translate检查即可
         //mmap给分配的空间都是在用户态下使用的，因此可以给U权限哦
@@ -308,8 +308,6 @@ impl MemorySet {
             // warn!("in mmap...number=0");
             return 0 as isize;
         }
-        let number = ((len - 1 + PAGE_SIZE) /PAGE_SIZE )as usize;
-        //向上取整,表示会用到几个page
 
         let start_va: VirtAddr = start.into();
         let end_va: VirtAddr = (start+len).into();
@@ -318,7 +316,6 @@ impl MemorySet {
 
         //这是被映射过去的maparea里面的地址范围
         let range = VPNRange::new(start_vpn, end_vpn);
-        let size = usize::from(range.get_end()) - usize::from(range.get_start());
 
         return self.unmap_the_chosen_area(range);
         // return -1 as isize;
