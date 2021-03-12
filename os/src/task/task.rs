@@ -1,13 +1,14 @@
 use crate::mm::{MemorySet, PhysPageNum, KERNEL_SPACE, VirtAddr};
 use crate::trap::{TrapContext, trap_handler};
 use crate::config::{TRAP_CONTEXT};
-use super::TaskContext;
+use super::{
+    TaskContext,
+    TaskPriority,
+};
 use super::{PidHandle, pid_alloc, KernelStack};
 use alloc::sync::{Weak, Arc};
 use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
-
-const TASK_PRIORITY_INIT:usize = 16;
 
 // #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
@@ -24,6 +25,7 @@ pub struct TaskControlBlockInner {
     pub task_cx_ptr: usize,
     pub task_status: TaskStatus,
     pub memory_set: MemorySet,
+    pub task_priority: TaskPriority,//add
     pub parent: Option<Weak<TaskControlBlock>>,
     pub children: Vec<Arc<TaskControlBlock>>,
     pub exit_code: i32,
@@ -74,6 +76,7 @@ impl TaskControlBlock {
                 task_cx_ptr: task_cx_ptr as usize,
                 task_status: TaskStatus::Ready,
                 memory_set,
+                task_priority: TaskPriority::new(),
                 parent: None,
                 children: Vec::new(),
                 exit_code: 0,
@@ -141,6 +144,7 @@ impl TaskControlBlock {
                 task_cx_ptr: task_cx_ptr as usize,
                 task_status: TaskStatus::Ready,
                 memory_set,
+                task_priority: TaskPriority::new(),
                 parent: Some(Arc::downgrade(self)),
                 children: Vec::new(),
                 exit_code: 0,
@@ -191,23 +195,4 @@ pub enum TaskStatus {
     Running,
     Zombie,
     // Exited,
-}
-
-#[derive(Copy, Clone, PartialEq)]
-pub struct TaskPriority{
-    priority: usize,
-}
-
-impl TaskPriority{
-    pub fn new() -> Self {
-        TaskPriority {
-            priority: TASK_PRIORITY_INIT
-        }
-    }
-    pub fn get_priority(&self)->usize{
-        self.priority
-    }
-    pub fn set_priority(&mut self, prio:usize){
-        self.priority = prio;
-    }
 }

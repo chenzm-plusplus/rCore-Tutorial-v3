@@ -9,11 +9,7 @@ use crate::mm::{
 
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
-// use crate::task::get_app_address_space_current;
-// use crate::task::get_task_current;
-// use crate::task::get_user_stack_space_current;
 
-/// TODO: 增加对syswrite的地址范围类型检查
 /// 代码段 .text 不允许被修改；
 /// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
 /// .data/.bss 均允许被读写，但是不允许从它上面取指。
@@ -28,16 +24,6 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     // trace!("[kernel] now app {} is writing...",get_task_current());
     // trace!("call sys_write......");
     debug!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
-    // let v = translated_byte_buffer
-    
-    // let (left,right) = get_user_stack_space_current();
-    // let (left2,right2) = get_app_address_space_current();
-    // debug!("current user stack space is...[{:#x},{:#x})",left,right);
-    // debug!("current user app space is...[{:#x},{:#x})",left2,right2);
-
-    // 下面就是对sys_write的检查
-    // 在增加了映射规则后，就是只有权限为可写的地址才可以真的输出
-    // 因此应该在这里进行一个地址转换
 
     match fd {
         FD_STDOUT => {

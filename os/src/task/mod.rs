@@ -5,12 +5,16 @@ mod manager;
 mod processor;
 mod pid;
 mod stride;
+mod priority;
 
 use crate::loader::{get_app_data_by_name};
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use lazy_static::*;
+use priority::{
+    TaskPriority,
+};
 
 // use stride::TaskStride;
 

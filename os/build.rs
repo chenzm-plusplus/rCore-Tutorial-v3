@@ -11,6 +11,9 @@ fn main() {
 // my_rust_projects/rCore_turorial_tests/
 //请根据自己的实际情况进行修改
 
+//TODO：将mmap，munmap系统调用恢复
+
+
 // static TARGET_PATH: &str = "../user/build/bin/";
 static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 // static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/elf/";
