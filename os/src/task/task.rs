@@ -166,13 +166,19 @@ impl TaskControlBlock {
     }
 //======
 
-    // pub fn set_priority(&mut self,prio:usize){
-    //     self.task_priority.set_priority(prio);
-    // }
+    pub fn set_priority(&mut self,prio:usize){
+        // **** hold current PCB lock
+        let mut inner = self.acquire_inner_lock();
+        inner.task_priority.set_priority(prio);
+        // **** release current PCB lock
+    }
 
-    // pub fn get_priority(&self) -> usize{
-    //     self.task_priority.get_priority()
-    // }
+    pub fn get_priority(&self) -> usize{
+        // **** hold current PCB lock
+        let mut inner = self.acquire_inner_lock();
+        inner.task_priority.get_priority();
+        // **** release current PCB lock
+    }
 
     pub fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
         // **** hold current PCB lock
