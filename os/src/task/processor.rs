@@ -88,15 +88,33 @@ pub fn current_user_token() -> usize {
     token
 }
 
+pub fn current_trap_cx() -> &'static mut TrapContext {
+    current_task().unwrap().acquire_inner_lock().get_trap_cx()
+}
+
+
+//=====================================================================
+// 以下部分的代码是为了实现系统调用。目前支持的和进程相关的系统调用，有：
+// SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
+// SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
+// SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
+//=====================================================================
 pub fn set_priority(prio:TaskPriority){
     let task = current_task().unwrap();
     task.set_priority(prio);
     // PROCESSOR.set_priority(prio);
 }
 
-pub fn current_trap_cx() -> &'static mut TrapContext {
-    current_task().unwrap().acquire_inner_lock().get_trap_cx()
+pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+    let task = current_task().unwrap();
+    task.mmap(start, len, port)
+}//函数结束自动释放锁
+
+pub fn munmap(start: usize, len: usize) -> isize{
+    let task = current_task().unwrap();
+    task.munmap(start,len)
 }
+
 
 pub fn schedule(switched_task_cx_ptr2: *const usize) {
     let idle_task_cx_ptr2 = PROCESSOR.get_idle_task_cx_ptr2();

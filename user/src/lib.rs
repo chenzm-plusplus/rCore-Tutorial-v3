@@ -81,6 +81,15 @@ pub fn sleep(period_ms: usize) {
 }
 
 pub fn set_priority(prio: isize) -> isize { sys_set_priority(prio) }
+
+
+pub fn mmap(start: usize, len: usize, prot: usize) -> isize {
+    sys_mmap(start, len, prot)
+}
+
+pub fn munmap(start: usize, len: usize) -> isize {
+    sys_munmap(start, len)
+}
 // bitflags! {
 //     pub struct OpenFlags: u32 {
 //         const RDONLY = 0;

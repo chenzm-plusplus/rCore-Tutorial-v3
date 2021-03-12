@@ -160,9 +160,15 @@ impl TaskControlBlock {
         task_control_block
         // ---- release parent PCB lock
     }
+
+//=====================================================================
+// sys_calls
+//=====================================================================
+
     pub fn getpid(&self) -> usize {
         self.pid.0
     }
+
     pub fn set_priority(&self,prio:TaskPriority){
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
@@ -176,14 +182,13 @@ impl TaskControlBlock {
         // **** release current PCB lock
     }
 
-    pub fn mmap(&mut self,start: usize, len: usize, port: usize) -> isize{
+    pub fn mmap(&self,start: usize, len: usize, port: usize) -> isize{
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         inner.memory_set.mmap(start, len, port) 
         // **** release current PCB lock
     }
-
-    pub fn munmap(&mut self,start: usize, len: usize) -> isize{
+    pub fn munmap(&self,start: usize, len: usize) -> isize{
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         inner.memory_set.munmap(start, len)

@@ -27,6 +27,8 @@ pub use processor::{
     schedule,
 
     set_priority,
+    mmap,
+    munmap,
 };
 pub use manager::{
     add_task,
