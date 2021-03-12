@@ -17,10 +17,15 @@ use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
     current_user_token,
-    current_trap_cx,
+    // current_trap_cx,
+    TASK_MANAGER,
+    get_task_current,
 };
 use crate::timer::set_next_trigger;
 use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+// use crate::timer::set_next_trigger;
+// use crate::timer::{get_time,get_time_ms};
+// use crate::config::MAX_RUN_TIME_MS;
 
 global_asm!(include_str!("trap.S"));
 
@@ -46,6 +51,7 @@ pub fn enable_timer_interrupt() {
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
+    // debug!("in trap_handler......");
     set_kernel_trap_entry();
     let scause = scause::read();
     let stval = stval::read();
@@ -80,27 +86,37 @@ pub fn trap_handler() -> ! {
             // illegal instruction exit code
             exit_current_and_run_next(-3);
         }
-        Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            set_next_trigger();
-            suspend_current_and_run_next();
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
+            // println!("[kernel] trap_handler::Exception::SupervisorTimer");
+            set_next_trigger();//先重新设置一个 10ms 的计时器
+            suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
+            info!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
+            println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
+            exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
+    // drop(tm);
     trap_return();
 }
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    //根据汇编的结果，确实是进入了trap return函数没错
+    // println!("[kernel] in trap_return...");
     set_user_trap_entry();
+    // println!("[kernel] after set user trap entry");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
+    // info!("[kernel] user_satp is...{:#x}",user_satp);
     extern "C" {
         fn __alltraps();
         fn __restore();
     }
     let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
+    // info!("[kernel] restore_va is...{:#x}",restore_va);
     unsafe {
         llvm_asm!("fence.i" :::: "volatile");
         llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");

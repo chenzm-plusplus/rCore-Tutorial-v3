@@ -11,6 +11,8 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
 
 static mut HEAP_SPACE: [u8; KERNEL_HEAP_SIZE] = [0; KERNEL_HEAP_SIZE];
 
+
+//我的理解是，用所有的程序一共只有这么多空间能分出去。
 pub fn init_heap() {
     unsafe {
         HEAP_ALLOCATOR
