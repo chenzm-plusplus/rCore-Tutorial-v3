@@ -32,9 +32,13 @@ fn insert_app_data() -> Result<()> {
         })
         .collect();
     apps.retain(|x| x != "");
+<<<<<<< HEAD
     //有时候apps数组会把一个空字符串当成文件名存进来，这会导致运行时报错“找不到文件”。
     //因此这里增加一句判断，把空数组去掉
+=======
+>>>>>>> ch3
     apps.sort();
+    
 
     writeln!(f, r#"
     .align 3
