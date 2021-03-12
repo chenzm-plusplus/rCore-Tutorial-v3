@@ -6,6 +6,7 @@ use super::{
     fetch_task, 
     TaskStatus,
     TaskPriority,
+    // set_priority,
 };
 use super::__switch;
 use crate::trap::TrapContext;
@@ -63,11 +64,6 @@ impl Processor {
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
         self.inner.borrow().current.as_ref().map(|task| Arc::clone(task))
     }
-
-    //修改进程的priority属性
-    pub fn set_priority(&self, prio:TaskPriority){
-        self.inner.borrow_mut().current.as_ref().unwrap().set_priority(prio);
-    }
 }
 
 lazy_static! {
@@ -93,9 +89,9 @@ pub fn current_user_token() -> usize {
 }
 
 pub fn set_priority(prio:TaskPriority){
-    // let task = current_task().unwrap();
-    // let token = task.acquire_inner_lock().set_task_priority(prio);
-    PROCESSOR.set_priority(prio);
+    let task = current_task().unwrap();
+    task.set_priority(prio);
+    // PROCESSOR.set_priority(prio);
 }
 
 pub fn current_trap_cx() -> &'static mut TrapContext {

@@ -163,7 +163,7 @@ impl TaskControlBlock {
     pub fn getpid(&self) -> usize {
         self.pid.0
     }
-    pub fn set_priority(&mut self,prio:TaskPriority){
+    pub fn set_priority(&self,prio:TaskPriority){
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         inner.task_priority.set_priority(prio);

@@ -135,7 +135,7 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
 //sys_gettime, sys_set_priority
 pub fn sys_set_priority(prio: usize) -> isize{
     debug!("[kernel] sys_set_priority...{}",prio);
-    if prio>=2 && prio<ISIZI_MAX as usize {
+    if prio>=2 && prio<=ISIZI_MAX as usize {
         set_priority(TaskPriority::from(prio));
         return prio as isize
     }
