@@ -15,11 +15,12 @@ const SYSCALL_MUNMAP: usize = 215;
 mod fs;
 mod process;
 mod memory;
+mod trap;
 
 use fs::*;
 use process::*;
 use memory::*;
-use crate::timer::TimeVal;
+use trap::*;
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     // debug!("in syscall...{},{},{},{}",syscall_id,args[0],args[1],args[2]);

@@ -2,9 +2,10 @@ use crate::task::{
     current_user_token, 
     suspend_current_and_run_next
 };
-use crate::sbi::console_getchar;
+use crate::sbi::console_getchar;//for sys_read
+
 use crate::mm::{
-    translated_byte_buffer,
+    translated_byte_buffer,//for sys_write
 };
 
 const FD_STDIN: usize = 0;
@@ -21,10 +22,7 @@ const FD_STDOUT: usize = 1;
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    // trace!("[kernel] now app {} is writing...",get_task_current());
-    // trace!("call sys_write......");
     debug!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
-
     match fd {
         FD_STDOUT => {
             let buffers = translated_byte_buffer(current_user_token(), buf, len);

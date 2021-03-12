@@ -20,10 +20,6 @@ use crate::mm::{
 use crate::loader::get_app_data_by_name;
 use alloc::sync::Arc;
 
-use crate::timer::{
-    get_time_ms,
-    TimeVal
-};
 use crate::config::{
     ISIZI_MAX,
     PAGE_SIZE,
@@ -42,9 +38,7 @@ pub fn sys_yield() -> isize {
     0
 }
 
-pub fn sys_get_time() -> isize {
-    get_time_ms() as isize
-}
+
 
 pub fn sys_getpid() -> isize {
     current_task().unwrap().pid.0 as isize
@@ -113,26 +107,9 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         -2
     }
     // ---- release current PCB lock automatically
-
-// pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
-//     // match (*ts){
-//     //     Null => {},
-//     //     _ => {
-//     //         unsafe{
-//     //             (*ts).sec = get_time_ms()/1000;
-//     //             (*ts).usec = get_time_ms()*1000;
-//     //         }
-//     //     }
-//     // }
-//     unsafe{
-//         (*ts).sec = get_time_ms()/1000;
-//         (*ts).usec = get_time_ms()*1000;
-//     }
-//     0
-// }
 }
 
-//sys_gettime, sys_set_priority
+//sys_set_priority
 pub fn sys_set_priority(prio: usize) -> isize{
     debug!("[kernel] sys_set_priority...{}",prio);
     if prio>=2 && prio<=ISIZI_MAX as usize {
