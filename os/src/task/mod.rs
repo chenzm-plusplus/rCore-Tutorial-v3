@@ -12,9 +12,6 @@ use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use lazy_static::*;
-use priority::{
-    TaskPriority,
-};
 
 //=====================================================================
 // 本文件中是要向其他模块提供的代码
@@ -28,12 +25,18 @@ pub use processor::{
     current_trap_cx,
     take_current_task,
     schedule,
+
+    set_priority,
 };
 pub use manager::{
     add_task,
     fetch_task,
 };
 pub use pid::{PidHandle, pid_alloc, KernelStack};
+
+pub use priority::{
+    TaskPriority,
+};
 
 //=====================================================================
 // 以下部分的代码都和进程调度相关
@@ -115,11 +118,6 @@ pub fn add_initproc() {
 // // //for sys_write check
 // pub fn get_task_current()->usize{
 //     TASK_MANAGER.get_task_current()
-// }
-
-// pub fn set_task_priority(prio:usize){
-//     //
-//     TASK_MANAGER.set_task_priority(prio);
 // }
 
 // pub fn get_task_priority(task:usize)->usize{

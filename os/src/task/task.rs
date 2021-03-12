@@ -60,7 +60,6 @@ impl TaskControlBlock {
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
-//===================
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
@@ -164,16 +163,13 @@ impl TaskControlBlock {
     pub fn getpid(&self) -> usize {
         self.pid.0
     }
-//======
-
-    pub fn set_priority(&mut self,prio:usize){
+    pub fn set_priority(&mut self,prio:TaskPriority){
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         inner.task_priority.set_priority(prio);
         // **** release current PCB lock
     }
-
-    pub fn get_priority(&self) -> usize{
+    pub fn get_priority(&self) -> TaskPriority{
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         inner.task_priority.get_priority()
