@@ -12,7 +12,7 @@ use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
 use lazy_static::*;
 
-use stride::TaskStride;
+// use stride::TaskStride;
 
 pub use context::TaskContext;
 pub use processor::{
@@ -23,7 +23,10 @@ pub use processor::{
     take_current_task,
     schedule,
 };
-pub use manager::add_task;
+pub use manager::{
+    add_task,
+    fetch_task,
+};
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 
 pub fn suspend_current_and_run_next() {

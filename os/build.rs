@@ -11,8 +11,8 @@ fn main() {
 // my_rust_projects/rCore_turorial_tests/
 //请根据自己的实际情况进行修改
 
-static TARGET_PATH: &str = "../user/build/bin/";
-// static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
+// static TARGET_PATH: &str = "../user/build/bin/";
+static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 // static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/build/elf/";
 // static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/target/riscv64gc-unknown-none-elf/release/";
 //这个路径代表的含义是：我要执行的二进制文件（.bin/.elf/无后缀）放在哪个文件夹下面？

@@ -5,9 +5,12 @@ use crate::task::{
     current_user_token,
     add_task,
     
-    set_task_priority,
-    mmap,
-    munmap,
+    //现在的进程只有按照顺序调度这一种方式······
+    //关于优先级的策略也只能先放一放了Orz
+    // set_task_priority,
+    // 现在还没学会怎么“当前进程的进程控制块进行map”，所以这个也只能暂时先注释掉了
+    // mmap,
+    // munmap,
 };
 use crate::mm::{
     translated_str,
@@ -23,12 +26,13 @@ use crate::timer::{
 use crate::config::{
     ISIZI_MAX,
     PAGE_SIZE,
+    MEMORY_MAP_SIZE,
 };
 
 
 pub fn sys_exit(exit_code: i32) -> ! {
     println!("[kernel] Application exited with code {}", exit_code);
-    exit_current_and_run_next();
+    exit_current_and_run_next(exit_code);
     panic!("Unreachable in sys_exit!");
 }
 
@@ -128,14 +132,14 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
 }
 
 //sys_gettime, sys_set_priority
-pub fn sys_set_priority(prio: usize) -> isize{
-    debug!("[kernel] sys_set_priority...{}",prio);
-    if prio>=2 && prio<ISIZI_MAX as usize {
-        set_task_priority(prio);
-        return prio as isize
-    }
-    return -1 as isize
-}
+// pub fn sys_set_priority(prio: usize) -> isize{
+//     debug!("[kernel] sys_set_priority...{}",prio);
+//     if prio>=2 && prio<ISIZI_MAX as usize {
+//         set_task_priority(prio);
+//         return prio as isize
+//     }
+//     return -1 as isize
+// }
 
 pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
     debug!("sys_mmap...start = {:#x}, len = {}, port = {}...",start,len,port);
@@ -159,7 +163,8 @@ pub fn sys_mmap(start: usize, len: usize, port: usize) -> isize{
     //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
     // debug!("[kernel] sys_mmap...");
 
-    return mmap(start, len, port);
+    return -1 as isize;
+    // return mmap(start, len, port);
 }
 
 pub fn sys_munmap(start: usize, len: usize) -> isize{
@@ -180,5 +185,6 @@ pub fn sys_munmap(start: usize, len: usize) -> isize{
     //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
     debug!("[kernel] sys_munmap...");
 
-    return munmap(start, len);
+    return -1 as isize;
+    // return munmap(start, len);
 }

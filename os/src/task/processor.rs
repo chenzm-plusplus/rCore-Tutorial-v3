@@ -2,7 +2,10 @@ use super::TaskControlBlock;
 use alloc::sync::Arc;
 use core::cell::RefCell;
 use lazy_static::*;
-use super::{fetch_task, TaskStatus};
+use super::{
+    fetch_task, 
+    TaskStatus
+};
 use super::__switch;
 use crate::trap::TrapContext;
 
@@ -40,7 +43,8 @@ impl Processor {
                 task_inner.task_status = TaskStatus::Running;
                 drop(task_inner);
                 // release
-                self.inner.borrow_mut().current = Some(task);
+                // 先把各种变量变了，然后current修改，然后进入switch函数里面
+                self.inner.borrow_mut().current = Some(task);//可以认为是转移了所有权
                 unsafe {
                     __switch(
                         idle_task_cx_ptr2,
@@ -50,6 +54,7 @@ impl Processor {
             }
         }
     }
+    //问题：为什么徐易要把当前任务“取出来”？
     pub fn take_current(&self) -> Option<Arc<TaskControlBlock>> {
         self.inner.borrow_mut().current.take()
     }

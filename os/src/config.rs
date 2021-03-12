@@ -16,7 +16,7 @@ pub const TRAP_CONTEXT: usize = TRAMPOLINE - PAGE_SIZE;
 //===============
 // pub const PAGE_SIZE: usize = 0x1000;//16进制的100就是4096个字节
 // pub const PAGE_SIZE_BITS: usize = 0xc;//表示我要用多少位的数表示一个page,也就是page offset的位数。12位
-// pub const MEMORY_MAP_SIZE: usize = 0x4_000_000;//表示进行一次内存映射最多映射多少字节
+pub const MEMORY_MAP_SIZE: usize = 0x4_000_000;//表示进行一次内存映射最多映射多少字节
 
 // pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE + 1;
 // pub const TRAP_CONTEXT: usize = TRAMPOLINE - PAGE_SIZE;
