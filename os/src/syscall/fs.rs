@@ -42,7 +42,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
             }else{
                 warn!("ILLEGAL OUTPUT");
                 print!("{}",-1);
-                2 as isize
+                -1 as isize
             } 
         },
         _ => {
