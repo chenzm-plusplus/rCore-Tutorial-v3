@@ -1,16 +1,9 @@
-use crate::mm::{
-    translated_str,
-    translated_refmut,
-};
-
 use crate::task::{
     mmap,
     munmap,
 };
-use crate::loader::get_app_data_by_name;
 
 use crate::config::{
-    ISIZI_MAX,
     PAGE_SIZE,
     MEMORY_MAP_SIZE,
 };

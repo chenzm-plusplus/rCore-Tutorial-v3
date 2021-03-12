@@ -22,8 +22,6 @@ use alloc::sync::Arc;
 
 use crate::config::{
     ISIZI_MAX,
-    PAGE_SIZE,
-    MEMORY_MAP_SIZE,
 };
 
 

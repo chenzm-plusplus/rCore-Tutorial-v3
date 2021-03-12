@@ -1,6 +1,5 @@
 use crate::timer::{
     get_time_ms,
-    TimeVal
 };
 
 pub fn sys_get_time() -> isize {
