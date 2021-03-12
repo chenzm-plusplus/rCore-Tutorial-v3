@@ -4,14 +4,9 @@ use crate::task::{
     current_task,
     current_user_token,
     add_task,
+
     TaskPriority,
-    
-    //现在的进程只有按照顺序调度这一种方式······
-    //关于优先级的策略也只能先放一放了Orz
     set_priority,
-    // 现在还没学会怎么“当前进程的进程控制块进行map”，所以这个也只能暂时先注释掉了
-    // mmap,
-    // munmap,
 };
 use crate::mm::{
     translated_str,
@@ -105,6 +100,10 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         -2
     }
     // ---- release current PCB lock automatically
+}
+
+pub fn sys_spawn(file: *const u8) -> isize{
+    return -1 as isize;
 }
 
 //sys_set_priority

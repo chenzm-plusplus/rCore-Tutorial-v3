@@ -224,15 +224,7 @@ pub fn munmap(start: usize, len: usize) -> isize {
 //     }
 // }
 
-// pub fn mmap(start: usize, len: usize, prot: usize) -> isize {
-//     sys_mmap(start, len, prot)
-// }
-
-// pub fn munmap(start: usize, len: usize) -> isize {
-//     sys_munmap(start, len)
-// }
-
-// pub fn spawn(path: &str) -> isize {
-//     sys_spawn(path)
-// }
+pub fn spawn(path: &str) -> isize {
+    sys_spawn(path)
+}
 
