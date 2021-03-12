@@ -54,10 +54,11 @@ impl Processor {
             }
         }
     }
-    //问题：为什么徐易要把当前任务“取出来”？
+    //问题：为什么需要把当前任务“取出来”？
     pub fn take_current(&self) -> Option<Arc<TaskControlBlock>> {
         self.inner.borrow_mut().current.take()
     }
+    //这个函数会把task复制一份，所以并不像上面那个函数一样直接所有权都变了
     pub fn current(&self) -> Option<Arc<TaskControlBlock>> {
         self.inner.borrow().current.as_ref().map(|task| Arc::clone(task))
     }

@@ -15,7 +15,7 @@ impl TaskPriority{
     pub fn new() -> Self {
         TaskPriority(TASK_PRIORITY_INIT)
     }
-    pub fn get_priority(&self)->usize{
+    pub fn get_priority(&self)-> usize {
         self.0
     }
     pub fn set_priority(&mut self, prio:usize){
