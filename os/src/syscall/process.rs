@@ -70,6 +70,31 @@ pub fn sys_exec(path: *const u8) -> isize {
 }
 //问题：为什么fork出这么多子进程，却只有一个exec？
 
+pub fn sys_spawn2(path: *const u8) -> isize{
+    //fork
+    let current_task = current_task().unwrap();
+    let new_task = current_task.fork();
+    //出现一个新的task之后会自动分配一个pid的
+    let new_pid = new_task.pid.0;
+    info!("sys_fork...new pid is {}",new_pid);
+    // modify trap context of new_task, because it returns immediately after switching
+    let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
+    // we do not have to move to next instruction since we have done it before
+    // for child process, fork returns 0
+    trap_cx.x[10] = 0;
+    // add new task to scheduler
+    add_task(new_task);
+
+
+    let token = current_user_token();
+    info!("sys_spawn...current user toker is {:#x}",token);
+    let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
+    //如果能找到该名称的可执行程序那么就执行
+    info!("sys_spawn...{}",path.as_str());
+
+    new_pid as isize
+}
+
 
 
 // pub fn spawn(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> Arc<TaskControlBlock>
@@ -82,32 +107,29 @@ pub fn sys_spawn(path: *const u8) -> isize{
     let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
     if let Some(data) = get_app_data_by_name(path.as_str()) {
         let current_task = current_task().unwrap();
-        let new_task = current_task.spawn(path);
+        // let new_task = current_task.spawn(path.as_str());
         //出现一个新的task之后会自动分配一个pid的
-        let new_pid = new_task.pid.0;
-        info!("sys_fork...new pid is {}",new_pid);
-        // modify trap context of new_task, because it returns immediately after switching
-        let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
-        // we do not have to move to next instruction since we have done it before
-        // for child process, fork returns 0
-        trap_cx.x[10] = 0;
-        // add new task to scheduler
-        add_task(new_task);
+        // let new_pid = new_task.pid.0;
+        // info!("sys_fork...new pid is {}",new_pid);
+        // // modify trap context of new_task, because it returns immediately after switching
+        // let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
+        // // we do not have to move to next instruction since we have done it before
+        // // for child process, fork returns 0
+        // trap_cx.x[10] = 0;
+        // // add new task to scheduler
+        // add_task(new_task);
         //soga，因为fork出来的会自动加入进程池里面
         //简单点说就是，放在Manager那个队列里面，等着被调用哦
 
         //接下来要做的事情就是不断地替换
 
         //？？？？？？？？？？？？？？
-        new_pid as isize
+        // new_pid as isize
+        -1
     } else {
         -1
     }
 
-
-
-    
-    
     
 }
 
