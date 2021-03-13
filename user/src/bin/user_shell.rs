@@ -22,12 +22,14 @@ pub fn main() -> i32 {
     print!(">> ");
     loop {
         let c = getchar();
+        println!("getchar(), {}",c);
         match c {
             LF | CR => {
                 println!("");
                 if !line.is_empty() {
                     line.push('\0');
                     let pid = fork();
+                    println!("line is {}, pid is...{}",line.as_str(),pid);
                     if pid == 0 {
                         // child process
                         if exec(line.as_str()) == -1 {

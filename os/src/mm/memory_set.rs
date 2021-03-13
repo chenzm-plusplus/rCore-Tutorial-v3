@@ -204,19 +204,26 @@ impl MemorySet {
         ), None);
         (memory_set, user_stack_top, elf.header.pt2.entry_point() as usize)
     }
+    //
     pub fn from_existed_user(user_space: &MemorySet) -> MemorySet {
+        //先创建一个空的地址空间
         let mut memory_set = Self::new_bare();
         // map trampoline
+        //映射跳转页面（？？？其实上一个实验我就没有太理解什么是跳板页面，不过看起来暂时不是非常影响哦
         memory_set.map_trampoline();
         // copy data sections/trap_context/user_stack
         for area in user_space.areas.iter() {
             let new_area = MapArea::from_another(area);
+            //先把别人的area复制过来
+            //放进memory_set里面
+            //注意，这里push进去的时候其实就调用了area的map，就已经分配了物理页帧
             memory_set.push(new_area, None);
             // copy data from another space
             for vpn in area.vpn_range {
                 let src_ppn = user_space.translate(vpn).unwrap().ppn();
                 let dst_ppn = memory_set.translate(vpn).unwrap().ppn();
                 dst_ppn.get_bytes_array().copy_from_slice(src_ppn.get_bytes_array());
+                //所以这里就是可以直接复制数据的！
             }
         }
         memory_set

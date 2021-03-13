@@ -117,13 +117,17 @@ impl TaskControlBlock {
         );
         // **** release current PCB lock
     }
+
+    //fork在做什么呢？
     pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
         // ---- hold parent PCB lock
         let mut parent_inner = self.acquire_inner_lock();
         // copy user space(include trap context)
         let memory_set = MemorySet::from_existed_user(
+            //复制一份一模一样的用户空间
             &parent_inner.memory_set
         );
+        //取出复制出来的空间的物理页号
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
@@ -159,6 +163,10 @@ impl TaskControlBlock {
         // return
         task_control_block
         // ---- release parent PCB lock
+    }
+
+    pub fn spawn(&self, elf_data: &[u8]){
+
     }
 
 //=====================================================================

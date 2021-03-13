@@ -40,7 +40,9 @@ pub fn sys_getpid() -> isize {
 pub fn sys_fork() -> isize {
     let current_task = current_task().unwrap();
     let new_task = current_task.fork();
+    //出现一个新的task之后会自动分配一个pid的
     let new_pid = new_task.pid.0;
+    info!("sys_fork...new pid is {}",new_pid);
     // modify trap context of new_task, because it returns immediately after switching
     let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
     // we do not have to move to next instruction since we have done it before
@@ -48,12 +50,15 @@ pub fn sys_fork() -> isize {
     trap_cx.x[10] = 0;
     // add new task to scheduler
     add_task(new_task);
+    //soga，因为fork出来的会自动加入进程池里面。
     new_pid as isize
 }
 
 pub fn sys_exec(path: *const u8) -> isize {
     let token = current_user_token();
-    let path = translated_str(token, path);
+    let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
+    //如果能找到该名称的可执行程序那么就执行
+    info!("sys_exec...{}",path.as_str());
     if let Some(data) = get_app_data_by_name(path.as_str()) {
         let task = current_task().unwrap();
         task.exec(data);
@@ -61,6 +66,62 @@ pub fn sys_exec(path: *const u8) -> isize {
     } else {
         -1
     }
+}
+//问题：为什么fork出这么多子进程，却只有一个exec？
+
+
+
+//spawn直接使用exec会出现什么问题？
+pub fn sys_spawn(file: *const u8) -> isize{
+    let pid = sys_fork();
+    info!("sys_pid...{}",pid);
+    // if pid == 0 {
+        // child process
+        if sys_exec(file) == -1 {
+            println!("Error when executing!");
+            return -1 as isize;
+        }
+        unreachable!();
+    // } else {
+    //     let mut exit_code: i32 = 0;
+    //     let exit_pid = sys_waitpid(pid, &mut exit_code);
+    //     assert_eq!(pid, exit_pid);
+    //     // println!("Shell: Process {} exited with code {}", pid, exit_code);
+    //     return -1 as isize;
+    // }
+    // let current_task = current_task().unwrap();
+    // let new_task = current_task.fork();
+    // //出现一个新的task之后会自动分配一个pid的
+    // let new_pid = new_task.pid.0;
+    // info!("sys_fork...{}",new_pid);
+    // // modify trap context of new_task, because it returns immediately after switching
+    // let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
+    // // we do not have to move to next instruction since we have done it before
+    // // for child process, fork returns 0
+    // trap_cx.x[10] = 0;
+    // // add new task to scheduler
+    // add_task(new_task);
+    // //soga，因为fork出来的会自动加入进程池里面。
+
+    // if new_pid
+
+    // let token = current_user_token();
+    // let path = translated_str(token, file);//总之就是把*const u8翻译成String类型
+    // info!("sys_spawn...path name is...{}",path);
+    // //如果能找到该名称的可执行程序那么就执行
+    // if let Some(data) = get_app_data_by_name(path.as_str()) {
+    //     let current_task = current_task().unwrap();
+    //     let new_task = current_task.fork();
+    //     let new_pid = new_task.pid.0;
+    //     info!("sys_spawn...new pid is...{}",new_pid);
+    //     // add_task(new_task);
+
+    //     new_task.exec(data);
+
+    //     new_pid as isize
+    // } else {
+    //     -1 as isize
+    // }
 }
 
 /// If there is not a child process whose pid is same as given, return -1.
@@ -100,10 +161,6 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         -2
     }
     // ---- release current PCB lock automatically
-}
-
-pub fn sys_spawn(file: *const u8) -> isize{
-    return -1 as isize;
 }
 
 //sys_set_priority
