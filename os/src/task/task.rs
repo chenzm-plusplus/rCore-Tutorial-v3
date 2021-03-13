@@ -176,23 +176,15 @@ impl TaskControlBlock {
     }
     
     // pub fn spawn(&self, elf_data: &[u8]) -> isize{
-    pub fn spawn(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> isize{
-        // ---- hold parent PCB lock
-        let mut parent_inner = self.acquire_inner_lock();
-        // copy user space(include trap context)
-        //但是这个实际上用不到
-        let memory_set = MemorySet::from_existed_user(
-            //复制一份一模一样的用户空间
-            //确实······感觉这里复制这一份出来，就是为了变成一个数据结构存起来，好像什么作用也没有。
-            //因为真的task被执行的时候，用到的是exec里面取出来的memory_set呀
-            &parent_inner.memory_set
-        );
-        //取出复制出来的空间的物理页号
+    pub fn spawn(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> Arc<TaskControlBlock>{
+        let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
 
+        // ---- hold parent PCB lock
+        let mut parent_inner = self.acquire_inner_lock();
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
@@ -217,16 +209,16 @@ impl TaskControlBlock {
         // add child
         parent_inner.children.push(task_control_block.clone());
         // modify kernel_sp in trap_cx
-        // **** acquire child PCB lock
-        let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
-        // **** release child PCB lock
-        trap_cx.kernel_sp = kernel_stack_top;
-        // return
-        task_control_block
-        // ---- release parent PCB lock
+
+         // **** acquire child PCB lock
+         let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
+         // **** release child PCB lock
+         trap_cx.kernel_sp = kernel_stack_top;
+         // return
+         task_control_block
+         // ---- release parent PCB lock
 
 
-        
         // //第三步是把旧的进程信息塞add_task里面
         // let mut inner = self.acquire_inner_lock();
         // let parent = self.clone();
@@ -269,8 +261,6 @@ impl TaskControlBlock {
         // trap_cx.kernel_sp = kernel_stack_top;
 
         // add_task(parent);
-
-        return self.pid.0 as isize;
     }
 
 //=====================================================================
