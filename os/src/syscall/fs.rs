@@ -14,7 +14,7 @@ use crate::batch::app_address_space;
 /// 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     trace!("call sys_write......");
-    trace!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
+    debug!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
 
     /*
     //事实上，用户代码空间的内容应该是可读、可执行但是不可写的
@@ -29,7 +29,8 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     
     let (left,right) = current_user_stack_space();
     let (left2,right2) = app_address_space();
-    debug!("current user stack space is...[{:#x},{:#x})",left,right);
+    info!("current user stack space is...[{:#x},{:#x})",left,right);
+    info!("current user stack space is...[{:#x},{:#x})",left2,right2);
 
     match fd {
         FD_STDOUT => {

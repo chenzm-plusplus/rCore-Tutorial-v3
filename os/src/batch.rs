@@ -2,7 +2,7 @@ use core::cell::RefCell;
 use lazy_static::*;
 use crate::trap::TrapContext;
 
-const USER_STACK_SIZE: usize = 4096 * 2;
+const USER_STACK_SIZE: usize = 4096 * 1;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
 const MAX_APP_NUM: usize = 16;
 const APP_BASE_ADDRESS: usize = 0x80400000;
@@ -54,17 +54,18 @@ unsafe impl Sync for AppManager {}
 impl AppManagerInner {
     pub fn print_app_info(&self) {
         trace!("AppManagerInner::print_app_info");
-        println!("[kernel] num_app = {}", self.num_app);
+        kernel_println!("num_app = {}", self.num_app);
         for i in 0..self.num_app {
-            println!("[kernel] app_{} [{:#x}, {:#x})", i, self.app_start[i], self.app_start[i + 1]);
+            kernel_println!("app_{} [{:#x}, {:#x})", i, self.app_start[i], self.app_start[i + 1]);
         }
     }
 
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
-            panic!("All applications completed!");
+            // panic!("All applications completed!");
+            panic!("Shutdown machine!");
         }
-        info!("[kernel] Loading app_{}", app_id);
+        info!("Loading app_{}", app_id);
         // clear icache
         llvm_asm!("fence.i" :::: "volatile");
         // clear app area
@@ -90,7 +91,7 @@ impl AppManagerInner {
 
     pub fn print_current_app_info(&self){
         let i = self.current_app;
-        println!("[kernel] app_{} [{:#x}, {:#x})", i, self.app_start[i-1], self.app_start[i]);
+        kernel_println!("app_{} [{:#x}, {:#x})", i, self.app_start[i-1], self.app_start[i]);
     }
 
     pub fn address_space_current(&self) -> (usize,usize){

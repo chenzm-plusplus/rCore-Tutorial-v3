@@ -52,6 +52,18 @@ pub fn my_log(){
 //================more function===================
 
 #[macro_export]
+macro_rules! kernel_println{
+    ($fmt: literal $(, $($arg: tt)+)?) => {
+        // $crate::console::print(format_args!(concat!("\x1b[31m",$fmt, "\n","\x1b[0m") $(, $($arg)+)?));
+        match option_env!("LOG"){
+            Some(str) => $crate::console::print(format_args!(concat!("\x1b[35m[kernel] ",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
+            // None => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n","\x1b[0m") $(, $($arg)+)?)),
+            _ => {},
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! error{
     ($fmt: literal $(, $($arg: tt)+)?) => {
         // $crate::console::print(format_args!(concat!("\x1b[31m",$fmt, "\n","\x1b[0m") $(, $($arg)+)?));
@@ -61,7 +73,7 @@ macro_rules! error{
             Some("INFO")|Some("info") => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("WARN")|Some("warn") => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("ERROR")|Some("error") => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
-            None => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n","\x1b[0m") $(, $($arg)+)?)),
+            // None => $crate::console::print(format_args!(concat!("\x1b[31m[ERROR]",$fmt,"\n","\x1b[0m") $(, $($arg)+)?)),
             _ => {},
         }
     }
@@ -76,7 +88,7 @@ macro_rules! warn{
             Some("WARN")|Some("warn") => $crate::console::print(format_args!(concat!("\x1b[93m[WARN]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("DEBUG")|Some("debug") => $crate::console::print(format_args!(concat!("\x1b[93m[WARN]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("TRACE")|Some("trace") => $crate::console::print(format_args!(concat!("\x1b[93m[WARN]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
-            None => $crate::console::print(format_args!(concat!("\x1b[93m[WARN]",$fmt,"\n","\x1b[0m") $(, $($arg)+)?)),
+            // None => $crate::console::print(format_args!(concat!("\x1b[93m[WARN]",$fmt,"\n","\x1b[0m") $(, $($arg)+)?)),
             _ => {},
         }
     }
@@ -93,7 +105,7 @@ macro_rules! info{
             Some("TRACE")|Some("trace")|Some("Trace") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("DEBUG")|Some("debug")|Some("Debug") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             Some("INFO")|Some("info")|Some("Debug") => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
-            None => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
+            // None => $crate::console::print(format_args!(concat!("\x1b[34m[INFO]",$fmt,"\n\x1b[0m") $(, $($arg)+)?)),
             _ => {},
         }
     }
