@@ -13,7 +13,7 @@ use crate::batch::app_address_space;
 /// syscall ID：64
 /// 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    trace!("call sys_write......");
+    debug!("call sys_write......");
     debug!("fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
 
     /*
@@ -30,7 +30,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     let (left,right) = current_user_stack_space();
     let (left2,right2) = app_address_space();
     info!("current user stack space is...[{:#x},{:#x})",left,right);
-    info!("current user stack space is...[{:#x},{:#x})",left2,right2);
+    info!("current app address space is...[{:#x},{:#x})",left2,right2);
 
     match fd {
         FD_STDOUT => {
@@ -47,6 +47,8 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
             } 
         },
         _ => {
+            // return fd as isize;
+            return -1 as isize;
             panic!("Unsupported fd in sys_write!");
         }
     }
