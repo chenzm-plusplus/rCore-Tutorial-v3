@@ -149,7 +149,9 @@ impl TaskManager {
     }
 
     fn run_next_task(&self) {
+        trace!("run_next_task......");
         if let Some(next) = self.find_next_task_stride() {
+            trace!("next task is....{}",next);
             let mut inner = self.inner.borrow_mut();
             let current = inner.current_task;
             inner.tasks[next].task_status = TaskStatus::Running;
@@ -182,6 +184,8 @@ impl TaskManager {
         let inner = self.inner.borrow_mut();
         let current = inner.current_task;
         (APP_BASE_ADDRESS + APP_SIZE_LIMIT*current,APP_BASE_ADDRESS + APP_SIZE_LIMIT*(current+1))
+        // (APP_BASE_ADDRESS, APP_BASE_ADDRESS + APP_SIZE_LIMIT)
+        //由于这里采用了时间片轮转算法，所以不同的程序被装在不同的APP_BASE_ADDRESS
     }
 
     fn get_task_priority_current(&self) -> usize{
