@@ -31,7 +31,7 @@ pub fn sys_yield() -> isize {
 //     }
 // }
 pub fn sys_get_time(ts: *mut TimeVal, tz: usize) -> isize{
-    // match (*ts){
+    // match &(*ts){
     //     Null => {},
     //     _ => {
     //         unsafe{

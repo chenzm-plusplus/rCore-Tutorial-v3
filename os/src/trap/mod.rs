@@ -50,25 +50,25 @@ pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
         }
         Trap::Exception(Exception::StoreFault) |
         Trap::Exception(Exception::StorePageFault) => {
-            println!("[kernel] PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.", stval, cx.sepc);
+            kernel_println!("PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.", stval, cx.sepc);
             exit_current_and_run_next();
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, core dumped.");
+            kernel_println!("IllegalInstruction in application, core dumped.");
             exit_current_and_run_next();
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
             trace!("trap_handler::Exception::SupervisorTimer");
             //TEMP::先检查是否已经超过了规定的时间
             if get_time_ms()>MAX_RUN_TIME_MS*get_my_num_app(){
-                panic!("[kernel] Run toooooooo loooooooong time!");
+                panic!("Run toooooooo loooooooong time!");
             }
             set_next_trigger();//先重新设置一个 10ms 的计时器
             suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
-            trace!("[kernel] now app {} is running...",get_task_current());
+            info!("now app {} is running...",get_task_current());
         }
         _ => {
-            println!("[kernel] Upsupported trap of app {}", get_task_current());
+            kernel_println!("Upsupported trap of app {},trap {:?}, stval = {:#x}!", get_task_current(),scause.cause(), stval);
             exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
