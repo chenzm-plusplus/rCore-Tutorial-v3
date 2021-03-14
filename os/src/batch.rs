@@ -1,6 +1,9 @@
+
+use crate::sbi::shutdown;
 use core::cell::RefCell;
 use lazy_static::*;
 use crate::trap::TrapContext;
+
 
 const USER_STACK_SIZE: usize = 4096 * 1;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
@@ -63,7 +66,8 @@ impl AppManagerInner {
     unsafe fn load_app(&self, app_id: usize) {
         if app_id >= self.num_app {
             // panic!("All applications completed!");
-            panic!("Shutdown machine!");
+            // panic!("Shutdown machine!");
+            shutdown()
         }
         info!("Loading app_{}", app_id);
         // clear icache
