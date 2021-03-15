@@ -21,14 +21,14 @@ pub struct TaskControlBlock {
 }
 
 pub struct TaskControlBlockInner {
-    pub trap_cx_ppn: PhysPageNum,
-    pub base_size: usize,
-    pub task_cx_ptr: usize,
-    pub task_status: TaskStatus,
-    pub memory_set: MemorySet,
+    pub trap_cx_ppn: PhysPageNum,//指出了应用地址空间中的 Trap 上下文（详见第四章）被放在的物理页帧的物理页号。
+    pub base_size: usize,//应用数据仅有可能出现在应用地址空间低于 base_size 字节的区域中。借助它我们可以清楚的知道应用有多少数据驻留在内存中。
+    pub task_cx_ptr: usize,//指出一个暂停的任务的任务上下文在内核地址空间（更确切的说是在自身内核栈）中的位置，用于任务切换。
+    pub task_status: TaskStatus,//维护当前进程的执行状态。
+    pub memory_set: MemorySet,//
     pub task_priority: TaskPriority,//add
-    pub parent: Option<Weak<TaskControlBlock>>,
-    pub children: Vec<Arc<TaskControlBlock>>,
+    pub parent: Option<Weak<TaskControlBlock>>,//指向当前进程的父进程（如果存在的话）。注意我们使用 Weak 而非 Arc 来包裹另一个任务控制块，因此这个智能指针将不会影响父进程的引用计数。
+    pub children: Vec<Arc<TaskControlBlock>>,//则将当前进程的所有子进程的任务控制块以 Arc 智能指针的形式保存在一个向量中，这样才能够更方便的找到它们。
     pub exit_code: i32,
 }
 
@@ -175,92 +175,56 @@ impl TaskControlBlock {
         // ---- release parent PCB lock
     }
     
+    // 这个函数假设已经在调用前取出了elf_data，可以直接拿来用了哦~
+    // 会返回一个新建的进程控制块.这个新建的进程控制块，会把
     // pub fn spawn(&self, elf_data: &[u8]) -> isize{
-    pub fn spawn(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> Arc<TaskControlBlock>{
+    pub fn spawn_from(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> Arc<TaskControlBlock>{
+        // memory_set with elf program headers/trampoline/trap context/user stack
         let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
-
-        // ---- hold parent PCB lock
-        let mut parent_inner = self.acquire_inner_lock();
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
         let kernel_stack_top = kernel_stack.get_top();
-        // push a goto_trap_return task_cx on the top of kernel stack
+        // push a task context which goes to trap_return to the top of kernel stack
         let task_cx_ptr = kernel_stack.push_on_top(TaskContext::goto_trap_return());
         let task_control_block = Arc::new(TaskControlBlock {
             pid: pid_handle,
             kernel_stack,
             inner: Mutex::new(TaskControlBlockInner {
                 trap_cx_ppn,
-                base_size: parent_inner.base_size,
+                base_size: user_sp,
                 task_cx_ptr: task_cx_ptr as usize,
                 task_status: TaskStatus::Ready,
                 memory_set,
                 task_priority: TaskPriority::new(),
-                parent: Some(Arc::downgrade(self)),//似乎这里是弱引用？
+                parent: None,
                 children: Vec::new(),
                 exit_code: 0,
             }),
         });
+        //几乎就和new函数一样，唯一的区别在于new的时候还要建立进程之间的父子关系
+        // ---- hold parent PCB lock
+        let mut parent_inner = self.acquire_inner_lock();
         // add child
         parent_inner.children.push(task_control_block.clone());
         // modify kernel_sp in trap_cx
+        // prepare TrapContext in user space
 
-         // **** acquire child PCB lock
-         let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
-         // **** release child PCB lock
-         trap_cx.kernel_sp = kernel_stack_top;
-         // return
-         task_control_block
-         // ---- release parent PCB lock
-
-
-        // //第三步是把旧的进程信息塞add_task里面
-        // let mut inner = self.acquire_inner_lock();
-        // let parent = self.clone();
-        // //复制一份自己当成parent
-        // //第一步是建立新的进程控制块，修改其中的信息
-        // //只有memory_set是直接从exec里面读取的
-        // //先从文件里面读取我要的信息加载进来，memory_set和trap_cx_ppn都放进来
-        // let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
-        // let trap_cx_ppn = memory_set
-        //     .translate(VirtAddr::from(TRAP_CONTEXT).into())
-        //     .unwrap()
-        //     .ppn();
-        // //fork
-        // // alloc a pid and a kernel stack in kernel space
-        // let pid_handle = pid_alloc();
-        // let kernel_stack = KernelStack::new(&pid_handle);
-        // let kernel_stack_top = kernel_stack.get_top();
-        // // push a goto_trap_return task_cx on the top of kernel stack
-        // let task_cx_ptr = kernel_stack.push_on_top(TaskContext::goto_trap_return());
-
-        // //第四步是用新建出来的控制块的信息修改我自己，这样当前的进程就成为了要执行的进程
-        // //也就是真正完成了exec的功能
-        // // self.pid = pid_handle;
-        // // self.kernel_stack= kernel_stack;
-        // inner.trap_cx_ppn = trap_cx_ppn;
-        // inner.task_cx_ptr = task_cx_ptr as usize;
-        // inner.task_status = TaskStatus::Ready;
-        // inner.memory_set = memory_set;
-        // inner.task_priority = TaskPriority::new();
-        // // pub parent: Option<Weak<TaskControlBlock>>,
-        // //let parent = Arc::new(TaskControlBlock)
-        // inner.parent =  Some(Arc::downgrade(&parent));//TODO这里可能会有问题！！！！不过这里是引用计数的弱指针诶
-        // inner.children = Vec::new();
-        // inner.exit_code = 0;
-        
-
-        // //**** acquire child PCB lock
-        // let trap_cx = inner.get_trap_cx();
-        // // **** release child PCB lock
-        // trap_cx.kernel_sp = kernel_stack_top;
-
-        // add_task(parent);
+        let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
+        *trap_cx = TrapContext::app_init_context(
+            entry_point,
+            user_sp,
+            KERNEL_SPACE.lock().token(),
+            kernel_stack_top,
+            trap_handler as usize,
+        );
+        // return
+        task_control_block
+        // ---- release parent PCB lock
     }
 
 //=====================================================================

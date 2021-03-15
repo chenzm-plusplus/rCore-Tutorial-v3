@@ -123,32 +123,25 @@ pub fn sys_spawn(path: *const u8) -> isize{
 
     let token = current_user_token();
     let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
+    info!("sys_spawn...{}",path.as_str());
     if let Some(data) = get_app_data_by_name(path.as_str()) {
         let current_task = current_task().unwrap();
-        // let new_task = current_task.spawn(path.as_str());
+        let new_task = current_task.spawn_from(data);
         //出现一个新的task之后会自动分配一个pid的
-        // let new_pid = new_task.pid.0;
-        // info!("sys_fork...new pid is {}",new_pid);
-        // // modify trap context of new_task, because it returns immediately after switching
-        // let trap_cx = new_task.acquire_inner_lock().get_trap_cx();
-        // // we do not have to move to next instruction since we have done it before
-        // // for child process, fork returns 0
-        // trap_cx.x[10] = 0;
-        // // add new task to scheduler
-        // add_task(new_task);
+        let new_pid = new_task.pid.0;
+        info!("sys_spawn_from...new pid is {}",new_pid);
+        // add new task to scheduler
+        add_task(new_task);
         //soga，因为fork出来的会自动加入进程池里面
         //简单点说就是，放在Manager那个队列里面，等着被调用哦
 
         //接下来要做的事情就是不断地替换
-
-        //？？？？？？？？？？？？？？
-        // new_pid as isize
-        -1
+        //现在能做到的事情是
+        //生成这些个用户进程，并且放任它们跑
+        new_pid as isize
     } else {
         -1
     }
-
-    
 }
 
 /// If there is not a child process whose pid is same as given, return -1.

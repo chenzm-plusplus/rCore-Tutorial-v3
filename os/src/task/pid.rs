@@ -62,6 +62,7 @@ pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
     (bottom, top)
 }
 
+//内核栈可以根据进程编号来自动为进程分配地址哦
 pub struct KernelStack {
     pid: usize,
 }
