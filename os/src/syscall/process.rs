@@ -36,6 +36,9 @@ pub fn sys_getpid() -> isize {
 }
 
 pub fn sys_fork() -> isize {
+    let token = current_user_token();
+    info!("sys_fork...current user toker is {:#x}",token);
+
     let current_task = current_task().unwrap();
     let new_task = current_task.fork();
     //出现一个新的task之后会自动分配一个pid的
@@ -90,9 +93,12 @@ pub fn sys_spawn2(path: *const u8) -> isize{
     add_task(new_task);
 
 
+    //这里的token也就相当于是用来区分页表的东西。
+    //在什么样的页表下可以找到path？
+    //会议usershell的使用场景······只有在
     let token = current_user_token();
     info!("sys_spawn...current user toker is {:#x}",token);
-    let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
+    let path = translated_str(token, path); //总之就是把*const u8翻译成String类型
     //如果能找到该名称的可执行程序那么就执行
     info!("sys_spawn...{}",path.as_str());
 

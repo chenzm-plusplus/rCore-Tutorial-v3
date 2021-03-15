@@ -10,8 +10,8 @@ const MAX_CHILD: usize = 4;
 #[no_mangle]
 pub fn main() -> i32 {
     for _ in 0..MAX_CHILD {
-        let cpid = spawn("ch5_getpid");
-        assert!(cpid >= 0, "child pid invalid");
+        let cpid = spawn("ch5_getpid\0");
+        assert!(cpid >= 0, "child pid invalid, {}", cpid);
         println!("new child {}", cpid);
     }
     let mut exit_code: i32 = 0;
