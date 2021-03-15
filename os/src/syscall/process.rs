@@ -75,7 +75,7 @@ pub fn sys_exec(path: *const u8) -> isize {
 
 // pub const TEMP_MAX: usize = 100;
 //有一个想法就是，我创建了一个进程，并且是从用户程序里面加载出来的代码······
-//算了明天再想 吧
+// !!!震惊！太神奇了，我都不知道我写了什么，竟然就几乎完成了系统调用啊！
 
 pub fn sys_spawn2(path: *const u8) -> isize{
     //fork
@@ -91,7 +91,6 @@ pub fn sys_spawn2(path: *const u8) -> isize{
     trap_cx.x[10] = 0;
     // add new task to scheduler
     add_task(new_task);
-
 
     //这里的token也就相当于是用来区分页表的东西。
     //在什么样的页表下可以找到path？
@@ -111,7 +110,6 @@ pub fn sys_spawn2(path: *const u8) -> isize{
     } else {
         -1 as isize
     }
-
     // new_pid as isize
 }
 

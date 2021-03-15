@@ -19,7 +19,8 @@ pub fn main() -> i32 {
         assert!(wait(&mut exit_code) <= 0, "wait stopped early");
         assert_eq!(exit_code, 0, "error exit ocde {}", exit_code);
     }
-    assert!(wait(&mut exit_code) > 0, "wait got too many");
+    let wt = wait(&mut exit_code);
+    assert!( wt> 0, "wait got too many, {}",wt);
     println!("TEST spawn0 OK!");
     0
 }
