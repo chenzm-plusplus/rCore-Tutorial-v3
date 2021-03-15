@@ -42,7 +42,6 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
         SYSCALL_SPAWN => sys_spawn(args[0] as *const u8),
 
-
         SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
         SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
