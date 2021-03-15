@@ -134,10 +134,6 @@ pub fn sys_spawn(path: *const u8) -> isize{
         add_task(new_task);
         //soga，因为fork出来的会自动加入进程池里面
         //简单点说就是，放在Manager那个队列里面，等着被调用哦
-
-        //接下来要做的事情就是不断地替换
-        //现在能做到的事情是
-        //生成这些个用户进程，并且放任它们跑
         new_pid as isize
     } else {
         -1
@@ -146,6 +142,7 @@ pub fn sys_spawn(path: *const u8) -> isize{
 
 /// If there is not a child process whose pid is same as given, return -1.
 /// Else if there is a child process but it is still running, return -2.
+/// 否则就返回child pid的编号
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     let task = current_task().unwrap();
     // find a child process

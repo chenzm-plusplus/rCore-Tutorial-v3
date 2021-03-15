@@ -201,7 +201,7 @@ impl TaskControlBlock {
                 task_status: TaskStatus::Ready,
                 memory_set,
                 task_priority: TaskPriority::new(),
-                parent: None,
+                parent: Some(Arc::downgrade(self)),
                 children: Vec::new(),
                 exit_code: 0,
             }),
