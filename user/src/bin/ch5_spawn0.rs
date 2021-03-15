@@ -17,11 +17,11 @@ pub fn main() -> i32 {
     let mut exit_code: i32 = 0;
     for _ in 0..MAX_CHILD {
         let wt = wait(&mut exit_code);
-        assert!( wt<= 0, "wait stopped early {}", wt);
+        assert!( wt > 0, "wait stopped early {}", wt);
         assert_eq!(exit_code, 0, "error exit ocde {}", exit_code);
     }
     let wt = wait(&mut exit_code);
-    assert!( wt> 0, "wait got too many, {}",wt);
+    assert!( wt <= 0, "wait got too many, {}",wt);
     println!("TEST spawn0 OK!");
     0
 }

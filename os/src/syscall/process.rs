@@ -145,6 +145,7 @@ pub fn sys_spawn(path: *const u8) -> isize{
 /// 否则就返回child pid的编号
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     let task = current_task().unwrap();
+    // println!("[kernel] finding {}' children...",task.pid.0);
     // find a child process
 
     // ---- hold current PCB lock
@@ -161,20 +162,23 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         .enumerate()
         .find(|(_, p)| {
             // ++++ temporarily hold child PCB lock
-            p.acquire_inner_lock().is_zombie() && (pid == -1 || pid as usize == p.getpid())
+            (p.acquire_inner_lock().is_zombie()) && (pid == -1 || pid as usize == p.getpid())
             // ++++ release child PCB lock
         });
     if let Some((idx, _)) = pair {
         let child = inner.children.remove(idx);
+        // println!("[kernel] find pid :{}",child.pid.0);
         // confirm that child will be deallocated after removing from children list
-        assert_eq!(Arc::strong_count(&child), 1);
+        // assert_eq!(Arc::strong_count(&child), 1);
         let found_pid = child.getpid();
         // ++++ temporarily hold child lock
         let exit_code = child.acquire_inner_lock().exit_code;
         // ++++ release child PCB lock
         *translated_refmut(inner.memory_set.token(), exit_code_ptr) = exit_code;
+        println!("[kernel] find pid have done :{}",found_pid);
         found_pid as isize
     } else {
+        // println!("[kernel] children not found");
         -2
     }
     // ---- release current PCB lock automatically
