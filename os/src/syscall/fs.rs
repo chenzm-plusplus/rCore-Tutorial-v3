@@ -82,3 +82,11 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
     *translated_refmut(token, unsafe { pipe.add(1) }) = write_fd;
     0
 }
+
+pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
+    -1 as isize
+}
+
+pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
+    -1 as isize
+}
