@@ -4,13 +4,18 @@ mod task;
 mod manager;
 mod processor;
 mod pid;
+mod stride;
+mod priority;
 
 use crate::loader::{get_app_data_by_name};
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
-use manager::fetch_task;
 use lazy_static::*;
+
+//=====================================================================
+// 本文件中是要向其他模块提供的代码
+//=====================================================================
 
 pub use context::TaskContext;
 pub use processor::{
@@ -20,10 +25,24 @@ pub use processor::{
     current_trap_cx,
     take_current_task,
     schedule,
+
+    set_priority,
+    mmap,
+    munmap,
 };
-pub use manager::add_task;
+pub use manager::{
+    add_task,
+    fetch_task,
+};
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 
+pub use priority::{
+    TaskPriority,
+};
+
+//=====================================================================
+// 以下部分的代码都和进程调度相关
+//=====================================================================
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
     let task = take_current_task().unwrap();
@@ -45,6 +64,7 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
+    kernel_println!("exit current task is {}",task.pid.0);
     // **** hold current PCB lock
     let mut inner = task.acquire_inner_lock();
     // Change status to Zombie
@@ -84,3 +104,46 @@ lazy_static! {
 pub fn add_initproc() {
     add_task(INITPROC.clone());
 }
+
+//=====================================================================
+// 以下部分的代码是为了实现系统调用。目前支持的和进程相关的系统调用，有：
+// SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
+// SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
+// SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
+//=====================================================================
+
+
+
+// pub fn get_my_num_app()->usize{
+//     TASK_MANAGER.get_num_app()
+// }
+
+// // //for sys_write check
+// pub fn get_task_current()->usize{
+//     TASK_MANAGER.get_task_current()
+// }
+
+// pub fn get_task_priority(task:usize)->usize{
+//     TASK_MANAGER.get_task_priority(task)
+// }
+
+// // pub fn get_current_memoryset()->&'static mut MemorySet{
+// //     TASK_MANAGER.lock().get_current_memoryset()
+// // }
+
+// pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+//     TASK_MANAGER.mmap(start, len, port)
+// }
+
+// pub fn munmap(start: usize, len: usize) -> isize{
+//     TASK_MANAGER.munmap(start, len)
+// }
+
+// // pub fn mmap(start: usize, len: usize, port: usize) -> isize{
+// //     // TASK_MANAGER.mmap(start, len, port)
+// //     TASK_MANAGER.get_current_memoryset().mmap(start,len,port)
+// // }
+
+// // pub fn munmap(start: usize, len: usize) -> isize{
+// //     TASK_MANAGER.get_current_memoryset().munmap(start, len)
+// // }

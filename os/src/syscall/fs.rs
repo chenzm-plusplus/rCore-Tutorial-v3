@@ -1,7 +1,22 @@
-use crate::mm::{UserBuffer, translated_byte_buffer, translated_refmut};
+use crate::mm::{
+    UserBuffer, 
+    translated_byte_buffer, 
+    translated_refmut
+};
 use crate::task::{current_user_token, current_task};
 use crate::fs::{make_pipe};
+use crate::sbi::console_getchar;//for sys_read
 
+/// 代码段 .text 不允许被修改；
+/// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
+/// .data/.bss 均允许被读写，但是不允许从它上面取指。
+/// 
+/// 功能：将内存中缓冲区中的数据写入文件。
+/// 参数：`fd` 表示待写入文件的文件描述符；
+///      `buf` 表示内存中缓冲区的起始地址；
+///      `len` 表示内存中缓冲区的长度。
+/// 返回值：返回成功写入的长度。
+/// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     let token = current_user_token();
     let task = current_task().unwrap();

@@ -28,6 +28,7 @@ pub fn main() -> i32 {
                 if !line.is_empty() {
                     line.push('\0');
                     let pid = fork();
+                    println!("line is {}, pid is...{}",line.as_str(),pid);
                     if pid == 0 {
                         // child process
                         if exec(line.as_str()) == -1 {
