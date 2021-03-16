@@ -31,6 +31,7 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
     if let Some(file) = &inner.fd_table[fd] {
         let file = file.clone();
         // release Task lock manually to avoid deadlock
+        // 问题：为什么是在这里drop的？
         drop(inner);
         file.read(
             UserBuffer::new(translated_byte_buffer(token, buf, len))
