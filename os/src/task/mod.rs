@@ -47,9 +47,6 @@ pub fn suspend_current_and_run_next() {
     // There must be an application running.
     let task = take_current_task().unwrap();
 
-    // println!("[kernel] current task is {}",task.pid.0);
-    // 总而言之发现确实到最后只剩下012这3个task了呢
-
     // ---- hold current PCB lock
     let mut task_inner = task.acquire_inner_lock();
     let task_cx_ptr2 = task_inner.get_task_cx_ptr2();
@@ -67,7 +64,7 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
-    println!("[kernel] exit current task is {}",task.pid.0);
+    kernel_println!("exit current task is {}",task.pid.0);
     // **** hold current PCB lock
     let mut inner = task.acquire_inner_lock();
     // Change status to Zombie

@@ -21,7 +21,7 @@ use crate::config::{
 
 
 pub fn sys_exit(exit_code: i32) -> ! {
-    println!("[kernel] Application exited with code {}", exit_code);
+    kernel_println!("[kernel] Application exited with code {}", exit_code);
     exit_current_and_run_next(exit_code);
     panic!("Unreachable in sys_exit!");
 }
@@ -100,7 +100,7 @@ pub fn sys_spawn(path: *const u8) -> isize{
 /// 否则就返回child pid的编号
 pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
     let task = current_task().unwrap();
-    // println!("[kernel] finding {}' children...",task.pid.0);
+    // kernel_println!("finding {}' children...",task.pid.0);
     // find a child process
 
     // ---- hold current PCB lock
@@ -130,7 +130,7 @@ pub fn sys_waitpid(pid: isize, exit_code_ptr: *mut i32) -> isize {
         let exit_code = child.acquire_inner_lock().exit_code;
         // ++++ release child PCB lock
         *translated_refmut(inner.memory_set.token(), exit_code_ptr) = exit_code;
-        println!("[kernel] find pid have done :{}",found_pid);
+        kernel_println!("find pid have done :{}",found_pid);
         found_pid as isize
     } else {
         // println!("[kernel] children not found");

@@ -71,7 +71,7 @@ pub fn trap_handler() -> ! {
         Trap::Exception(Exception::InstructionPageFault) |
         Trap::Exception(Exception::LoadFault) |
         Trap::Exception(Exception::LoadPageFault) => {
-            println!(
+            kernel_println!(
                 "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.",
                 scause.cause(),
                 stval,
@@ -81,7 +81,7 @@ pub fn trap_handler() -> ! {
             exit_current_and_run_next(-2);
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, core dumped.");
+            kernel_println!("[kernel] IllegalInstruction in application, core dumped.");
             // illegal instruction exit code
             exit_current_and_run_next(-3);
         }
@@ -102,18 +102,14 @@ pub fn trap_handler() -> ! {
 #[no_mangle]
 pub fn trap_return() -> ! {
     //根据汇编的结果，确实是进入了trap return函数没错
-    // println!("[kernel] in trap_return...");
     set_user_trap_entry();
-    // println!("[kernel] after set user trap entry");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
-    // info!("[kernel] user_satp is...{:#x}",user_satp);
     extern "C" {
         fn __alltraps();
         fn __restore();
     }
     let restore_va = __restore as usize - __alltraps as usize + TRAMPOLINE;
-    // info!("[kernel] restore_va is...{:#x}",restore_va);
     unsafe {
         llvm_asm!("fence.i" :::: "volatile");
         llvm_asm!("jr $0" :: "r"(restore_va), "{a0}"(trap_cx_ptr), "{a1}"(user_satp) :: "volatile");
