@@ -93,6 +93,15 @@ pub fn mmap(start: usize, len: usize, prot: usize) -> isize {
 pub fn munmap(start: usize, len: usize) -> isize {
     sys_munmap(start, len)
 }
+
+pub fn mail_read(buf: &mut [u8]) -> isize {
+    sys_mail_read(buf)
+}
+
+pub fn mail_write(pid: usize, buf: &[u8]) -> isize {
+    sys_mail_write(pid, buf)
+}
+
 // bitflags! {
 //     pub struct OpenFlags: u32 {
 //         const RDONLY = 0;
