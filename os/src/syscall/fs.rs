@@ -83,10 +83,12 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
     0
 }
 
+//把邮箱里面的内容写到缓冲区
 pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
     -1 as isize
 }
 
+//把缓冲区里面的内容写进进程pid的邮箱
 pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
     -1 as isize
 }
