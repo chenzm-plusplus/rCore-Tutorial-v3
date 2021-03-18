@@ -83,14 +83,20 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
                 // info!("in sys_get_time...{:#x}",&(*ts) as usize);
                 match (*pa_ts){//这里使用指针就跑飞了。为什么？
                     //是因为虚拟地址的问题吗？
-                    Null => {
+                    TimeVal => {
+                        info!("sec = {}, usec = {}",(*pa_ts).sec,(*pa_ts).usec);
+                        (*pa_ts).sec = t/1000;
+                        (*pa_ts).usec = t*1000;
+                        info!("sec = {}, usec = {}",(*pa_ts).sec,(*pa_ts).usec);
+                    }
+                    _ => {
                         warn!("[sys_get_time] NULL");
                     },
-                    _ => {
-                        (*ts).sec = t/1000;
-                        (*ts).usec = t*1000;
-                        info!("sec = {}, usec = {}",(*ts).sec,(*ts).usec);
-                    }
+                    // _ => {
+                    //     (*ts).sec = t/1000;
+                    //     (*ts).usec = t*1000;
+                    //     info!("sec = {}, usec = {}",(*ts).sec,(*ts).usec);
+                    // }
                 }
             }
         },
@@ -99,21 +105,19 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
         }
     }
     // unsafe{
-    //     //为什么无法取出地址？先访问物理地址试试看啦
-
-    //     // info!("in sys_get_time...{:#x}",&(*ts) as usize);
     //     match (*ts){//这里使用指针就跑飞了。为什么？
-    //         //是因为虚拟地址的问题吗？
-            
-    //         Null => {
-    //             warn!("[sys_get_time] NULL");
-    //         },
-    //         _ => {
+    //         TimeVal => {
     //             // unsafe{
+    //                 info!("sec = {}, usec = {}",(*ts).sec,(*ts).usec);
     //                 (*ts).sec = t/1000;
     //                 (*ts).usec = t*1000;
     //             // }
     //         }
+            
+    //         _ => {
+    //             warn!("[sys_get_time] NULL");
+    //         },
+            
     //     }
     // }
     
