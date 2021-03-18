@@ -122,5 +122,11 @@ pub fn sys_munmap(start: usize, len: usize) -> isize{
     //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
     debug!("[kernel] sys_munmap...");
 
-    return munmap(start, len);
+    let result = munmap(start, len);
+    if result == -1 {
+        return -1 as isize;
+    }
+    else {
+        return result * (PAGE_SIZE as isize);
+    }
 }

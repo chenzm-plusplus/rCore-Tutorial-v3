@@ -41,9 +41,9 @@ unsafe impl Sync for TaskManager {}
 
 lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
-        println!("init TASK_MANAGER");
+        kernel_println!("init TASK_MANAGER");
         let num_app = get_num_app();
-        println!("num_app = {}", num_app);
+        kernel_println!("num_app = {}", num_app);
         // NOTICE: add stride initialize
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
         let mut strides: Vec<TaskStride> = Vec::new();
@@ -176,6 +176,7 @@ impl TaskManager {
                 );
             }
         } else {
+            
             panic!("All applications completed!");
         }
     }

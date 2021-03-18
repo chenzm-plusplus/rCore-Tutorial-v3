@@ -83,7 +83,7 @@ pub fn trap_handler() -> ! {
             info!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
-            println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
+            kernel_println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
             exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
