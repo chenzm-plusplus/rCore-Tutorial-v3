@@ -28,6 +28,7 @@ pub fn get_time() -> usize {
 
 //毫秒数
 pub fn get_time_ms() -> usize {
+    // info!("{},{},{}",get_time(),CLOCK_FREQ,MSEC_PER_SEC);
     time::read() / (CLOCK_FREQ / MSEC_PER_SEC)
 }
 

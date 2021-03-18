@@ -44,6 +44,10 @@ pub fn sys_yield() -> isize {
 //     get_time_ms() as isize
 // }
 
+// pub fn sys_get_time() -> isize{
+//     return get_time_ms() as isize;
+// }
+
 // User:
 // pub fn get_time() -> isize {
 //     let time = TimeVal::new();
@@ -67,7 +71,7 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
         (*ts).usec = get_time_ms()*1000;
         info!("[ts.sec] = {}, [ts.usec] = {}",(*ts).sec,(*ts).usec);
     }
-    0
+    return 0 as isize;
 }
 
 //sys_gettime, sys_set_priority

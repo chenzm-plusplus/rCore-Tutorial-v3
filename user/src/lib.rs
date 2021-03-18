@@ -142,7 +142,7 @@ pub fn yield_() -> isize {
 }
 
 pub fn get_time() -> isize {
-    println!("[user_lib] get_time()...");
+    // println!("[user_lib] get_time()...");
     let time = TimeVal::new();
     match sys_get_time(&time, 0) {
         0 => {
