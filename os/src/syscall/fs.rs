@@ -41,20 +41,6 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
                 print!("{}", core::str::from_utf8(buffer).unwrap());
             }
             len as isize
-            
-            // len as isize
-            //检查地址范围，如果安全就允许输出
-            // if (left<=buf as usize && right>buf as usize+len) 
-            //     || (buf as usize>=left2 && buf as usize + len < right2){
-                // let slice = unsafe { core::slice::from_raw_parts(buf, len) };
-                // let str = core::str::from_utf8(slice).unwrap();
-                // print!("{}", str);
-                // len as isize
-            // }else{
-            //     warn!("ILLEGAL OUTPUT");
-            //     print!("{}",-1);
-            //     2 as isize
-            // } 
         },
         _ => {
             // return fd as isize;

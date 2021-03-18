@@ -65,6 +65,7 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
     unsafe{
         (*ts).sec = get_time_ms()/1000;
         (*ts).usec = get_time_ms()*1000;
+        info!("[ts.sec] = {}, [ts.usec] = {}",(*ts).sec,(*ts).usec);
     }
     0
 }
