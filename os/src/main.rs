@@ -37,11 +37,11 @@ fn clear_bss() {
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
-    println!("[kernel] Hello, world!");
+    kernel_println!("Hello, world!");
     //分页模式是在内核初始化期间开启的，也就是说现在已经开启分页模式了！
     mm::init();
-    println!("[kernel] back to world!");
-    mm::remap_test();
+    kernel_println!("back to world!");
+    // mm::remap_test();
     trap::init();
     trap::enable_timer_interrupt();
     timer::set_next_trigger();

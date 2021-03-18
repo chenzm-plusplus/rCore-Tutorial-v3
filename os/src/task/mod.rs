@@ -6,10 +6,15 @@ mod stride;
 use crate::loader::{get_num_app, get_app_data};
 use crate::trap::TrapContext;
 use core::cell::RefCell;
+use crate::sbi::shutdown;
 use lazy_static::*;
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::vec::Vec;
+use crate::mm::{
+    VirtAddr,
+    PhysAddr,
+};
 // use crate::config::MAX_APP_NUM;
 // use crate::config::APP_BASE_ADDRESS;
 // use crate::config::APP_SIZE_LIMIT;
@@ -41,9 +46,9 @@ unsafe impl Sync for TaskManager {}
 
 lazy_static! {
     pub static ref TASK_MANAGER: TaskManager = {
-        println!("init TASK_MANAGER");
+        kernel_println!("init TASK_MANAGER");
         let num_app = get_num_app();
-        println!("num_app = {}", num_app);
+        kernel_println!("num_app = {}", num_app);
         // NOTICE: add stride initialize
         let mut tasks: Vec<TaskControlBlock> = Vec::new();
         let mut strides: Vec<TaskStride> = Vec::new();
@@ -136,6 +141,13 @@ impl TaskManager {
         let mut min_stride :usize = inner_strides.strides[current].get_my_stride();
         let mut min_task:usize = self.num_app;
         for task_id in 0..self.num_app {
+            debug!("finding next task...{}, stride {}, priority {}, Ready {}",
+                task_id,
+                // inner_strides.strides[task_id].get_task_number(),
+                inner_strides.strides[task_id].get_my_stride(),
+                inner.tasks[task_id].get_priority(),
+                inner.tasks[task_id].task_status == TaskStatus::Ready
+            );
             if inner_strides.strides[task_id].get_my_stride() <= min_stride && inner.tasks[task_id].task_status == TaskStatus::Ready{
                 min_stride = inner_strides.strides[task_id].get_my_stride();
                 min_task = task_id;
@@ -169,6 +181,7 @@ impl TaskManager {
                 );
             }
         } else {
+            shutdown();            
             panic!("All applications completed!");
         }
     }
@@ -204,6 +217,12 @@ impl TaskManager {
         let current = inner.current_task;
         inner.tasks[current].munmap(start, len)
     }
+
+    fn current_user_v2p(&self,va:VirtAddr)->Option<PhysAddr>{
+        let inner = self.inner.borrow();
+        let current = inner.current_task;
+        inner.tasks[current].v2p(va)
+    }
 }
 
 pub fn run_first_task() {
@@ -236,6 +255,13 @@ pub fn current_user_token() -> usize {
     TASK_MANAGER.get_current_token()
 }
 
+pub fn get_user_token()->usize{
+    TASK_MANAGER.get_current_token()
+}
+
+pub fn current_user_v2p(va:VirtAddr)->Option<PhysAddr>{
+    TASK_MANAGER.current_user_v2p(va)
+}
 // pub fn current_trap_cx() -> &'static mut TrapContext {
 //     TASK_MANAGER.lock().get_current_trap_cx()
 // }
@@ -262,10 +288,6 @@ pub fn get_task_priority(task:usize)->usize{
     TASK_MANAGER.get_task_priority(task)
 }
 
-// pub fn get_current_memoryset()->&'static mut MemorySet{
-//     TASK_MANAGER.lock().get_current_memoryset()
-// }
-
 pub fn mmap(start: usize, len: usize, port: usize) -> isize{
     TASK_MANAGER.mmap(start, len, port)
 }
@@ -273,12 +295,3 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
 pub fn munmap(start: usize, len: usize) -> isize{
     TASK_MANAGER.munmap(start, len)
 }
-
-// pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-//     // TASK_MANAGER.mmap(start, len, port)
-//     TASK_MANAGER.get_current_memoryset().mmap(start,len,port)
-// }
-
-// pub fn munmap(start: usize, len: usize) -> isize{
-//     TASK_MANAGER.get_current_memoryset().munmap(start, len)
-// }

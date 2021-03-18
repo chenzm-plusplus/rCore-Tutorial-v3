@@ -22,13 +22,7 @@ const FD_STDOUT: usize = 1;
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     // trace!("[kernel] now app {} is writing...",get_task_current());
     // trace!("call sys_write......");
-    debug!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
-    // let v = translated_byte_buffer
-    
-    // let (left,right) = get_user_stack_space_current();
-    // let (left2,right2) = get_app_address_space_current();
-    // debug!("current user stack space is...[{:#x},{:#x})",left,right);
-    // debug!("current user app space is...[{:#x},{:#x})",left2,right2);
+    trace!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
 
     // 下面就是对sys_write的检查
     // 在增加了映射规则后，就是只有权限为可写的地址才可以真的输出
@@ -41,9 +35,10 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
                 print!("{}", core::str::from_utf8(buffer).unwrap());
             }
             len as isize
-
         },
         _ => {
+            // return fd as isize;
+            return -1 as isize;
             panic!("Unsupported fd in sys_write!");
         }
     }

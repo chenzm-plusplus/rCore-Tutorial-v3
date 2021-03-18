@@ -142,10 +142,13 @@ pub fn yield_() -> isize {
 }
 
 pub fn get_time() -> isize {
-    // println!("[user] get_time()...");
+    // println!("[user_lib] get_time()...");
     let time = TimeVal::new();
     match sys_get_time(&time, 0) {
-        0 => ((time.sec & 0xffff) * 1000 + time.usec / 1000) as isize,
+        0 => {
+            println!("[user_lib] time is {}",(time.sec & 0xffff) * 1000 + time.usec / 1000);
+            return ((time.sec & 0xffff) * 1000 + time.usec / 1000) as isize;
+        },
         _ => -1
     }
 }
@@ -190,4 +193,3 @@ pub fn munmap(start: usize, len: usize) -> isize {
 pub fn spawn(path: &str) -> isize {
     sys_spawn(path)
 }
-

@@ -27,7 +27,7 @@ pub fn test() {
 
 #[no_mangle]
 pub fn main() -> i32 {
-    test();
+    // test();
     println!("Hello world from user mode program!\nTest hello_world OK!");
     0
 }

@@ -1,4 +1,5 @@
 mod context;
+use crate::sbi::shutdown;
 
 use riscv::register::{
     mtvec::TrapMode,
@@ -69,11 +70,11 @@ pub fn trap_handler() -> ! {
         }
         Trap::Exception(Exception::StoreFault) |
         Trap::Exception(Exception::StorePageFault) => {
-            println!("[kernel] PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.", stval, cx.sepc);
+            kernel_println!("PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.", stval, cx.sepc);
             exit_current_and_run_next();
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, core dumped.");
+            kernel_println!("IllegalInstruction in application, core dumped.");
             exit_current_and_run_next();
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
@@ -83,7 +84,7 @@ pub fn trap_handler() -> ! {
             info!("[kernel] now app {} is running...",get_task_current());
         }
         _ => {
-            println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
+            kernel_println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
             exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
