@@ -1,4 +1,5 @@
 mod context;
+use crate::sbi::shutdown;
 
 use riscv::register::{
     mtvec::TrapMode,

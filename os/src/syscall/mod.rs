@@ -12,9 +12,10 @@ mod process;
 use fs::*;
 use process::*;
 use crate::timer::TimeVal;
+//现在的问题就是TimeVal为什么地址不能用？照理来说应该在创建的时候自动修改了才对
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
-    // debug!("in syscall...{},{},{},{}",syscall_id,args[0],args[1],args[2]);
+    debug!("in syscall...{},{},{},{}",syscall_id,args[0],args[1],args[2]);
     match syscall_id {
         SYSCALL_WRITE => sys_write(args[0], args[1] as *const u8, args[2]),//TODO:接下来就是修改sys_write的问题了
         SYSCALL_EXIT => sys_exit(args[0] as i32),

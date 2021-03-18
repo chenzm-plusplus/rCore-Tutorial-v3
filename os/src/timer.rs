@@ -6,7 +6,7 @@ const TICKS_PER_SEC: usize = 100;
 const MSEC_PER_SEC: usize = 1000;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 pub struct TimeVal {
     pub sec: usize,
     pub usec: usize,
@@ -28,7 +28,7 @@ pub fn get_time() -> usize {
 
 //毫秒数
 pub fn get_time_ms() -> usize {
-    // info!("{},{},{}",get_time(),CLOCK_FREQ,MSEC_PER_SEC);
+    info!("in get_time_ms,{},{},{},{}",get_time(),CLOCK_FREQ,MSEC_PER_SEC,time::read() / (CLOCK_FREQ / MSEC_PER_SEC));
     time::read() / (CLOCK_FREQ / MSEC_PER_SEC)
 }
 

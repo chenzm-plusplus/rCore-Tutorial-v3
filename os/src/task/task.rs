@@ -1,4 +1,11 @@
-use crate::mm::{MemorySet, MapPermission, PhysPageNum, KERNEL_SPACE, VirtAddr};
+use crate::mm::{
+    MemorySet, 
+    MapPermission, 
+    PhysPageNum, 
+    KERNEL_SPACE, 
+    VirtAddr,
+    PhysAddr,
+};
 use crate::trap::{TrapContext, trap_handler};
 use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use super::TaskContext;
@@ -102,6 +109,10 @@ impl TaskControlBlock {
 
     pub fn munmap(&mut self,start: usize, len: usize) -> isize{
         self.memory_set.munmap(start, len)
+    }
+
+    pub fn v2p(&self,va:VirtAddr)->Option<PhysAddr>{
+        self.memory_set.v2p(va)
     }
 }
 
