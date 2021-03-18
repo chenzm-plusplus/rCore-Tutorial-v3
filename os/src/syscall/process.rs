@@ -24,7 +24,7 @@ use crate::config::{
 
 
 pub fn sys_exit(exit_code: i32) -> ! {
-    println!("[kernel] Application exited with code {}", exit_code);
+    kernel_println!("[kernel] Application exited with code {}", exit_code);
     exit_current_and_run_next();
     panic!("Unreachable in sys_exit!");
 }
@@ -72,7 +72,7 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
 //sys_gettime, sys_set_priority
 pub fn sys_set_priority(prio: usize) -> isize{
     debug!("[kernel] sys_set_priority...{}",prio);
-    if prio>=2 && prio<ISIZI_MAX as usize {
+    if prio>=2 && prio<=ISIZI_MAX as usize {
         set_task_priority(prio);
         return prio as isize
     }
