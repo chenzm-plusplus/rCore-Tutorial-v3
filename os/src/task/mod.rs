@@ -128,11 +128,13 @@ impl TaskManager {
         let mut min_stride :usize = inner_strides.strides[current].get_my_stride();
         let mut min_task:usize = self.num_app;
         for task_id in 0..self.num_app {
-            debug!("finding next task...{}, stride is {}, priority is {}",
+            debug!("finding next task...{}, stride {}, priority {}, Ready {}",
                 task_id,
                 // inner_strides.strides[task_id].get_task_number(),
                 inner_strides.strides[task_id].get_my_stride(),
-                inner.tasks[task_id].get_priority());
+                inner.tasks[task_id].get_priority(),
+                inner.tasks[task_id].task_status == TaskStatus::Ready
+            );
             if inner_strides.strides[task_id].get_my_stride() <= min_stride && inner.tasks[task_id].task_status == TaskStatus::Ready{
                 min_stride = inner_strides.strides[task_id].get_my_stride();
                 min_task = task_id;

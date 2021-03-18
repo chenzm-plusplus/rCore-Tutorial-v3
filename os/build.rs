@@ -17,7 +17,7 @@ static TARGET_PATH: &str = "../../rCore_tutorial_tests/user/target/riscv64gc-unk
 
 fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
-    let mut apps: Vec<_> = read_dir("../user/src/lab3_0/")
+    let mut apps: Vec<_> = read_dir("../user/src/bin3/")
     // let mut apps: Vec<_> = read_dir("../../rCore_tutorial_tests/user/build/bin/")
         .unwrap()
         .into_iter()
