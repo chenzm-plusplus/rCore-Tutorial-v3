@@ -33,6 +33,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
 
         },
         _ => {
+            return -1 as isize;
             panic!("Unsupported fd in sys_write!");
         }
     }
@@ -58,6 +59,7 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
             1
         }
         _ => {
+            return -1 as isize;
             panic!("Unsupported fd in sys_read!");
         }
     }
