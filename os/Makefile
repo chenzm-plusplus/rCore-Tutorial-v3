@@ -85,4 +85,4 @@ debug: build
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
 
-.PHONY: build env kernel clean disasm disasm-vim run-inner tools
+.PHONY: build env kernel clean disasm disasm-vim run-inner
