@@ -29,13 +29,13 @@ use crate::task::suspend_current_and_run_next;
 pub struct Mail{
     fd_read: usize,
     fd_write: usize,
-};
+}
 
 impl Mail{
     pub fn new(read_end:usize,write_end:usize)->Self{
         Self{
-            read_end,
-            write_end,
+            fd_read: read_end,
+            fd_write:write_end,
         }
     }
 }
@@ -53,12 +53,12 @@ pub struct MailBox{
     mails: VecDeque<Mail>,
     limit: usize,
     status: MailBoxStatus,
-};
+}
 
 impl MailBox{
     pub fn new() ->Self{
         Self{
-            mails:Vec::new(),//初始化为空
+            mails:VecDeque::new(),//初始化为空
             limit: MAIL_NUMBER_LIMIT,
             status: MailBoxStatus::EMPTY,
         }

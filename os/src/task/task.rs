@@ -17,7 +17,13 @@ use alloc::sync::{Weak, Arc};
 use alloc::vec;
 use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
-use crate::fs::{File, Stdin, Stdout};
+use crate::fs::{
+    File, 
+    Stdin, 
+    Stdout,
+    Mail,
+    MailBox,
+};
 
 // #[derive(Copy, Clone, PartialEq)]
 pub struct TaskControlBlock {
@@ -39,6 +45,7 @@ pub struct TaskControlBlockInner {
     pub children: Vec<Arc<TaskControlBlock>>,//则将当前进程的所有子进程的任务控制块以 Arc 智能指针的形式保存在一个向量中，这样才能够更方便的找到它们。
     pub exit_code: i32,
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
+    pub mailbox:MailBox,//add
 }
 
 impl TaskControlBlockInner {
@@ -106,6 +113,7 @@ impl TaskControlBlock {
                     // 2 -> stderr
                     Some(Arc::new(Stdout)),
                 ],
+                mailbox: MailBox::new(),
             }),
         };
         // prepare TrapContext in user space
@@ -197,6 +205,7 @@ impl TaskControlBlock {
                 children: Vec::new(),
                 exit_code: 0,
                 fd_table: new_fd_table,
+                mailbox: MailBox::new(),//邮箱并不能和父进程共享，不然几个函数之间互相传递信息就是在胡扯了
             }),
         });
         // add child
@@ -254,6 +263,7 @@ impl TaskControlBlock {
                 children: Vec::new(),
                 exit_code: 0,
                 fd_table: new_fd_table,
+                mailbox: MailBox::new(),//邮箱并不能和父进程共享，不然几个函数之间互相传递信息就是在胡扯了
             }),
         });
         // add child
