@@ -7,6 +7,7 @@ use crate::task::{
     current_user_token, 
     current_task,
     call_test,
+    mail_write_to_pid,
 };
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
@@ -97,5 +98,6 @@ pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
 //把缓冲区里面的内容写进进程pid的邮箱
 pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
     call_test(1);
+    let p = mail_write_to_pid(1);
     -1 as isize
 }

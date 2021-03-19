@@ -35,6 +35,7 @@ pub use manager::{
     add_task,
     fetch_task,
     call_test,
+    mail_write_to_pid,
 };
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 

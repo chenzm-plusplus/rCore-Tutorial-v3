@@ -1,4 +1,9 @@
-use super::TaskControlBlock;
+use super::{
+    TaskControlBlock,
+};
+use crate::fs::{
+    Pipe,
+};
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
 use spin::Mutex;
@@ -30,6 +35,17 @@ impl TaskManager {
             }
         }
     }
+    pub fn mail_write_to_pid(&mut self, pid:usize)-> Option<Arc<Pipe>>{
+        for item in self.ready_queue.iter_mut(){
+            debug!("TaskManager::mail_write_to_pid...pid is {}",item.pid.0);
+            if item.pid.0 == pid {
+                // item.mail_create_from_pipe()
+            }
+        }
+        None
+    }
+
+    // pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
 }
 
 lazy_static! {
@@ -47,4 +63,8 @@ pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
 pub fn call_test(pid: usize){
     kernel_println!("call_test...pid is {}",pid);
     TASK_MANAGER.lock().call_test(pid);
+}
+
+pub fn mail_write_to_pid(pid:usize)-> Option<Arc<Pipe>>{
+    TASK_MANAGER.lock().mail_write_to_pid(pid)
 }

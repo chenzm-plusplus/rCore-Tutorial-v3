@@ -17,14 +17,14 @@ use crate::task::{
 #[derive(Copy,Clone,PartialEq)]
 pub struct Mail{
     fd_read: usize,
-    fd_write: usize,
+    // fd_write: usize,
 }
 
 impl Mail{
-    pub fn new(read_end:usize,write_end:usize)->Self{
+    pub fn new(read_end:usize)->Self{
         Self{
             fd_read: read_end,
-            fd_write:write_end,
+            // fd_write: write_end,
         }
     }
 }

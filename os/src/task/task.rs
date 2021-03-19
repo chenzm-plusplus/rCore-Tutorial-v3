@@ -335,19 +335,24 @@ impl TaskControlBlock {
     //mail_write,意思是不知道是谁，反正有人给我写了一条邮件，要我存起来
     //这也就表明，事实上我这个进程即使并没有在运行，也得能调用这个函数
     //但是事实上这个函数并不关心邮件是什么，这个函数只管创建新的pipe，用来存储自己
-    //如果返回值是0，说明创建失败了
-    pub fn mail_write_from_pipe(&self)->Option<Mail>{
+    //如果返回值是None，说明创建失败了
+    //需要返回的是文件描述符,是用来写的
+    pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
+        //！！！！！一定要先判断
+        //如果邮箱满了那就不能写了
         if inner.mailbox.can_add_mail(){
             let (pipe_read, pipe_write) = make_pipe();
             let read_fd = inner.alloc_fd();
             inner.fd_table[read_fd] = Some(pipe_read);
-            let write_fd = inner.alloc_fd();
-            inner.fd_table[write_fd] = Some(pipe_write);
-            let mail = Mail::new(read_fd,write_fd);
+            // 给目标进程分配read_fd就可以了
+            // 写pipe的文件描述符不需要存哦
+            // let write_fd = inner.alloc_fd();
+            // inner.fd_table[write_fd] = Some(pipe_write);
+            let mail = Mail::new(read_fd);
             inner.mailbox.add_mail(mail);
-            Some(mail)
+            Some(pipe_write)
         }else{
             None
         }
