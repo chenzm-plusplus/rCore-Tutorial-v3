@@ -74,6 +74,9 @@ impl MailBox{
     //VecDeque自己就会返回一个Option类型，所以这里函数的返回值使用Option类就可以类
     pub fn get_mail(&mut self)->Option<Mail>{
         let m = self.mails.pop_front();
+        if self.mails.len() < self.limit{
+            self.status=MailBoxStatus::NORMAL;
+        }
         if self.mails.len() == 0{
             self.status=MailBoxStatus::EMPTY;
         }
@@ -232,7 +235,7 @@ impl File for MPipe {
             let loop_write = ring_buffer.available_write();
             if loop_write == 0 {
                 drop(ring_buffer);
-                warn!("MPipe::no space...");
+                // warn!("MPipe::no space...");
                 // suspend_current_and_run_next();
                 // break;
                 return loop_write;

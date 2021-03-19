@@ -137,9 +137,11 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     //一定要判断有没有超范围啊
     let mut len = l;
     if len==0{
+        warn!("[mail_write] len=0,fail");
         return -1 as isize;
     }
     if len>MAIL_SIZE{
+        warn!("[mail_write] len too long,continue");
         len = MAIL_SIZE;
     }
     let p = sys_getpid() as isize;//my pid is p
@@ -157,6 +159,7 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             sys_close(write_fd);
             return len as isize;
         }else{
+            warn!("[mail_write] can't get mail,fail");
             return -1 as isize;
         }
     }else{
@@ -172,6 +175,7 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             sys_close(write_fd);
             return len as isize;
         }else{
+            warn!("[mail_write] can't get mail,fail");
             return -1 as isize;
         }
     }
