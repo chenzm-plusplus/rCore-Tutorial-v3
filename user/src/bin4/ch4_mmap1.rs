@@ -14,8 +14,8 @@ fn main() -> i32 {
     assert_eq!(len as isize, mmap(start, len, prot));
     let addr: *mut u8 = start as *mut u8;
     unsafe {
-        println!("If core dumped, Test 04_2 OK!");
         *addr = start as u8;
     }
+    println!("Should cause error, Test 04_2 fail!");
     0
 }

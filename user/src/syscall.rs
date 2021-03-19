@@ -12,6 +12,24 @@ const SYSCALL_MUNMAP: usize = 215;
 const SYSCALL_MMAP: usize = 222;
 const SYSCALL_SPAWN: usize = 400;
 
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TimeVal {
+    pub sec: usize,
+    pub usec: usize,
+}
+
+impl TimeVal {
+    pub fn new() -> Self {
+        TimeVal {
+            sec: 0,
+            usec: 0,
+        }
+    }
+}
+
+
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
@@ -42,8 +60,11 @@ pub fn sys_yield() -> isize {
     syscall(SYSCALL_YIELD, [0, 0, 0])
 }
 
-pub fn sys_get_time() -> isize {
-    syscall(SYSCALL_GET_TIME, [0, 0, 0])
+// pub fn sys_get_time() -> isize {
+//     syscall(SYSCALL_GET_TIME, [0, 0, 0])
+// }
+pub fn sys_get_time(time: &TimeVal, tz: usize) -> isize {
+    syscall(SYSCALL_GET_TIME, [time as *const _ as usize, tz, 0])
 }
 
 pub fn sys_set_priority(prio: isize) -> isize {

@@ -22,7 +22,14 @@ const FD_STDOUT: usize = 1;
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
-    debug!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
+    // trace!("[kernel] now app {} is writing...",get_task_current());
+    // trace!("call sys_write......");
+    trace!("in sys_write...fd:{},buf:{:#x},len:{}",fd,buf as usize,len);
+
+    // 下面就是对sys_write的检查
+    // 在增加了映射规则后，就是只有权限为可写的地址才可以真的输出
+    // 因此应该在这里进行一个地址转换
+
     match fd {
         FD_STDOUT => {
             let buffers = translated_byte_buffer(current_user_token(), buf, len);
@@ -30,9 +37,9 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
                 print!("{}", core::str::from_utf8(buffer).unwrap());
             }
             len as isize
-
         },
         _ => {
+            // return fd as isize;
             return -1 as isize;
             panic!("Unsupported fd in sys_write!");
         }

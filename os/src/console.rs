@@ -60,7 +60,6 @@ macro_rules! kernel_println{
     }
 }
 
-
 #[macro_export]
 macro_rules! error{
     ($fmt: literal $(, $($arg: tt)+)?) => {

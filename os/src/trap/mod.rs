@@ -1,4 +1,5 @@
 mod context;
+use crate::sbi::shutdown;
 
 use riscv::register::{
     mtvec::TrapMode,
@@ -92,6 +93,8 @@ pub fn trap_handler() -> ! {
         }
         _ => {
             // exit_current_and_run_next(-10);
+            // kernel_println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
+            // exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
