@@ -395,6 +395,7 @@ impl MapArea {
             MapType::Identical => {
                 ppn = PhysPageNum(vpn.0);
             }
+            //经常会遇到物理内存不足的问题啊
             MapType::Framed => {
                 let frame = frame_alloc().unwrap();
                 ppn = frame.ppn;
