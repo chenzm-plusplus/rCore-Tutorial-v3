@@ -119,7 +119,7 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
         // let mut inner = task.acquire_inner_lock();
         // inner.fd_table[read_fd] = Some(mpipe_read);
         // drop(inner);
-        sys_read(read_fd,buf,len);
+        let len = sys_read(read_fd,buf,len);
         sys_close(read_fd);
         return len as isize;
     }else{
