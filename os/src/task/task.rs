@@ -1,4 +1,10 @@
-use crate::mm::{MemorySet, PhysPageNum, KERNEL_SPACE, VirtAddr};
+use crate::mm::{
+    MemorySet, 
+    PhysPageNum, 
+    KERNEL_SPACE, 
+    VirtAddr,
+    PhysAddr,
+};
 use crate::trap::{TrapContext, trap_handler};
 use crate::config::{TRAP_CONTEXT};
 use super::{
@@ -300,6 +306,11 @@ impl TaskControlBlock {
         let mut inner = self.acquire_inner_lock();
         inner.memory_set.munmap(start, len)
         // **** release current PCB lock
+    }
+
+    pub fn v2p(&self,va:VirtAddr)->Option<PhysAddr>{
+        let inner = self.acquire_inner_lock();
+        inner.memory_set.v2p(va)
     }
 }
 

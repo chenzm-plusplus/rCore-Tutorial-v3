@@ -29,6 +29,7 @@ pub use processor::{
     set_priority,
     mmap,
     munmap,
+    current_user_v2p,
 };
 pub use manager::{
     add_task,
@@ -111,39 +112,3 @@ pub fn add_initproc() {
 // SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
 // SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
 //=====================================================================
-
-
-
-// pub fn get_my_num_app()->usize{
-//     TASK_MANAGER.get_num_app()
-// }
-
-// // //for sys_write check
-// pub fn get_task_current()->usize{
-//     TASK_MANAGER.get_task_current()
-// }
-
-// pub fn get_task_priority(task:usize)->usize{
-//     TASK_MANAGER.get_task_priority(task)
-// }
-
-// // pub fn get_current_memoryset()->&'static mut MemorySet{
-// //     TASK_MANAGER.lock().get_current_memoryset()
-// // }
-
-// pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-//     TASK_MANAGER.mmap(start, len, port)
-// }
-
-// pub fn munmap(start: usize, len: usize) -> isize{
-//     TASK_MANAGER.munmap(start, len)
-// }
-
-// // pub fn mmap(start: usize, len: usize, port: usize) -> isize{
-// //     // TASK_MANAGER.mmap(start, len, port)
-// //     TASK_MANAGER.get_current_memoryset().mmap(start,len,port)
-// // }
-
-// // pub fn munmap(start: usize, len: usize) -> isize{
-// //     TASK_MANAGER.get_current_memoryset().munmap(start, len)
-// // }

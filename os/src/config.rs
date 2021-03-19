@@ -29,7 +29,9 @@ pub const MEMORY_MAP_SIZE: usize = 0x4_000_000;//表示进行一次内存映射�
 //     (bottom, top)
 // }
 pub const ISIZI_MAX: isize = isize::MAX;
-pub const BIG_STRIDE: usize = 4096;
+// // pub const BIG_STRIDE: usize = 1024;//一个预先定义的大常数···多大好呢？就这么大好了
+pub const BIG_STRIDE: usize = 4096*4096;
+// pub const MAX_RUN_TIME_MS: usize = 600;
 
 
 //for map

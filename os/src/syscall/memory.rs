@@ -46,8 +46,13 @@ pub fn sys_munmap(start: usize, len: usize) -> isize{
     if len > MEMORY_MAP_SIZE {
         return -1 as isize;
     }
-    //2.分配。如果还有空间分配成功就返回size，分配失败就返回-1
+    //2.分配。如果还有空间分配成功就返回size,注意返回的是字节数而不是页数，分配失败就返回-1
 
-    // return -1 as isize;
-    return munmap(start, len);
+    let result = munmap(start, len);
+    if result == -1 {
+        return -1 as isize;
+    }
+    else {
+        return result * (PAGE_SIZE as isize);
+    }
 }

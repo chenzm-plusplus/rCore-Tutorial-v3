@@ -26,9 +26,11 @@ use fs::*;
 use process::*;
 use memory::*;
 use trap::*;
+use crate::timer::TimeVal;
+//现在的问题就是TimeVal为什么地址不能用？照理来说应该在创建的时候自动修改了才对
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
-    // debug!("in syscall...{},{},{},{}",syscall_id,args[0],args[1],args[2]);
+    debug!("in syscall...{},{},{},{}",syscall_id,args[0],args[1],args[2]);
     match syscall_id {
         SYSCALL_CLOSE => sys_close(args[0]),
         SYSCALL_PIPE => sys_pipe(args[0] as *mut usize),
@@ -37,14 +39,14 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
 
-        SYSCALL_GET_TIME => sys_get_time(),
+        // SYSCALL_GET_TIME => sys_get_time(),
         SYSCALL_GETPID => sys_getpid(),
         SYSCALL_FORK => sys_fork(),
         SYSCALL_EXEC => sys_exec(args[0] as *const u8),
         SYSCALL_WAITPID => sys_waitpid(args[0] as isize, args[1] as *mut i32),
 
         //[time as *const _ as usize, tz, 0]
-        // SYSCALL_GETTIMEOFDAY => sys_get_time(args[0] as *mut TimeVal, args[1]),
+        SYSCALL_GET_TIME => sys_get_time(args[0] as *mut TimeVal, args[1]),
         SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
         SYSCALL_SPAWN => sys_spawn(args[0] as *const u8),
 

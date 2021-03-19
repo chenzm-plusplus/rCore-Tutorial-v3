@@ -2,9 +2,9 @@ use crate::timer::{
     get_time_ms,
 };
 
-pub fn sys_get_time() -> isize {
-    get_time_ms() as isize
-}
+// pub fn sys_get_time() -> isize {
+//     get_time_ms() as isize
+// }
 
 // pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
 //     // match (*ts){

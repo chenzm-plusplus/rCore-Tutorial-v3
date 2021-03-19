@@ -8,6 +8,10 @@ use super::{
     TaskPriority,
     // set_priority,
 };
+use crate::mm::{
+    VirtAddr,
+    PhysAddr,
+};
 use super::__switch;
 use crate::trap::TrapContext;
 
@@ -102,7 +106,6 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 pub fn set_priority(prio:TaskPriority){
     let task = current_task().unwrap();
     task.set_priority(prio);
-    // PROCESSOR.set_priority(prio);
 }
 
 pub fn mmap(start: usize, len: usize, port: usize) -> isize{
@@ -113,6 +116,11 @@ pub fn mmap(start: usize, len: usize, port: usize) -> isize{
 pub fn munmap(start: usize, len: usize) -> isize{
     let task = current_task().unwrap();
     task.munmap(start,len)
+}
+
+pub fn current_user_v2p(va:VirtAddr)->Option<PhysAddr>{
+    let task = current_task().unwrap();
+    task.v2p(va)
 }
 
 
