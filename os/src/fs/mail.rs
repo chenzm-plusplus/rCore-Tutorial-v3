@@ -26,6 +26,7 @@ use crate::task::suspend_current_and_run_next;
 //     -1 as isize
 // }
 
+#[derive(Copy,Clone,PartialEq)]
 pub struct Mail{
     fd_read: usize,
     fd_write: usize,
@@ -62,6 +63,9 @@ impl MailBox{
             limit: MAIL_NUMBER_LIMIT,
             status: MailBoxStatus::EMPTY,
         }
+    }
+    pub fn can_add_mail(&self)->bool{
+        self.status != MailBoxStatus::FULL
     }
     pub fn add_mail(&mut self,mail:Mail)->usize{
         if self.status==MailBoxStatus::FULL{
