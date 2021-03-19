@@ -362,6 +362,29 @@ impl TaskControlBlock {
         }
         // **** release current PCB lock
     }
+    pub fn mail_get(&self)->Option<usize>{
+        kernel_println!("TaskControlblock::mail_get...pid is {}",self.pid.0);
+        // **** hold current PCB lock
+        let mut inner = self.acquire_inner_lock();
+        // kernel_println!("TaskControlblock::mail_create_from_pipe...pid is {}",self.pid.0);
+        //！！！！！一定要先判断
+        //如果邮箱满了那就不能写了
+        //因为之前会进行判断，如果没有字符要写，就不会创建邮箱了
+        //如果还有邮件
+        if let Some(mail) = inner.mailbox.get_mail(){
+            // if let Some(mpipe_read) = inner.fd_table[mail.get_read_fd()]{//就是文件描述符确实对应了一个mail
+            //     return S
+            // }else{
+            //     warn!("no mail to read");
+            // }
+            return Some(mail.get_read_fd());//返回能读mail的文件描述符即可
+            // 给目标进程分配read_fd就可以了
+            // 写pipe的文件描述符不需要存哦
+        }else{
+            None
+        }
+        // **** release current PCB lock
+    }
     pub fn call_test(&self){
         let mut inner = self.acquire_inner_lock();
         kernel_println!("TaskControlBlock::call_test");

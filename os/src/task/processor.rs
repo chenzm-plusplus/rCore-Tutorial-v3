@@ -132,6 +132,13 @@ pub fn mail_write_to_me()-> Option<Arc<MPipe>>{
     task.mail_create_from_pipe()
 }
 
+//注意！这里返回的是文件描述符
+pub fn mail_get_from_me()->Option<usize>{
+    let task = current_task().unwrap();
+    debug!("PROCESSOR::mail_get_from_me...");
+    task.mail_get()
+}
+
 
 pub fn schedule(switched_task_cx_ptr2: *const usize) {
     let idle_task_cx_ptr2 = PROCESSOR.get_idle_task_cx_ptr2();

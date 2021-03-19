@@ -9,6 +9,7 @@ use crate::task::{
     call_test,
     mail_write_to_pid,
     mail_write_to_me,
+    mail_get_from_me,
 };
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
@@ -96,9 +97,35 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
 }
 
 //把邮箱里面的内容写到缓冲区
-pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
-    // call_test(2);
-    -1 as isize
+pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
+    // call_test(1);
+    //因为这里是直接复用了pipe，所以会受到一些限制。比如说，pipe如果写超了，就会直接切换进程······
+    //然后你就会发现自己好像死锁了。
+    //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
+    //一定要判断有没有超范围啊
+    let mut len = l;
+    if len==0{
+        return -1 as isize;
+    }
+    if len>MAIL_SIZE{
+        len = MAIL_SIZE;
+    }
+    //如果是要给自己写
+    //就不能在TASK_MANAGER里面找，找不到的
+    //这个不需要返回
+    if let Some(read_fd) = mail_get_from_me(){
+        //如果返回了文件描述符，也就是可以写的意思
+        // let task = current_task().unwrap();
+        // let mut inner = task.acquire_inner_lock();
+        // inner.fd_table[read_fd] = Some(mpipe_read);
+        // drop(inner);
+        sys_read(read_fd,buf,len);
+        sys_close(read_fd);
+        return len as isize;
+    }else{
+        return -1 as isize;
+    }
+    return -1 as isize;
 }
 
 //把缓冲区里面的内容写进进程pid的邮箱

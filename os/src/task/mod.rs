@@ -31,6 +31,7 @@ pub use processor::{
     munmap,
     current_user_v2p,
     mail_write_to_me,
+    mail_get_from_me,
 };
 pub use manager::{
     add_task,

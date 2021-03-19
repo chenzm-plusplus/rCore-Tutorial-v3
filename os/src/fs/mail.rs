@@ -29,6 +29,9 @@ impl Mail{
             // fd_write: write_end,
         }
     }
+    pub fn get_read_fd(&self)->usize{
+        self.fd_read
+    }
 }
 
 const MAIL_NUMBER_LIMIT:usize = 16;
@@ -77,6 +80,7 @@ impl MailBox{
         m
     }
 }
+//=====================================================================================
 
 //比如说我要创建一个MPipe，其实就是新建一个MPipeBuffer，
 //然后读端和写端都包装成一个MPipe，用来和进程之间交互
@@ -198,13 +202,15 @@ impl File for MPipe {
         loop {
             let mut ring_buffer = self.buffer.lock();
             let loop_read = ring_buffer.available_read();
+            debug!("MPipe::avalable_read is {}",loop_read);
             if loop_read == 0 {
                 if ring_buffer.all_write_ends_closed() {
                     return read_size;
                 }
-                drop(ring_buffer);
-                suspend_current_and_run_next();
-                continue;
+                warn!("MPipe::still have bytes...");
+                // suspend_current_and_run_next();
+                // break;
+                return loop_read;
             }
             // read at most loop_read bytes
             for _ in 0..loop_read {
