@@ -44,6 +44,15 @@ impl TaskManager {
         }
         None
     }
+    pub fn mail_not_full_pid(&mut self, pid:usize)-> Option<bool>{
+        for item in self.ready_queue.iter_mut(){
+            debug!("TaskManager::mail_not_full_pid...pid is {}",item.pid.0);
+            if item.pid.0 == pid {
+                return item.mail_not_full();
+            }
+        }
+        None
+    }
     // pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
 }
 
@@ -67,4 +76,9 @@ pub fn call_test(pid: usize){
 pub fn mail_write_to_pid(pid:usize)-> Option<Arc<MPipe>>{
     debug!("mail_write_to_pid...pid is {}",pid);
     TASK_MANAGER.lock().mail_write_to_pid(pid)
+}
+
+pub fn mail_not_full_pid(pid:usize)-> Option<bool>{
+    debug!("mail_write_to_pid...pid is {}",pid);
+    TASK_MANAGER.lock().mail_not_full_pid(pid)
 }

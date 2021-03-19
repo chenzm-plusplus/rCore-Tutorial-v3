@@ -139,6 +139,11 @@ pub fn mail_get_from_me()->Option<usize>{
     task.mail_get()
 }
 
+pub fn mail_not_full_me()->Option<bool>{
+    let task = current_task().unwrap();
+    task.mail_not_full()
+}
+
 
 pub fn schedule(switched_task_cx_ptr2: *const usize) {
     let idle_task_cx_ptr2 = PROCESSOR.get_idle_task_cx_ptr2();

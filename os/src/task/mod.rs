@@ -32,12 +32,14 @@ pub use processor::{
     current_user_v2p,
     mail_write_to_me,
     mail_get_from_me,
+    mail_not_full_me,
 };
 pub use manager::{
     add_task,
     fetch_task,
     call_test,
     mail_write_to_pid,
+    mail_not_full_pid,
 };
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 

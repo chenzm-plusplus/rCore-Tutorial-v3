@@ -385,6 +385,10 @@ impl TaskControlBlock {
         }
         // **** release current PCB lock
     }
+    pub fn mail_not_full(&self)->Option<bool>{
+        let mut inner = self.acquire_inner_lock();
+        return Some(inner.mailbox.can_add_mail());
+    }
     pub fn call_test(&self){
         let mut inner = self.acquire_inner_lock();
         kernel_println!("TaskControlBlock::call_test");

@@ -10,6 +10,8 @@ use crate::task::{
     mail_write_to_pid,
     mail_write_to_me,
     mail_get_from_me,
+    mail_not_full_me,
+    mail_not_full_pid,
 };
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
@@ -40,9 +42,17 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
         let file = file.clone();
         // release Task lock manually to avoid deadlock
         drop(inner);
-        file.write(
-            UserBuffer::new(translated_byte_buffer(token, buf, len))
-        ) as isize
+        // file.write(
+        //     UserBuffer::new(translated_byte_buffer(token, buf, len))
+        // ) as isize
+        if let Some(tsf) = translated_byte_buffer(token, buf, len){
+            file.write(UserBuffer::new(tsf)) as isize
+        }else{
+            -1
+        }
+        // file.read(
+        //     UserBuffer::new(translated_byte_buffer(token, buf, len))
+        // ) as isize
     } else {
         -1
     }
@@ -60,9 +70,14 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
         // release Task lock manually to avoid deadlock
         // 问题：为什么是在这里drop的？
         drop(inner);
-        file.read(
-            UserBuffer::new(translated_byte_buffer(token, buf, len))
-        ) as isize
+        if let Some(tsf) = translated_byte_buffer(token, buf, len){
+            file.read(UserBuffer::new(tsf)) as isize
+        }else{
+            -1
+        }
+        // file.read(
+        //     UserBuffer::new(translated_byte_buffer(token, buf, len))
+        // ) as isize
     } else {
         -1
     }
@@ -120,8 +135,11 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
         // inner.fd_table[read_fd] = Some(mpipe_read);
         // drop(inner);
         let len = sys_read(read_fd,buf,len);
-        sys_close(read_fd);
-        return len as isize;
+        if sys_close(read_fd)!= -1 {
+            return len as isize;
+        }else{
+            return -1 as isize;
+        }
     }else{
         return -1 as isize;
     }
@@ -136,15 +154,30 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
     //一定要判断有没有超范围啊
     let mut len = l;
+    let p = sys_getpid() as isize;//my pid is p
     if len==0{
-        warn!("[mail_write] len=0,fail");
-        return -1 as isize;
+        warn!("[mail_write] len=0,may fail");
+        if (p == pid as isize){
+            if let Some(not_full) = mail_not_full_me(){
+                if(not_full){
+                    return 0 as isize;
+                }
+            }
+            return -1 as isize;
+        }else{
+            if let Some(not_full) = mail_not_full_pid(pid){
+                if(not_full){
+                    return 0 as isize;
+                }
+            }
+            return -1 as isize;
+        }
     }
     if len>MAIL_SIZE{
         warn!("[mail_write] len too long,continue");
         len = MAIL_SIZE;
     }
-    let p = sys_getpid() as isize;//my pid is p
+    
     if (p == pid as isize){
         //如果是要给自己写
         //就不能在TASK_MANAGER里面找，找不到的
@@ -155,9 +188,17 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             let write_fd = inner.alloc_fd();
             inner.fd_table[write_fd] = Some(mpipe_write);
             drop(inner);
-            sys_write(write_fd,buf,len);
-            sys_close(write_fd);
-            return len as isize;
+            if sys_write(write_fd,buf,len) != -1{
+                if sys_close(write_fd)!= -1 {
+                    return len as isize;
+                }else{
+                    warn!("[mail_write] sys_close fail,fail");
+                    return -1 as isize;
+                }
+            }else{
+                warn!("[mail_write] sys_write fail,fail");
+                return -1 as isize;
+            }
         }else{
             warn!("[mail_write] can't get mail,fail");
             return -1 as isize;
