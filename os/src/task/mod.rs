@@ -34,6 +34,7 @@ pub use processor::{
 pub use manager::{
     add_task,
     fetch_task,
+    call_test,
 };
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 

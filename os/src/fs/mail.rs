@@ -7,24 +7,12 @@ use spin::Mutex;
 use crate::mm::{
     UserBuffer,
 };
-use crate::task::suspend_current_and_run_next;
-
-//还是需要用到Mail的
-
-// //把邮箱里面的内容写到缓冲区
-// pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
-//     -1 as isize
-
-// }
-// 比如说这个read函数，真正实现的时候可以：
-// 1. 试图分配一个
-
-
-// //把缓冲区里面的内容写进进程pid的邮箱
-// 可以先试着实现一个往本进程的邮箱里面写的
-// pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
-//     -1 as isize
-// }
+use crate::task::{
+    suspend_current_and_run_next,
+    //这里打算在邮局中对进程控制块实现引用计数
+    //mailbox随着进程销毁也跟着销毁
+    PidHandle,
+};
 
 #[derive(Copy,Clone,PartialEq)]
 pub struct Mail{
@@ -54,6 +42,7 @@ pub struct MailBox{
     mails: VecDeque<Mail>,
     limit: usize,
     status: MailBoxStatus,
+    // pid: PidHandle,
 }
 
 impl MailBox{

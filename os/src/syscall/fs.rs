@@ -3,7 +3,11 @@ use crate::mm::{
     translated_byte_buffer, 
     translated_refmut
 };
-use crate::task::{current_user_token, current_task};
+use crate::task::{
+    current_user_token, 
+    current_task,
+    call_test,
+};
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
 
@@ -86,10 +90,12 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
 
 //把邮箱里面的内容写到缓冲区
 pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
+    call_test(2);
     -1 as isize
 }
 
 //把缓冲区里面的内容写进进程pid的邮箱
 pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
+    call_test(1);
     -1 as isize
 }

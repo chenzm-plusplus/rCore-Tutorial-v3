@@ -353,6 +353,10 @@ impl TaskControlBlock {
         }
         // **** release current PCB lock
     }
+    pub fn call_test(&self){
+        let mut inner = self.acquire_inner_lock();
+        kernel_println!("TaskControlBlock::call_test");
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)]
