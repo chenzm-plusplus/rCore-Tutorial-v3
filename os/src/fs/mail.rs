@@ -42,22 +42,43 @@ impl Mail{
 
 const MAIL_NUMBER_LIMIT:usize = 16;
 
+#[derive(Copy, Clone, PartialEq)]
+enum MailBoxStatus {
+    FULL,
+    EMPTY,
+    NORMAL,
+}
+
 pub struct MailBox{
     mails: VecDeque<Mail>,
-    // limit: usize,
+    limit: usize,
+    status: MailBoxStatus,
 };
 
 impl MailBox{
     pub fn new() ->Self{
         Self{
             mails:Vec::new(),//初始化为空
+            limit: MAIL_NUMBER_LIMIT,
+            status: MailBoxStatus::EMPTY,
         }
     }
     pub fn add_mail(&mut self,mail:Mail)->usize{
+        if self.status==MailBoxStatus::FULL{
+            return 0;
+        }
         self.mails.push_back(mail);
+        if self.mails.len()>=self.limit{
+            self.status=MailBoxStatus::FULL;
+        }
         self.mails.len()
     }
+    //VecDeque自己就会返回一个Option类型，所以这里函数的返回值使用Option类就可以类
     pub fn get_mail(&mut self)->Option<Mail>{
-        self.mails.pop_front()
+        let m = self.mails.pop_front();
+        if self.mails.len() == 0{
+            self.status=MailBoxStatus::EMPTY;
+        }
+        m
     }
 }
