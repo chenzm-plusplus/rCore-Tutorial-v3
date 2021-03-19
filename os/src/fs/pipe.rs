@@ -6,6 +6,9 @@ use crate::mm::{
 };
 use crate::task::suspend_current_and_run_next;
 
+//比如说我要创建一个Pipe，其实就是新建一个PipeBuffer，
+//然后读端和写端都包装成一个Pipe，用来和进程之间交互
+
 pub struct Pipe {
     readable: bool,
     writable: bool,
@@ -29,7 +32,8 @@ impl Pipe {
     }
 }
 
-const RING_BUFFER_SIZE: usize = 32;
+// const RING_BUFFER_SIZE: usize = 32;
+const RING_BUFFER_SIZE: usize = 256;
 
 #[derive(Copy, Clone, PartialEq)]
 enum RingBufferStatus {
@@ -44,6 +48,7 @@ pub struct PipeRingBuffer {
     tail: usize,
     status: RingBufferStatus,
     write_end: Option<Weak<Pipe>>,
+    //一个pipebuffer要知道谁在写它
 }
 
 impl PipeRingBuffer {

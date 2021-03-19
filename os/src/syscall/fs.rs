@@ -80,6 +80,7 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
     inner.fd_table[write_fd] = Some(pipe_write);
     *translated_refmut(token, pipe) = read_fd;
     *translated_refmut(token, unsafe { pipe.add(1) }) = write_fd;
+    //总而言之以上两句话的含义是，把read_fd和write_fd都写给用户态啦
     0
 }
 
