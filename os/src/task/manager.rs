@@ -29,7 +29,7 @@ impl TaskManager {
     //放在Processor里面运行
     pub fn call_test(&mut self,pid: usize){
         for item in self.ready_queue.iter_mut(){
-            kernel_println!("TaskManager::call_test...pid is {}",item.pid.0);
+            debug!("TaskManager::call_test...pid is {}",item.pid.0);
             if item.pid.0 == pid {
                 item.call_test();
             }
@@ -39,12 +39,11 @@ impl TaskManager {
         for item in self.ready_queue.iter_mut(){
             debug!("TaskManager::mail_write_to_pid...pid is {}",item.pid.0);
             if item.pid.0 == pid {
-                // item.mail_create_from_pipe()
+                return item.mail_create_from_pipe();
             }
         }
         None
     }
-
     // pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
 }
 
@@ -66,5 +65,6 @@ pub fn call_test(pid: usize){
 }
 
 pub fn mail_write_to_pid(pid:usize)-> Option<Arc<Pipe>>{
+    debug!("mail_write_to_pid...pid is {}",pid);
     TASK_MANAGER.lock().mail_write_to_pid(pid)
 }

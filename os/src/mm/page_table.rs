@@ -89,7 +89,7 @@ impl PageTable {
     /// 注意在更新页表项的时候，不仅要更新物理页号，还要将标志位 V 置 1， 
     /// 不然硬件在查多级页表的时候，会认为这个页表项不合法，从而触发 Page Fault 而不能向下走。
     fn find_pte_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
-        debug!("Pagetable::find_pte_create...token is {:#x}, vpn is {:#x}", self.token(), usize::from(vpn));
+        trace!("Pagetable::find_pte_create...token is {:#x}, vpn is {:#x}", self.token(), usize::from(vpn));
         let idxs = vpn.indexes();
         let mut ppn = self.root_ppn;
         let mut result: Option<&mut PageTableEntry> = None;

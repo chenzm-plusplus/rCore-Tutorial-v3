@@ -8,9 +8,11 @@ use crate::task::{
     current_task,
     call_test,
     mail_write_to_pid,
+    mail_write_to_me,
 };
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
+use super::process::sys_getpid;
 
 /// 代码段 .text 不允许被修改；
 /// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
@@ -23,6 +25,7 @@ use crate::sbi::console_getchar;//for sys_read
 /// 返回值：返回成功写入的长度。
 /// syscall ID：64
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
+    debug!("sys_write...fd {}, buf {:#x}, len {}",fd,buf as usize,len);
     let token = current_user_token();
     let task = current_task().unwrap();
     let inner = task.acquire_inner_lock();
@@ -97,7 +100,39 @@ pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
 
 //把缓冲区里面的内容写进进程pid的邮箱
 pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
-    call_test(1);
-    let p = mail_write_to_pid(1);
+    // call_test(1);
+    let p = sys_getpid() as isize;//my pid is p
+    if (p == pid as isize){
+        //如果是要给自己写
+        //就不能在TASK_MANAGER里面找，找不到的
+        if let Some(pipe_write) = mail_write_to_me(){
+            //如果返回了文件描述符，也就是可以写的意思
+            let task = current_task().unwrap();
+            let mut inner = task.acquire_inner_lock();
+            let write_fd = inner.alloc_fd();
+            inner.fd_table[write_fd] = Some(pipe_write);
+            drop(inner);
+            sys_write(write_fd,buf,len);
+            sys_close(write_fd);
+            return len as isize;
+        }else{
+            return -1 as isize;
+        }
+    }else{
+        //否则就在没有正在运行的task里面找是否可以新建一封mail
+        if let Some(pipe_write) = mail_write_to_pid(pid){
+            //如果返回了文件描述符，也就是可以写的意思
+            let task = current_task().unwrap();
+            let mut inner = task.acquire_inner_lock();
+            let write_fd = inner.alloc_fd();
+            inner.fd_table[write_fd] = Some(pipe_write);
+            drop(inner);
+            sys_write(write_fd,buf,len);
+            sys_close(write_fd);
+            return len as isize;
+        }else{
+            return -1 as isize;
+        }
+    }
     -1 as isize
 }

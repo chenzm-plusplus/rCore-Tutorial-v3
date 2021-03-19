@@ -320,9 +320,9 @@ impl MemorySet {
     
         //问题：现在的困难在于，每一个不同的进程都会有不同的映射规则。
         //我在这里怎么访问“当前进程下的。。。。”呢，KERNELSPACE好像是一个不同进程下的东西
-        debug!("[kernel] in mmap...size alloc is {},{}",number,size);
+        // debug!("[kernel] in mmap...size alloc is {},{}",number,size);
         assert_eq!(number, size);
-        debug!("[kernel] in mmap...size alloc is {}",size);
+        // debug!("[kernel] in mmap...size alloc is {}",size);
     
         return (size*PAGE_SIZE) as isize;
     }

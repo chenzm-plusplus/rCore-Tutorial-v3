@@ -12,6 +12,9 @@ use crate::mm::{
     VirtAddr,
     PhysAddr,
 };
+use crate::fs::{
+    Pipe,
+};
 use super::__switch;
 use crate::trap::TrapContext;
 
@@ -121,6 +124,12 @@ pub fn munmap(start: usize, len: usize) -> isize{
 pub fn current_user_v2p(va:VirtAddr)->Option<PhysAddr>{
     let task = current_task().unwrap();
     task.v2p(va)
+}
+
+pub fn mail_write_to_me()-> Option<Arc<Pipe>>{
+    let task = current_task().unwrap();
+    debug!("PROCESSOR::mail_write_to_me...");
+    task.mail_create_from_pipe()
 }
 
 

@@ -338,6 +338,7 @@ impl TaskControlBlock {
     //如果返回值是None，说明创建失败了
     //需要返回的是文件描述符,是用来写的
     pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
+        kernel_println!("TaskControlblock::mail_create_from_pipe...pid is {}",self.pid.0);
         // **** hold current PCB lock
         let mut inner = self.acquire_inner_lock();
         //！！！！！一定要先判断
