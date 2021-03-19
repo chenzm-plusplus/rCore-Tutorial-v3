@@ -13,7 +13,7 @@ use crate::mm::{
     PhysAddr,
 };
 use crate::fs::{
-    Pipe,
+    MPipe,
 };
 use super::__switch;
 use crate::trap::TrapContext;
@@ -126,7 +126,7 @@ pub fn current_user_v2p(va:VirtAddr)->Option<PhysAddr>{
     task.v2p(va)
 }
 
-pub fn mail_write_to_me()-> Option<Arc<Pipe>>{
+pub fn mail_write_to_me()-> Option<Arc<MPipe>>{
     let task = current_task().unwrap();
     debug!("PROCESSOR::mail_write_to_me...");
     task.mail_create_from_pipe()

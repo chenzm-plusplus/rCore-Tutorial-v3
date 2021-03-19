@@ -5,6 +5,7 @@ use crate::mm::{
     UserBuffer,
 };
 use crate::task::suspend_current_and_run_next;
+use crate::config::MAIL_SIZE;
 
 //比如说我要创建一个Pipe，其实就是新建一个PipeBuffer，
 //然后读端和写端都包装成一个Pipe，用来和进程之间交互
@@ -33,7 +34,8 @@ impl Pipe {
 }
 
 // const RING_BUFFER_SIZE: usize = 32;
-const RING_BUFFER_SIZE: usize = 256;
+// const RING_BUFFER_SIZE: usize = 256;
+const RING_BUFFER_SIZE: usize = MAIL_SIZE;
 
 #[derive(Copy, Clone, PartialEq)]
 enum RingBufferStatus {
@@ -153,6 +155,7 @@ impl File for Pipe {
             let loop_write = ring_buffer.available_write();
             if loop_write == 0 {
                 drop(ring_buffer);
+                // warn!("Pipe::write, may cause dead lock...");
                 suspend_current_and_run_next();
                 continue;
             }

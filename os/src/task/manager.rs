@@ -2,7 +2,7 @@ use super::{
     TaskControlBlock,
 };
 use crate::fs::{
-    Pipe,
+    MPipe,
 };
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
@@ -35,7 +35,7 @@ impl TaskManager {
             }
         }
     }
-    pub fn mail_write_to_pid(&mut self, pid:usize)-> Option<Arc<Pipe>>{
+    pub fn mail_write_to_pid(&mut self, pid:usize)-> Option<Arc<MPipe>>{
         for item in self.ready_queue.iter_mut(){
             debug!("TaskManager::mail_write_to_pid...pid is {}",item.pid.0);
             if item.pid.0 == pid {
@@ -64,7 +64,7 @@ pub fn call_test(pid: usize){
     TASK_MANAGER.lock().call_test(pid);
 }
 
-pub fn mail_write_to_pid(pid:usize)-> Option<Arc<Pipe>>{
+pub fn mail_write_to_pid(pid:usize)-> Option<Arc<MPipe>>{
     debug!("mail_write_to_pid...pid is {}",pid);
     TASK_MANAGER.lock().mail_write_to_pid(pid)
 }

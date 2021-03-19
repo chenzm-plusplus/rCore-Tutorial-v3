@@ -13,6 +13,9 @@ use crate::task::{
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
 use super::process::sys_getpid;
+use crate::config::{
+    MAIL_SIZE,
+};
 
 /// 代码段 .text 不允许被修改；
 /// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
@@ -94,23 +97,34 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
 
 //把邮箱里面的内容写到缓冲区
 pub fn sys_mail_read(buf: *mut u8, len: usize)->isize{
-    call_test(2);
+    // call_test(2);
     -1 as isize
 }
 
 //把缓冲区里面的内容写进进程pid的邮箱
-pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
+pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     // call_test(1);
+    //因为这里是直接复用了pipe，所以会受到一些限制。比如说，pipe如果写超了，就会直接切换进程······
+    //然后你就会发现自己好像死锁了。
+    //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
+    //一定要判断有没有超范围啊
+    let mut len = l;
+    if len==0{
+        return -1 as isize;
+    }
+    if len>MAIL_SIZE{
+        len = MAIL_SIZE;
+    }
     let p = sys_getpid() as isize;//my pid is p
     if (p == pid as isize){
         //如果是要给自己写
         //就不能在TASK_MANAGER里面找，找不到的
-        if let Some(pipe_write) = mail_write_to_me(){
+        if let Some(mpipe_write) = mail_write_to_me(){
             //如果返回了文件描述符，也就是可以写的意思
             let task = current_task().unwrap();
             let mut inner = task.acquire_inner_lock();
             let write_fd = inner.alloc_fd();
-            inner.fd_table[write_fd] = Some(pipe_write);
+            inner.fd_table[write_fd] = Some(mpipe_write);
             drop(inner);
             sys_write(write_fd,buf,len);
             sys_close(write_fd);
@@ -120,12 +134,12 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, len: usize)->isize{
         }
     }else{
         //否则就在没有正在运行的task里面找是否可以新建一封mail
-        if let Some(pipe_write) = mail_write_to_pid(pid){
+        if let Some(mpipe_write) = mail_write_to_pid(pid){
             //如果返回了文件描述符，也就是可以写的意思
             let task = current_task().unwrap();
             let mut inner = task.acquire_inner_lock();
             let write_fd = inner.alloc_fd();
-            inner.fd_table[write_fd] = Some(pipe_write);
+            inner.fd_table[write_fd] = Some(mpipe_write);
             drop(inner);
             sys_write(write_fd,buf,len);
             sys_close(write_fd);

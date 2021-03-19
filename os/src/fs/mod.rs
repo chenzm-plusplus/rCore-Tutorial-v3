@@ -10,4 +10,4 @@ pub trait File : Send + Sync {
 
 pub use pipe::{Pipe, make_pipe};
 pub use stdio::{Stdin, Stdout};
-pub use mail::{Mail,MailBox,};
+pub use mail::{Mail,MailBox,MPipe,make_mpipe};
