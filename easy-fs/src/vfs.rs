@@ -1,3 +1,6 @@
+// #[macro_use]
+// use ::fs_println;
+
 use super::{
     BlockDevice,
     DiskInode,
@@ -11,6 +14,7 @@ use alloc::sync::Arc;
 use alloc::string::String;
 use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
+// use super::lib::*;
 
 pub struct Inode {
     block_id: usize,
@@ -54,6 +58,7 @@ impl Inode {
         disk_inode: &DiskInode,
     ) -> Option<u32> {
         // assert it is a directory
+        // fs_println!("find_inode_id;:disk_node is dir...{}",disk_inode.is_dir());
         assert!(disk_inode.is_dir());
         let file_count = (disk_inode.size as usize) / DIRENT_SZ;
         let mut dirent = DirEntry::empty();
