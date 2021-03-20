@@ -1,4 +1,5 @@
 mod context;
+use crate::sbi::shutdown;
 
 use riscv::register::{
     mtvec::TrapMode,
@@ -18,9 +19,13 @@ use crate::task::{
     suspend_current_and_run_next,
     current_user_token,
     current_trap_cx,
+    // TASK_MANAGER,
 };
 use crate::timer::set_next_trigger;
 use crate::config::{TRAP_CONTEXT, TRAMPOLINE};
+// use crate::timer::set_next_trigger;
+// use crate::timer::{get_time,get_time_ms};
+// use crate::config::MAX_RUN_TIME_MS;
 
 global_asm!(include_str!("trap.S"));
 
@@ -46,6 +51,7 @@ pub fn enable_timer_interrupt() {
 
 #[no_mangle]
 pub fn trap_handler() -> ! {
+    // debug!("in trap_handler......");
     set_kernel_trap_entry();
     let scause = scause::read();
     let stval = stval::read();
@@ -66,7 +72,7 @@ pub fn trap_handler() -> ! {
         Trap::Exception(Exception::InstructionPageFault) |
         Trap::Exception(Exception::LoadFault) |
         Trap::Exception(Exception::LoadPageFault) => {
-            println!(
+            kernel_println!(
                 "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.",
                 scause.cause(),
                 stval,
@@ -76,24 +82,29 @@ pub fn trap_handler() -> ! {
             exit_current_and_run_next(-2);
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, core dumped.");
+            kernel_println!("[kernel] IllegalInstruction in application, core dumped.");
             // illegal instruction exit code
             exit_current_and_run_next(-3);
         }
-        Trap::Interrupt(Interrupt::SupervisorTimer) => {
-            set_next_trigger();
-            suspend_current_and_run_next();
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {//发现时钟中断：
+            // println!("[kernel] trap_handler::Exception::SupervisorTimer");
+            set_next_trigger();//先重新设置一个 10ms 的计时器
+            suspend_current_and_run_next();//调用 suspend_current_and_run_next 函数暂停当前应用并切换到下一个
         }
         _ => {
+            // exit_current_and_run_next(-10);
+            // kernel_println!("[kernel] Upsupported trap of app {},core dumped.", get_task_current());
+            // exit_current_and_run_next();
             panic!("Unsupported trap {:?}, stval = {:#x}!", scause.cause(), stval);
         }
     }
-    //println!("before trap_return");
+    // drop(tm);
     trap_return();
 }
 
 #[no_mangle]
 pub fn trap_return() -> ! {
+    //根据汇编的结果，确实是进入了trap return函数没错
     set_user_trap_entry();
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();

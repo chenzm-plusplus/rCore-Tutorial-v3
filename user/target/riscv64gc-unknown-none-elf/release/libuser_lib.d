@@ -1,0 +1,1 @@
+/Users/chenzm/Projects/Rust/rCore-Tutorial-v3/user/target/riscv64gc-unknown-none-elf/release/libuser_lib.rlib: /Users/chenzm/Projects/Rust/rCore-Tutorial-v3/user/src/console.rs /Users/chenzm/Projects/Rust/rCore-Tutorial-v3/user/src/lang_items.rs /Users/chenzm/Projects/Rust/rCore-Tutorial-v3/user/src/lib.rs /Users/chenzm/Projects/Rust/rCore-Tutorial-v3/user/src/syscall.rs
