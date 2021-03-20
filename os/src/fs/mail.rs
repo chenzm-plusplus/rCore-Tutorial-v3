@@ -61,6 +61,9 @@ impl MailBox{
     pub fn can_add_mail(&self)->bool{
         self.status != MailBoxStatus::FULL
     }
+    pub fn can_read_mail(&self)->bool{
+        self.status != MailBoxStatus::EMPTY
+    }
     pub fn add_mail(&mut self,mail:Mail)->usize{
         if self.status==MailBoxStatus::FULL{
             return 0;

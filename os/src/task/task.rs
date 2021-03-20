@@ -389,6 +389,10 @@ impl TaskControlBlock {
         let mut inner = self.acquire_inner_lock();
         return Some(inner.mailbox.can_add_mail());
     }
+    pub fn mail_not_empty(&self) ->Option<bool>{
+        let mut inner = self.acquire_inner_lock();
+        return Some(inner.mailbox.can_read_mail());
+    }
     pub fn call_test(&self){
         let mut inner = self.acquire_inner_lock();
         kernel_println!("TaskControlBlock::call_test");

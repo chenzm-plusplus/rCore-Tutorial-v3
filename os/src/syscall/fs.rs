@@ -15,6 +15,7 @@ use crate::task::{
     mail_get_from_me,
     mail_not_full_me,
     mail_not_full_pid,
+    mail_not_empty_me,
     
 };
 use crate::fs::{make_pipe};
@@ -126,6 +127,11 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
     //这是测试是否有报文可以读
     if len==0{
         warn!("[mail_read] len=0,may fail");
+        if let Some(not_empty) = mail_not_empty_me(){
+            if(not_empty){
+                return 0 as isize;
+            }
+        }
         return -1 as isize;
     }
     if len>MAIL_SIZE{

@@ -144,6 +144,11 @@ pub fn mail_not_full_me()->Option<bool>{
     task.mail_not_full()
 }
 
+pub fn mail_not_empty_me()->Option<bool>{
+    let task = current_task().unwrap();
+    task.mail_not_empty()
+}
+
 
 pub fn schedule(switched_task_cx_ptr2: *const usize) {
     let idle_task_cx_ptr2 = PROCESSOR.get_idle_task_cx_ptr2();

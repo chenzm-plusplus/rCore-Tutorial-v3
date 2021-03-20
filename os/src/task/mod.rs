@@ -33,6 +33,7 @@ pub use processor::{
     mail_write_to_me,
     mail_get_from_me,
     mail_not_full_me,
+    mail_not_empty_me,
 };
 pub use manager::{
     add_task,
