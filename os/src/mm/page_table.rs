@@ -216,6 +216,27 @@ pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Optio
     Some(v)
 }
 
+pub fn check_byte_buffer_valid(token: usize, ptr: *const u8, len: usize) -> bool {
+    let page_table = PageTable::from_token(token);
+    let mut start = ptr as usize;
+    let end = start + len;
+    //check addr
+    while start < end {
+        let start_va = VirtAddr::from(start);
+        let mut vpn = start_va.floor();
+        if let Some(pte) = page_table.translate(vpn){
+            let ppn = pte.ppn();
+            vpn.step();
+            let mut end_va: VirtAddr = vpn.into();
+            end_va = end_va.min(VirtAddr::from(end));
+            start = end_va.into();
+        }else{
+            return false;
+        }
+    }
+    true
+}
+
 //ptr其实是字符串的地址，试试看这个字符串是不是能翻译成String哦
 pub fn translated_str(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_token(token);

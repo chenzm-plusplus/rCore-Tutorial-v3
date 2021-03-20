@@ -40,6 +40,7 @@ pub use manager::{
     call_test,
     mail_write_to_pid,
     mail_not_full_pid,
+    mail_user_token_pid,
 };
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 

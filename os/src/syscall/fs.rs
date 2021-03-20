@@ -1,10 +1,13 @@
 use crate::mm::{
     UserBuffer, 
     translated_byte_buffer, 
-    translated_refmut
+    translated_refmut,
+    check_byte_buffer_valid,
 };
 use crate::task::{
     current_user_token, 
+    mail_user_token_pid,
+
     current_task,
     call_test,
     mail_write_to_pid,
@@ -12,6 +15,7 @@ use crate::task::{
     mail_get_from_me,
     mail_not_full_me,
     mail_not_full_pid,
+    
 };
 use crate::fs::{make_pipe};
 use crate::sbi::console_getchar;//for sys_read
@@ -119,12 +123,21 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
     //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
     //一定要判断有没有超范围啊
     let mut len = l;
+    //这是测试是否有报文可以读
     if len==0{
+        warn!("[mail_read] len=0,may fail");
         return -1 as isize;
     }
     if len>MAIL_SIZE{
         len = MAIL_SIZE;
     }
+    //如果地址非法，就不能读了
+    let token = current_user_token();
+    if !check_byte_buffer_valid(token, buf, len){
+        warn!("[mail_read] invalid byte buffer address,may fail");
+        return -1 as isize;
+    }
+
     //如果是要给自己写
     //就不能在TASK_MANAGER里面找，找不到的
     //这个不需要返回
@@ -141,8 +154,10 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
             return -1 as isize;
         }
     }else{
+        warn!("[mail_read] can't get mail,may fail");
         return -1 as isize;
     }
+    warn!("[mail_read] I don't know what's wrong,may fail");
     return -1 as isize;
 }
 
@@ -153,6 +168,8 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     //然后你就会发现自己好像死锁了。
     //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
     //一定要判断有没有超范围啊
+    
+    //地址错误是需要先检查的。。。
     let mut len = l;
     let p = sys_getpid() as isize;//my pid is p
     if len==0{
@@ -179,6 +196,12 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     }
     
     if (p == pid as isize){
+        //先检查地址错误
+        //如果地址非法，就不能读了
+        let token = current_user_token();
+        if !check_byte_buffer_valid(token, buf, len){
+            return -1 as isize;
+        }
         //如果是要给自己写
         //就不能在TASK_MANAGER里面找，找不到的
         if let Some(mpipe_write) = mail_write_to_me(){
@@ -204,6 +227,16 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             return -1 as isize;
         }
     }else{
+        //先检查地址错误
+        //如果地址非法，就不能读了
+        if let Some(token) = mail_user_token_pid(pid){
+            if !check_byte_buffer_valid(token, buf, len){
+                return -1 as isize;
+            }
+        }else{
+            return -1 as isize;
+        }
+        
         //否则就在没有正在运行的task里面找是否可以新建一封mail
         if let Some(mpipe_write) = mail_write_to_pid(pid){
             //如果返回了文件描述符，也就是可以写的意思

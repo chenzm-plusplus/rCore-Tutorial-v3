@@ -22,6 +22,7 @@ pub use page_table::{
     translated_refmut,
     UserBuffer,
     UserBufferIterator,
+    check_byte_buffer_valid,
 };
 pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
 pub use memory_set::{

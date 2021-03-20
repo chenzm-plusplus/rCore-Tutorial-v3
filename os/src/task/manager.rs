@@ -53,7 +53,21 @@ impl TaskManager {
         }
         None
     }
+    pub fn mail_user_token_pid(&mut self,pid:usize)->Option<usize>{
+        for item in self.ready_queue.iter_mut(){
+            debug!("TaskManager::mail_not_full_pid...pid is {}",item.pid.0);
+            if item.pid.0 == pid {
+                return Some(item.acquire_inner_lock().get_user_token())
+            }
+        }
+        None
+    }
     // pub fn mail_create_from_pipe(&self)->Option<Arc<Pipe>>{
+        // pub fn current_user_token() -> usize {
+        //     let task = current_task().unwrap();
+        //     let token = task.acquire_inner_lock().get_user_token();
+        //     token
+        // }
 }
 
 lazy_static! {
@@ -81,4 +95,8 @@ pub fn mail_write_to_pid(pid:usize)-> Option<Arc<MPipe>>{
 pub fn mail_not_full_pid(pid:usize)-> Option<bool>{
     debug!("mail_write_to_pid...pid is {}",pid);
     TASK_MANAGER.lock().mail_not_full_pid(pid)
+}
+
+pub fn mail_user_token_pid(pid:usize) ->Option<usize>{
+    TASK_MANAGER.lock().mail_user_token_pid(pid)
 }
