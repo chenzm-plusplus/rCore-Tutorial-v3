@@ -27,11 +27,6 @@ use crate::config::{
     ISIZI_MAX,
 };
 
-// use crate::mm::{
-//     // mmap,
-//     // munmap,
-// };
-
 
 pub fn sys_exit(exit_code: i32) -> ! {
     kernel_println!("[kernel] Application exited with code {}", exit_code);
