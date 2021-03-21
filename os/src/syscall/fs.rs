@@ -14,7 +14,6 @@ use crate::task::{
     mail_user_token_pid,
 
     current_task,
-    call_test,
     mail_write_to_pid,
     mail_write_to_me,
     mail_get_from_me,
@@ -24,7 +23,6 @@ use crate::task::{
     
 };
 
-use crate::sbi::console_getchar;//for sys_read
 use super::process::sys_getpid;
 use crate::config::{
     MAIL_SIZE,
@@ -164,7 +162,6 @@ pub fn sys_dup(fd: usize) -> isize {
 
 //把邮箱里面的内容写到缓冲区
 pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
-    // call_test(1);
     //因为这里是直接复用了pipe，所以会受到一些限制。比如说，pipe如果写超了，就会直接切换进程······
     //然后你就会发现自己好像死锁了。
     //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
@@ -177,6 +174,8 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
             if(not_empty){
                 return 0 as isize;
             }
+        }else{
+
         }
         return -1 as isize;
     }
@@ -209,13 +208,10 @@ pub fn sys_mail_read(buf: *mut u8, l: usize)->isize{
         warn!("[mail_read] can't get mail,may fail");
         return -1 as isize;
     }
-    warn!("[mail_read] I don't know what's wrong,may fail");
-    return -1 as isize;
 }
 
 //把缓冲区里面的内容写进进程pid的邮箱
 pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
-    // call_test(1);
     //因为这里是直接复用了pipe，所以会受到一些限制。比如说，pipe如果写超了，就会直接切换进程······
     //然后你就会发现自己好像死锁了。
     //除非自己模仿pipe重写一个真正的mail，否则就只能这样在进入函数之前
@@ -230,6 +226,8 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             if let Some(not_full) = mail_not_full_me(){
                 if(not_full){
                     return 0 as isize;
+                }else{
+
                 }
             }
             return -1 as isize;
@@ -237,6 +235,8 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             if let Some(not_full) = mail_not_full_pid(pid){
                 if(not_full){
                     return 0 as isize;
+                }else{
+
                 }
             }
             return -1 as isize;
@@ -305,7 +305,6 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
             return -1 as isize;
         }
     }
-    -1 as isize
 }
 
 //lab7

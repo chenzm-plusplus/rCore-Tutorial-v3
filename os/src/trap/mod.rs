@@ -1,5 +1,5 @@
 mod context;
-use crate::sbi::shutdown;
+// use crate::sbi::shutdown;
 
 use riscv::register::{
     mtvec::TrapMode,
@@ -14,7 +14,6 @@ use riscv::register::{
     sie,
 };
 use crate::syscall::{
-    syscall,
     syscall5,
 };
 use crate::task::{

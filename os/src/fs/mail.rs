@@ -7,13 +7,6 @@ use spin::Mutex;
 use crate::mm::{
     UserBuffer,
 };
-use crate::task::{
-    suspend_current_and_run_next,
-    //这里打算在邮局中对进程控制块实现引用计数
-    //mailbox随着进程销毁也跟着销毁
-    PidHandle,
-};
-
 use crate::config::MAIL_SIZE;
 
 #[derive(Copy,Clone,PartialEq)]
@@ -47,7 +40,6 @@ pub struct MailBox{
     mails: VecDeque<Mail>,
     limit: usize,
     status: MailBoxStatus,
-    // pid: PidHandle,
 }
 
 impl MailBox{

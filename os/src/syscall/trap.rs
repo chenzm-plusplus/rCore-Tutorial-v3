@@ -5,12 +5,9 @@ use crate::timer::{
 };
 use crate::mm::{
     VirtAddr,
-    PhysAddr,
 };
 
 use crate::task::{
-    mmap,
-    munmap,
     current_user_v2p,
 };
 

@@ -11,7 +11,6 @@ use crate::config::{TRAP_CONTEXT};
 use super::{
     TaskContext,
     TaskPriority,
-    add_task,
 };
 use super::{PidHandle, pid_alloc, KernelStack};
 use alloc::sync::{Weak, Arc};

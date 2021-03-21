@@ -63,7 +63,7 @@ pub fn my_log(){
 macro_rules! kernel_println{
     ($fmt: literal $(, $($arg: tt)+)?) => {
         // $crate::console::print(format_args!(concat!("\x1b[31m",$fmt, "\n","\x1b[0m") $(, $($arg)+)?));
-        if let Some(key) = option_env!("LOG"){
+        if let Some(_key) = option_env!("LOG"){
             $crate::console::print(format_args!(concat!("\x1b[35m[kernel] ",$fmt,"\n\x1b[0m") $(, $($arg)+)?));
             // _ => {},
         }
