@@ -76,6 +76,7 @@ pub fn sys_exec(path: *const u8, mut args: *const usize) -> isize {
         args_vec.push(translated_str(token, arg_str_ptr as *const u8));
         unsafe { args = args.add(1); }
     }
+    info!("sys_exec...path is {}",path.as_str());
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
         let all_data = app_inode.read_all();
         let task = current_task().unwrap();
@@ -84,17 +85,47 @@ pub fn sys_exec(path: *const u8, mut args: *const usize) -> isize {
         // return argc because cx.x[10] will be covered with it later
         argc as isize
     } else {
+        warn!("[exec] app not found, fail");
         -1
     }
 }
 
-pub fn sys_spawn(path: *const u8) -> isize{
+pub fn sys_spawn(path: *const u8, mut args: *const usize) -> isize{
     //换一种思路······spawn1的内部实现的效果是把指定的函数加载进去
     //然后再来一个函数spawn2来负责执行这个函数
 
     // let token = current_user_token();
     // let path = translated_str(token, path);//总之就是把*const u8翻译成String类型
     // info!("sys_spawn...{}",path.as_str());
+    //处理要打开的应用信息
+    let token = current_user_token();
+    let path = translated_str(token, path);
+    let mut args_vec: Vec<String> = Vec::new();
+    // spawn暂时不支持添加参数了吧
+    // loop {
+    //     let arg_str_ptr = *translated_ref(token, args);
+    //     if arg_str_ptr == 0 {
+    //         break;
+    //     }
+    //     args_vec.push(translated_str(token, arg_str_ptr as *const u8));
+    //     unsafe { args = args.add(1); }
+    // }
+    info!("sys_spawn...path is {}",path.as_str());
+    if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
+        let all_data = app_inode.read_all();
+        let current_task = current_task().unwrap();
+        let argc = args_vec.len();
+
+        let new_task = current_task.spawn_from(all_data.as_slice(), args_vec);
+        // task.exec(all_data.as_slice(), args_vec);
+        let new_pid = new_task.pid.0;
+        add_task(new_task);
+        // return argc because cx.x[10] will be covered with it later
+        return argc as isize;
+    } else {
+        warn!("[spawn] app not found, fail");
+        return -1 as isize;
+    }
     // if let Some(data) = get_app_data_by_name(path.as_str()) {
     //     let current_task = current_task().unwrap();
     //     let new_task = current_task.spawn_from(data);
@@ -109,7 +140,6 @@ pub fn sys_spawn(path: *const u8) -> isize{
     // } else {
     //     -1
     // }
-    -1
 }
 
 /// If there is not a child process whose pid is same as given, return -1.

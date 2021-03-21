@@ -144,6 +144,11 @@ pub fn sys_pipe(pipe: *mut usize) -> isize {
     0
 }
 
+/// 功能：将进程中一个已经打开的文件复制一份并分配到一个新的文件描述符中。
+/// 参数：fd 表示进程中一个已经打开的文件的文件描述符。
+/// 返回值：如果出现了错误则返回 -1，否则能够访问已打开文件的新文件描述符。
+/// 可能的错误原因是：传入的 fd 并不对应一个合法的已打开文件。
+/// syscall ID：24
 pub fn sys_dup(fd: usize) -> isize {
     let task = current_task().unwrap();
     let mut inner = task.acquire_inner_lock();

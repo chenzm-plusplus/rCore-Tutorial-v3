@@ -11,6 +11,8 @@ use super::{
 };
 use crate::BLOCK_SZ;
 
+//从这一层开始，所有的数据结构都放在内存上
+//问题：下面几层的数据结构，怎么让它们放在磁盘上？Orz
 pub struct EasyFileSystem {
     pub block_device: Arc<dyn BlockDevice>,
     pub inode_bitmap: Bitmap,
@@ -85,6 +87,7 @@ impl EasyFileSystem {
         Arc::new(Mutex::new(efs))
     }
 
+    //只要把编号为0的超级块读入
     pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
         // read SuperBlock
         get_block_cache(0, Arc::clone(&block_device))

@@ -138,6 +138,8 @@ impl TaskControlBlock {
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
+
+        // 因为现在spawn不支持参数，所以就先这样吧
         // push arguments on user stack
         user_sp -= (args.len() + 1) * core::mem::size_of::<usize>();
         let argv_base = user_sp;
@@ -248,13 +250,41 @@ impl TaskControlBlock {
     // 这个函数假设已经在调用前取出了elf_data，可以直接拿来用了哦~
     // 会返回一个新建的进程控制块.这个新建的进程控制块，会把
     // pub fn spawn(&self, elf_data: &[u8]) -> isize{
-    pub fn spawn_from(self: &Arc<TaskControlBlock>, elf_data: &[u8]) -> Arc<TaskControlBlock>{
+    pub fn spawn_from(self: &Arc<TaskControlBlock>, elf_data: &[u8], args: Vec<String>) -> Arc<TaskControlBlock>{
         // memory_set with elf program headers/trampoline/trap context/user stack
-        let (memory_set, user_sp, entry_point) = MemorySet::from_elf(elf_data);
+        let (memory_set, mut user_sp, entry_point) = MemorySet::from_elf(elf_data);
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
             .ppn();
+
+        // [lab7]add
+        // push arguments on user stack
+        user_sp -= (args.len() + 1) * core::mem::size_of::<usize>();
+        let argv_base = user_sp;
+        let mut argv: Vec<_> = (0..=args.len())
+            .map(|arg| {
+                translated_refmut(
+                    memory_set.token(),
+                    (argv_base + arg * core::mem::size_of::<usize>()) as *mut usize
+                )
+            })
+            .collect();
+        *argv[args.len()] = 0;
+        for i in 0..args.len() {
+            user_sp -= args[i].len() + 1;
+            *argv[i] = user_sp;
+            let mut p = user_sp;
+            for c in args[i].as_bytes() {
+                *translated_refmut(memory_set.token(), p as *mut u8) = *c;
+                p += 1;
+            }
+            *translated_refmut(memory_set.token(), p as *mut u8) = 0;
+        }
+        // make the user_sp aligned to 8B for k210 platform
+        user_sp -= user_sp % core::mem::size_of::<usize>();
+
+
         // alloc a pid and a kernel stack in kernel space
         let pid_handle = pid_alloc();
         let kernel_stack = KernelStack::new(&pid_handle);
@@ -296,14 +326,17 @@ impl TaskControlBlock {
         // modify kernel_sp in trap_cx
         // prepare TrapContext in user space
 
-        let trap_cx = task_control_block.acquire_inner_lock().get_trap_cx();
-        *trap_cx = TrapContext::app_init_context(
+        //let trap_cx  = task_control_block.acquire_inner_lock().get_trap_cx();
+        let mut trap_cx = TrapContext::app_init_context(
             entry_point,
             user_sp,
             KERNEL_SPACE.lock().token(),
             kernel_stack_top,
             trap_handler as usize,
         );
+        trap_cx.x[10] = args.len();
+        trap_cx.x[11] = argv_base;
+        *task_control_block.acquire_inner_lock().get_trap_cx() = trap_cx;
         // return
         task_control_block
         // ---- release parent PCB lock

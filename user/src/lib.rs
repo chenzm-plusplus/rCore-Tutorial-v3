@@ -103,7 +103,9 @@ pub fn get_time() -> isize {
 }
 pub fn getpid() -> isize { sys_getpid() }
 pub fn fork() -> isize { sys_fork() }
-pub fn exec(path: &str, args: &[*const u8]) -> isize { sys_exec(path, args) }
+pub fn exec(path: &str, args: &[*const u8]) -> isize { 
+    sys_exec(path, args) 
+}
 pub fn wait(exit_code: &mut i32) -> isize {
     loop {
         match sys_waitpid(-1, exit_code as *mut _) {
@@ -149,6 +151,9 @@ pub fn munmap(start: usize, len: usize) -> isize {
 pub fn spawn(path: &str) -> isize {
     sys_spawn(path)
 }
+// pub fn exec(path: &str, args: &[*const u8]) -> isize { 
+//     sys_exec(path, args) 
+// }
 
 //=====================lab6===============================
 pub fn mail_read(buf: &mut [u8]) -> isize {
