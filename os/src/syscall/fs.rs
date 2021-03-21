@@ -75,6 +75,7 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
 }
 
 pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
+    debug!("[sys_read]...");
     let token = current_user_token();
     let task = current_task().unwrap();
     let inner = task.acquire_inner_lock();
@@ -100,6 +101,7 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
 }
 
 pub fn sys_open(path: *const u8, flags: u32) -> isize {
+    info!("[sys_open]...");
     let task = current_task().unwrap();
     let token = current_user_token();
     let path = translated_str(token, path);
@@ -111,10 +113,22 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
         let mut inner = task.acquire_inner_lock();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);
-        fd as isize
+        return fd as isize;
     } else {
-        // if let Some(real_path) = 
-        -1
+        //否则就寻找link的路径,如果能找到且可以打开
+        if let Some(real_path) = get_link(&path){
+            if let Some(inode) = open_file(
+                real_path.as_str(),
+                OpenFlags::from_bits(flags).unwrap()
+            ) {
+                //inode类型是OSInode，就是一个文件（神奇！）
+                let mut inner = task.acquire_inner_lock();
+                let fd = inner.alloc_fd();
+                inner.fd_table[fd] = Some(inode);
+                return fd as isize;
+            }
+        }
+        return -1 as isize;
     }
 }
 
@@ -331,29 +345,33 @@ pub fn sys_linkat5(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath
 //可以先按syscall走，userlib里面的接口也改改就可以了
 //但是最后实现实验的时候大概还要再改改
 pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
-    let task = current_task().unwrap();
     let token = current_user_token();
     let real_path = translated_str(token, oldpath);
     let fake_path = translated_str(token, newpath);
-    info!("sys_linkat...");
+    info!("[sys_linkat]...real_path:{},fake_path:{}",real_path,fake_path);
     //检查旧文件是否存在
     //如果不存在那就报错返回
     if let Some(inode) = open_file(
         real_path.as_str(),
         OpenFlags::from_bits(flags).unwrap()
     ){
+        debug!("[sys_linkat]....find old fild");
+        let task = current_task().unwrap();
         let mut inner = task.acquire_inner_lock();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);
         //记得关闭文件······
+        drop(inner);
         sys_close(fd);
+        debug!("[sys_linkat]....old exist");
     }else{
-        warn!("sys_linkat....old file don't exist");
+        warn!("[sys_linkat]....old file don't exist");
         return -1 as isize;
     }
     if real_path == fake_path{
         //don't need to check
         //must success
+        debug!("[sys_linkat]....old file and new file is the same");
         put_link(fake_path,real_path);
         return 0 as isize;
     }
@@ -362,6 +380,7 @@ pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
         fake_path.as_str(),
         OpenFlags::from_bits(flags).unwrap()
     ){
+        let task = current_task().unwrap();
         let mut inner = task.acquire_inner_lock();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);
@@ -371,15 +390,15 @@ pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
         return -1 as isize;
     }else{
         put_link(fake_path,real_path);
+        debug!("[sys_linkat]....link success");
         return 0 as isize;
     }
 }
 
 pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
-    let task = current_task().unwrap();
     let token = current_user_token();
     let fake_path = translated_str(token, path);
-    info!("sys_unlinkat...");
+    info!("[sys_unlinkat]...");
     if let Some(real_path) = remove_link(&fake_path){
         return 0 as isize;
     }else{
@@ -390,6 +409,6 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
 }
 
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
-    info!("sys_fstat...");
+    info!("[sys_fstat]...");
     -1
 }
