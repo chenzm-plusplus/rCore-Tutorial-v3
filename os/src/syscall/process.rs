@@ -121,7 +121,8 @@ pub fn sys_spawn(path: *const u8, mut args: *const usize) -> isize{
         let new_pid = new_task.pid.0;
         add_task(new_task);
         // return argc because cx.x[10] will be covered with it later
-        return argc as isize;
+        // return argc as isize;
+        return new_pid as isize
     } else {
         warn!("[spawn] app not found, fail");
         return -1 as isize;
