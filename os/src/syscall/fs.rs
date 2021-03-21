@@ -309,14 +309,25 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
 }
 
 //lab7
-pub fn sys_linkat(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath: *const u8, flags: usize) -> isize{
+pub fn sys_linkat5(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath: *const u8, flags: usize) -> isize{
+    info!("sys_linkat5...");
+    sys_linkat(oldpath, newpath, flags)
+}
+
+//事实上，系统调用接口是syscall有5个参数。但是我实在不知道怎么这样实现，所以为了先写完实验
+//可以先按syscall走，userlib里面的接口也改改就可以了
+//但是最后实现实验的时候大概还要再改改
+pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: usize) -> isize{
+    info!("sys_linkat...");
     -1
 }
 
 pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: usize) -> isize{
+    info!("sys_unlinkat...");
     -1
 }
 
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
+    info!("sys_fstat...");
     -1
 }

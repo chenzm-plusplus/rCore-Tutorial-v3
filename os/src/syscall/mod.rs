@@ -76,15 +76,19 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         //lab7
         //=====================lab7===============================
         SYSCALL_FSTAT => sys_fstat(args[0] as isize, args[1] as *mut Stat),
+        //important: permantly
+        SYSCALL_UNLINKAT => sys_unlinkat(args[0] as isize, args[1] as *const u8, args[2]),
+        SYSCALL_LINKAT => sys_linkat(args[0] as *const u8, args[1] as *const u8, args[2]),
 
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
 }
 
+//问题：有些syscall传进来5个参数，我该怎么调用它啊？？？
+//现在暂且不会解决，所以先用着syscall的调用
 pub fn syscall5(syscall_id: usize, args: [usize; 5]) -> isize{
     match syscall_id {
-        SYSCALL_UNLINKAT => sys_unlinkat(args[0] as isize, args[1] as *const u8, args[2]),
-        SYSCALL_LINKAT => sys_linkat(args[0] as isize, args[1] as *const u8, args[2] as isize, args[3] as *const u8, args[4]),
+        SYSCALL_LINKAT => sys_linkat5(args[0] as isize, args[1] as *const u8, args[2] as isize, args[3] as *const u8, args[4]),
         _ => panic!("Unsupported syscall5_id: {}", syscall_id),
     }
 }
