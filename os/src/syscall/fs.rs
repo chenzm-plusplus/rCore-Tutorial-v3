@@ -30,6 +30,11 @@ use crate::config::{
     MAIL_SIZE,
 };
 
+use super::fstat::{
+    Stat,
+    StatMode,
+};
+
 /// 代码段 .text 不允许被修改；
 /// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
 /// .data/.bss 均允许被读写，但是不允许从它上面取指。
@@ -63,9 +68,6 @@ pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
         }else{
             -1
         }
-        // file.read(
-        //     UserBuffer::new(translated_byte_buffer(token, buf, len))
-        // ) as isize
     } else {
         -1
     }
@@ -91,9 +93,6 @@ pub fn sys_read(fd: usize, buf: *const u8, len: usize) -> isize {
         }else{
             -1
         }
-        // file.read(
-        //     UserBuffer::new(translated_byte_buffer(token, buf, len))
-        // ) as isize
     } else {
         -1
     }
@@ -309,41 +308,15 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
     -1 as isize
 }
 
-#[repr(C)]
-#[derive(Debug)]
-pub struct Stat {
-    /// 文件所在磁盘驱动器号
-    pub dev: u64,
-    /// inode 文件所在 inode 编号
-    pub ino: u64,
-    /// 文件类型
-    pub mode: StatMode,
-    /// 硬链接数量，初始为1
-    pub nlink: u32,
-    /// 无需考虑，为了兼容性设计
-    pad: [u64; 7],
-}
-
-/// StatMode 定义：
-bitflags! {
-    pub struct StatMode: u32 {
-        const NULL  = 0;
-        /// directory
-        const DIR   = 0o040000;
-        /// ordinary regular file
-        const FILE  = 0o100000;
-    }
-}
-
 //lab7
-pub fn linkat(olddirfd: i32, oldpath: *const u8, newdirfd: i32, newpath: *const u8, flags: u32) -> isize{
+pub fn sys_linkat(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath: *const u8, flags: usize) -> isize{
     -1
 }
 
-pub fn unlinkat(dirfd: i32, path: *const u8, flags: u32) -> isize{
+pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: usize) -> isize{
     -1
 }
 
-pub fn fstat(fd: i32, st: *mut Stat) -> isize{
+pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     -1
 }

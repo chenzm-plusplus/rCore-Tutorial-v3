@@ -18,17 +18,26 @@ const SYSCALL_MUNMAP: usize = 215;
 const SYSCALL_SPAWN: usize = 400;
 const SYSCALL_MAIL_READ: usize = 401;
 const SYSCALL_MAIL_WRITE: usize = 402;
+//=====================lab7===============================
+const SYSCALL_UNLINKAT: usize = 35;
+const SYSCALL_LINKAT: usize = 37;
+const SYSCALL_FSTAT: usize = 80;
 
 mod fs;
 mod process;
 mod memory;
 mod trap;
+mod fstat;
 
 use fs::*;
 use process::*;
 use memory::*;
 use trap::*;
 use crate::timer::TimeVal;
+use fstat::{
+    Stat,
+    StatMode,
+};
 //现在的问题就是TimeVal为什么地址不能用？照理来说应该在创建的时候自动修改了才对
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
@@ -44,21 +53,38 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_YIELD => sys_yield(),
 
         // SYSCALL_GET_TIME => sys_get_time(),
+        //[time as *const _ as usize, tz, 0]
+        //lab3
+        SYSCALL_GET_TIME => sys_get_time(args[0] as *mut TimeVal, args[1]),
+        SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
+
+        //lab4
+        SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
+        SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
+
+        //lab5
         SYSCALL_GETPID => sys_getpid(),
         SYSCALL_FORK => sys_fork(),
         SYSCALL_EXEC => sys_exec(args[0] as *const u8, args[1] as *const usize),
         SYSCALL_WAITPID => sys_waitpid(args[0] as isize, args[1] as *mut i32),
-
-        //[time as *const _ as usize, tz, 0]
-        SYSCALL_GET_TIME => sys_get_time(args[0] as *mut TimeVal, args[1]),
-        SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
         SYSCALL_SPAWN => sys_spawn(args[0] as *const u8, args[1] as *const usize),
 
-        SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
-        SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
-
+        //lab6
         SYSCALL_MAIL_READ => sys_mail_read(args[0] as *mut u8, args[1]),
         SYSCALL_MAIL_WRITE => sys_mail_write(args[0], args[1] as *mut u8, args[2]),
+
+        //lab7
+        //=====================lab7===============================
+        SYSCALL_FSTAT => sys_fstat(args[0] as isize, args[1] as *mut Stat),
+
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
+    }
+}
+
+pub fn syscall5(syscall_id: usize, args: [usize; 5]) -> isize{
+    match syscall_id {
+        SYSCALL_UNLINKAT => sys_unlinkat(args[0] as isize, args[1] as *const u8, args[2]),
+        SYSCALL_LINKAT => sys_linkat(args[0] as isize, args[1] as *const u8, args[2] as isize, args[3] as *const u8, args[4]),
+        _ => panic!("Unsupported syscall5_id: {}", syscall_id),
     }
 }

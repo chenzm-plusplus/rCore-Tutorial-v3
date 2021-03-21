@@ -5,9 +5,7 @@ const SYSCALL_CLOSE: usize = 57;
 const SYSCALL_PIPE: usize = 59;
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
-const SYSCALL_UNLINKAT: usize = 35;
-const SYSCALL_LINKAT: usize = 37;
-const SYSCALL_FSTAT: usize = 80;
+
 const SYSCALL_EXIT: usize = 93;
 const SYSCALL_YIELD: usize = 124;
 const SYSCALL_GET_TIME: usize = 169;
@@ -22,6 +20,10 @@ const SYSCALL_SPAWN: usize = 400;
 //=====================lab6===============================
 const SYSCALL_MAIL_READ: usize = 401;
 const SYSCALL_MAIL_WRITE: usize = 402;
+//=====================lab7===============================
+const SYSCALL_UNLINKAT: usize = 35;
+const SYSCALL_LINKAT: usize = 37;
+const SYSCALL_FSTAT: usize = 80;
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -29,6 +31,20 @@ fn syscall(id: usize, args: [usize; 3]) -> isize {
         llvm_asm!("ecall"
             : "={x10}" (ret)
             : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x17}" (id)
+            : "memory"
+            : "volatile"
+        );
+    }
+    ret
+}
+
+fn syscall5(id: usize, args: [usize; 5]) -> isize {
+    let mut ret: isize;
+    unsafe {
+        llvm_asm!("ecall"
+            : "={x10}" (ret)
+            : "{x10}" (args[0]), "{x11}" (args[1]), "{x12}" (args[2]), "{x13}" (args[3]),
+                "{x14}" (args[4]), "{x17}" (id)
             : "memory"
             : "volatile"
         );
@@ -125,4 +141,32 @@ pub fn sys_mail_write(pid: usize, buffer: &[u8]) -> isize {
         SYSCALL_MAIL_WRITE,
         [pid, buffer.as_ptr() as usize, buffer.len()],
     )
+}
+
+//=====================lab7===============================
+pub fn sys_linkat(
+    old_dirfd: usize,
+    old_path: &str,
+    new_dirfd: usize,
+    new_path: &str,
+    flags: usize,
+) -> isize {
+    syscall5(
+        SYSCALL_LINKAT,
+        [
+            old_dirfd,
+            old_path.as_ptr() as usize,
+            new_dirfd,
+            new_path.as_ptr() as usize,
+            flags,
+        ],
+    )
+}
+
+pub fn sys_unlinkat(dirfd: usize, path: &str, flags: usize) -> isize {
+    syscall(SYSCALL_UNLINKAT, [dirfd, path.as_ptr() as usize, flags])
+}
+
+pub fn sys_fstat(fd: usize, st: &Stat) -> isize {
+    syscall(SYSCALL_FSTAT, [fd, st as *const _ as usize, 0])
 }

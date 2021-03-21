@@ -163,3 +163,16 @@ pub fn mail_read(buf: &mut [u8]) -> isize {
 pub fn mail_write(pid: usize, buf: &[u8]) -> isize {
     sys_mail_write(pid, buf)
 }
+
+//=====================lab6===============================
+pub fn link(old_path: &str, new_path: &str) -> isize {
+    sys_linkat(AT_FDCWD as usize, old_path, AT_FDCWD as usize, new_path, 0)
+}
+
+pub fn unlink(path: &str) -> isize {
+    sys_unlinkat(AT_FDCWD as usize, path, 0)
+}
+
+pub fn fstat(fd: usize, st: &Stat) -> isize {
+    sys_fstat(fd, st)
+}
