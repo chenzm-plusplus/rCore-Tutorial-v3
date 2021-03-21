@@ -399,6 +399,8 @@ impl DiskInode {
     }
 }
 
+//目录项DirEntry，和我们认为的目录不同，是在磁盘中的结构
+//用于访问实际数据的位置
 #[repr(C)]
 pub struct DirEntry {
     name: [u8; NAME_LENGTH_LIMIT + 1],

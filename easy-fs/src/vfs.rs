@@ -17,13 +17,14 @@ use spin::{Mutex, MutexGuard};
 // use super::lib::*;
 
 pub struct Inode {
-    block_id: usize,
+    block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
     fs: Arc<Mutex<EasyFileSystem>>,
     block_device: Arc<dyn BlockDevice>,
 }
 
 impl Inode {
+    //==============================================
     pub fn new(
         inode_id: u32,
         fs: Arc<Mutex<EasyFileSystem>>,
@@ -52,6 +53,13 @@ impl Inode {
         ).lock().modify(self.block_offset, f)
     }
 
+    //这个返回的大概就是stat想要的inode编号吧
+    //这个函数调用的时候就disk_inode使用根目录就可以了
+    //给定一个DiskInode，也就是一个文件，而且要假设它是一个目录
+    //遍历这个目录下面的所有文件
+    //如果发现那个文件和自己想要找的文件名一样
+    //那么就返回那个文件的inode_id
+    //看起来这就是需要返回的ino了
     fn find_inode_id(
         &self,
         name: &str,
@@ -76,6 +84,14 @@ impl Inode {
             }
         }
         None
+    }
+
+    //也限制只有根目录可以调用好了
+    pub fn get_inode_id(&self, name: &str) -> Option<u32>{
+        let _ = self.fs.lock();
+        self.read_disk_inode(|disk_inode| {
+            self.find_inode_id(name, disk_inode)
+        })
     }
 
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {

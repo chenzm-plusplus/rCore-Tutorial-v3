@@ -10,10 +10,11 @@ use spin::Mutex;
 pub struct BlockCache {
     cache: [u8; BLOCK_SZ],
     block_id: usize,
-    block_device: Arc<dyn BlockDevice>,
+    block_device: Arc<dyn BlockDevice>,//保留底层设备的引用
     modified: bool,
 }
 
+//一块BlockCache对应的是一块Block的缓存
 impl BlockCache {
     /// Load a new BlockCache from disk.
     pub fn new(
@@ -34,6 +35,8 @@ impl BlockCache {
         &self.cache[offset] as *const _ as usize
     }
 
+    //CPU需要读写磁盘的时候，大概是要调用这些函数的
+    //至于内容怎么真的写进磁盘，是这些函数已经帮忙写好了，似乎我们不用管
     pub fn get_ref<T>(&self, offset: usize) -> &T where T: Sized {
         let type_size = core::mem::size_of::<T>();
         assert!(offset + type_size <= BLOCK_SZ);
@@ -73,6 +76,7 @@ impl Drop for BlockCache {
 
 const BLOCK_CACHE_SIZE: usize = 16;
 
+//这个类型管理了用哪些、不用哪些
 pub struct BlockCacheManager {
     queue: VecDeque<(usize, Arc<Mutex<BlockCache>>)>,
 }
