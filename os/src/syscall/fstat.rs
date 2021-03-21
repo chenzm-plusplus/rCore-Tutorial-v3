@@ -59,9 +59,14 @@ pub fn put_link(fake_path:String, real_path:String){
     PATH_MAPPER.lock().insert(fake_path,real_path);
 }
 
-// pub fn get_link(fake_path:&String) -> Option<&String>{
-//     PATH_MAPPER.lock().get(fake_path)
-// }
+pub fn get_link(fake_path:&String) -> Option<String>{
+    if let Some(str) = PATH_MAPPER.lock().get(fake_path){
+        Some(String::from(str))//这里必须这么写，
+        //因为get方法返回的是临时变量，事实上并不能直接返回给外面的函数
+    }else{
+        None
+    }
+}
 
 pub fn remove_link(fake_path:&String) ->Option<String>{
     PATH_MAPPER.lock().remove(fake_path)

@@ -32,6 +32,7 @@ use super::fstat::{
     Stat,
     StatMode,
     put_link,
+    get_link,
     remove_link,
 };
 
@@ -112,6 +113,7 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
         inner.fd_table[fd] = Some(inode);
         fd as isize
     } else {
+        // if let Some(real_path) = 
         -1
     }
 }
