@@ -51,6 +51,7 @@ impl OSInode {
         }
         v
     }
+    pub fn 
 }
 
 lazy_static! {
@@ -95,8 +96,10 @@ impl OpenFlags {
 pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     let (readable, writable) = flags.read_write();
     if flags.contains(OpenFlags::CREATE) {
+        kernel_println!("[open_file] creating file");
         if let Some(inode) = ROOT_INODE.find(name) {
             // clear size
+            // kernel_println!("[open_file] creating file");
             inode.clear();
             Some(Arc::new(OSInode::new(
                 readable,
