@@ -119,7 +119,4 @@ pub fn add_initproc() {
 
 //=====================================================================
 // 以下部分的代码是为了实现系统调用。目前支持的和进程相关的系统调用，有：
-// SYSCALL_SET_PRIORITY => sys_set_priority(args[0]),
-// SYSCALL_MMAP => sys_mmap(args[0],args[1],args[2]),
-// SYSCALL_MUNMAP => sys_munmap(args[0],args[1]),
 //=====================================================================

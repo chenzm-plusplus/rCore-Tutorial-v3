@@ -78,7 +78,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
         SYSCALL_FSTAT => sys_fstat(args[0] as isize, args[1] as *mut Stat),
         //important: permantly
         SYSCALL_UNLINKAT => sys_unlinkat(args[0] as isize, args[1] as *const u8, args[2]),
-        SYSCALL_LINKAT => sys_linkat(args[0] as *const u8, args[1] as *const u8, args[2]),
+        // SYSCALL_LINKAT => sys_linkat(args[0] as *const u8, args[1] as *const u8, args[2]),
 
         _ => panic!("Unsupported syscall_id: {}", syscall_id),
     }
@@ -89,6 +89,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
 pub fn syscall5(syscall_id: usize, args: [usize; 5]) -> isize{
     match syscall_id {
         SYSCALL_LINKAT => sys_linkat5(args[0] as isize, args[1] as *const u8, args[2] as isize, args[3] as *const u8, args[4]),
-        _ => panic!("Unsupported syscall5_id: {}", syscall_id),
+        // _ => panic!("Unsupported syscall5_id: {}", syscall_id),
+        _ => syscall(syscall_id, [args[0], args[1], args[2]]),
     }
 }

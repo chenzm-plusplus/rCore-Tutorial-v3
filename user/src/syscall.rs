@@ -144,24 +144,6 @@ pub fn sys_mail_write(pid: usize, buffer: &[u8]) -> isize {
 }
 
 //=====================lab7===============================
-// pub fn sys_linkat(
-//     old_dirfd: usize,
-//     old_path: &str,
-//     new_dirfd: usize,
-//     new_path: &str,
-//     flags: usize,
-// ) -> isize {
-//     syscall5(
-//         SYSCALL_LINKAT,
-//         [
-//             old_dirfd,
-//             old_path.as_ptr() as usize,
-//             new_dirfd,
-//             new_path.as_ptr() as usize,
-//             flags,
-//         ],
-//     )
-// }
 pub fn sys_linkat(
     old_dirfd: usize,
     old_path: &str,
@@ -169,12 +151,12 @@ pub fn sys_linkat(
     new_path: &str,
     flags: usize,
 ) -> isize {
-    syscall(
+    syscall5(
         SYSCALL_LINKAT,
         [
-            // old_dirfd,
+            old_dirfd,
             old_path.as_ptr() as usize,
-            // new_dirfd,
+            new_dirfd,
             new_path.as_ptr() as usize,
             flags,
         ],
