@@ -31,6 +31,8 @@ use crate::config::{
 use super::fstat::{
     Stat,
     StatMode,
+    put_link,
+    remove_link,
 };
 
 /// 代码段 .text 不允许被修改；
@@ -104,6 +106,7 @@ pub fn sys_open(path: *const u8, flags: u32) -> isize {
         path.as_str(),
         OpenFlags::from_bits(flags).unwrap()
     ) {
+        //inode类型是OSInode，就是一个文件（神奇！）
         let mut inner = task.acquire_inner_lock();
         let fd = inner.alloc_fd();
         inner.fd_table[fd] = Some(inode);
@@ -308,22 +311,80 @@ pub fn sys_mail_write(pid: usize, buf: *mut u8, l: usize)->isize{
 }
 
 //lab7
-pub fn sys_linkat5(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath: *const u8, flags: usize) -> isize{
+pub fn sys_linkat5(olddirfd: isize, oldpath: *const u8, newdirfd: isize, newpath: *const u8, flags: u32) -> isize{
     info!("sys_linkat5...");
     sys_linkat(oldpath, newpath, flags)
 }
+//我大概有思路了，大概就是磁盘上分配一个文件专门用来存储映射信息，存储一个dict，如果产生了这样的系统调用
+//就在dic里面添加值，存储把某个路径映射到哪里的信息
+//unlink就是把地址映射信息删除
+//看样子只要存储字符串就可以了
+//照理来说是要写在磁盘上的，但是现在可以暂时先写在内存里面
+//我知道了！只要照抄用户态，就可以知道如何open如何使用。我在这里确实需要一个文件来存储这些映射关系，
+//所以OS或许还需要对用户程序做出一些要求，比如说不允许使用以.开头的文件名，这些文件名限定为系统文件
+//but now, we can ignore the security and use any name we'd like to
+
 
 //事实上，系统调用接口是syscall有5个参数。但是我实在不知道怎么这样实现，所以为了先写完实验
 //可以先按syscall走，userlib里面的接口也改改就可以了
 //但是最后实现实验的时候大概还要再改改
-pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: usize) -> isize{
+pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
+    let task = current_task().unwrap();
+    let token = current_user_token();
+    let real_path = translated_str(token, oldpath);
+    let fake_path = translated_str(token, newpath);
     info!("sys_linkat...");
-    -1
+    //检查旧文件是否存在
+    //如果不存在那就报错返回
+    if let Some(inode) = open_file(
+        real_path.as_str(),
+        OpenFlags::from_bits(flags).unwrap()
+    ){
+        let mut inner = task.acquire_inner_lock();
+        let fd = inner.alloc_fd();
+        inner.fd_table[fd] = Some(inode);
+        //记得关闭文件······
+        sys_close(fd);
+    }else{
+        warn!("sys_linkat....old file don't exist");
+        return -1 as isize;
+    }
+    if real_path == fake_path{
+        //don't need to check
+        //must success
+        put_link(fake_path,real_path);
+        return 0 as isize;
+    }
+    //检查新文件名是否已经存在
+    if let Some(inode) = open_file(
+        fake_path.as_str(),
+        OpenFlags::from_bits(flags).unwrap()
+    ){
+        let mut inner = task.acquire_inner_lock();
+        let fd = inner.alloc_fd();
+        inner.fd_table[fd] = Some(inode);
+        //记得关闭文件······
+        sys_close(fd);
+        warn!("sys_linkat....try to link a new file");
+        return -1 as isize;
+    }else{
+        put_link(fake_path,real_path);
+        return 0 as isize;
+    }
 }
 
-pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: usize) -> isize{
+pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
+    let task = current_task().unwrap();
+    let token = current_user_token();
+    let fake_path = translated_str(token, path);
     info!("sys_unlinkat...");
-    -1
+    if let Some(real_path) = remove_link(&fake_path){
+        return 0 as isize;
+    }else{
+        //失败的原因是本来就没有这样的链接
+        warn!("sys_unlinkat...trying to remove invalid linker");
+        return -1 as isize;
+    }
 }
 
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{

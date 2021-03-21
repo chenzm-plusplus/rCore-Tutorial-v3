@@ -99,6 +99,7 @@ pub fn sys_spawn(path: *const u8, mut args: *const usize) -> isize{
     // info!("sys_spawn...{}",path.as_str());
     //处理要打开的应用信息
     let token = current_user_token();
+    //path is String
     let path = translated_str(token, path);
     let mut args_vec: Vec<String> = Vec::new();
     // spawn暂时不支持添加参数了吧

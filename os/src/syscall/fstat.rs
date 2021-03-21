@@ -23,3 +23,46 @@ bitflags! {
         const FILE  = 0o100000;
     }
 }
+
+//下面的内容就是建立一个key-word的字典
+//1.字典里面存储的是映射关系，字符串到字符串，string到string的
+//2.这个映射关系存储在磁盘上某个文件中，启动OS的时候把这个文件加载出来
+//3.OS关闭的时候写回去即可
+
+use alloc::sync::Arc;
+use spin::Mutex;
+use lazy_static::*;
+use alloc::string::String;
+use alloc::collections::btree_map::BTreeMap;
+
+// lazy_static! {
+//     pub static ref PATH_MAPPER: Mutex<BTreeMap> = Mutex::new(BTreeMap::new());
+// }
+
+// pub fn put_link(fake_path:String, real_path:String){
+//     PATH_MAPPER.lock().insert(fake_path,real_path);
+// }
+
+// pub fn get_link(fake_path:String) -> Option<String>{
+//     PATH_MAPPER.lock().get(fake_path)
+// }
+
+// pub fn remove_link(fake_path:String) ->Option<String>{
+//     PATH_MAPPER.lock().remove(fake_path)
+// }
+lazy_static! {
+    // Mutex<TaskManager> = Mutex::new(TaskManager::new());
+    pub static ref PATH_MAPPER: Mutex<BTreeMap<String,String>> = Mutex::new(BTreeMap::new());
+}
+
+pub fn put_link(fake_path:String, real_path:String){
+    PATH_MAPPER.lock().insert(fake_path,real_path);
+}
+
+// pub fn get_link(fake_path:&String) -> Option<&String>{
+//     PATH_MAPPER.lock().get(fake_path)
+// }
+
+pub fn remove_link(fake_path:&String) ->Option<String>{
+    PATH_MAPPER.lock().remove(fake_path)
+}
