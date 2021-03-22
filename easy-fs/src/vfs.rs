@@ -94,6 +94,30 @@ impl Inode {
         })
     }
 
+    pub fn get_file_data(&self, name: &str) -> Option<(u32,bool)> {
+        let _ = self.fs.lock();
+        // self.read_disk_inode(|disk_inode| {
+        //     let file_count = (disk_inode.size as usize) / DIRENT_SZ;
+        //     // let mut v: Vec<String> = Vec::new();
+        //     for i in 0..file_count {
+        //         let mut dirent = DirEntry::empty();
+        //         assert_eq!(
+        //             disk_inode.read_at(
+        //                 i * DIRENT_SZ,
+        //                 dirent.as_bytes_mut(),
+        //                 &self.block_device,
+        //             ),
+        //             DIRENT_SZ,
+        //         );
+        //         // v.push(String::from(dirent.name()));
+        //         if dirent.name() == name {
+        //             return Some((dirent.inode_number() as u32),disk_node.is_dir());
+        //         }
+        //     }
+        // });
+        return None;
+    }
+
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {

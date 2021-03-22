@@ -69,12 +69,20 @@ pub fn trap_handler() -> ! {
             cx = current_trap_cx();
             cx.x[10] = result as usize;
         }
+        //操作系统怎么知道数据读好？
+        //OS请求device读数据，然后device读好之后发起中断
+        //但是在我们这次实验里面，是直接读的。使用中断&&DMA工作量还是很大的
+        //硬件在进入的时候进行中断屏蔽。
+        //内核在执行过程中是否允许嵌套中断，取决于内核的实现。
         Trap::Exception(Exception::StoreFault) |
         Trap::Exception(Exception::StorePageFault) |
         Trap::Exception(Exception::InstructionFault) |
         Trap::Exception(Exception::InstructionPageFault) |
         Trap::Exception(Exception::LoadFault) |
         Trap::Exception(Exception::LoadPageFault) => {
+        //问题：是否可以只换出进程的一部分？
+        //如果没有页机制，那么整个进程换出去很好。但是在有了页机制之后，就并不是很有必要把整个进程都换出去。
+        //各种东西都有自己适用的场景
             kernel_println!(
                 "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, core dumped.",
                 scause.cause(),

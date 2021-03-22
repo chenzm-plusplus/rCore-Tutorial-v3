@@ -6,7 +6,10 @@ use crate::mm::{
     check_byte_buffer_valid,
 };
 
-use crate::fs::{make_pipe, OpenFlags, open_file};
+use crate::fs::{
+    make_pipe, OpenFlags, open_file,
+    get_file_data,
+};
 use alloc::sync::Arc;
 
 use crate::task::{
@@ -410,5 +413,7 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
 
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     info!("[sys_fstat]...");
+    //todo:从文件描述符到Inode或者name
+    //todo：getfiledata如何得到文件类型是文件夹还是普通文件？
     -1
 }
