@@ -422,6 +422,20 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     info!("[sys_fstat]...fd:{:#x},st:{:#x}",fd,st as usize);
 
+
+
+    //get-data
+    let mut inner = task.acquire_inner_lock();
+    if inner.fd_table[fd].is_none(){
+        return -1 as isize;
+    }
+    let Some(inode) = inner.fd_table[fd];
+
+    let Some(inode_id,name) = inode.get_my_data();
+
+    info!("[sys_fstat] inode_id is {}, name is {}",inode_id,name);
+
+
     // let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
     //仿佛明白了······因为现在处理系统调用肯定是运行在内核态
     //但是这里给的是用户态的虚拟地址。那这就确实是有问题的
@@ -444,7 +458,7 @@ pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
                 match (*pa_st){
                     Stat => {
                         (*pa_st).dev = 1 as u64;
-                        (*pa_st).ino = 1 as u64;
+                        (*pa_st).ino = inode_id as u64;
                         (*pa_st).mode = StatMode::FILE;
                         (*pa_st).nlink = 1 as u32;
                     }

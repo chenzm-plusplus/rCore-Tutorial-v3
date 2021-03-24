@@ -140,6 +140,10 @@ pub fn get_file_data(name: &str) ->Option<(u32,bool)>{
     ROOT_INODE.get_file_data(name)
 }
 
+pub fn get_my_data()->Option<(u32,&str)>{
+    ROOT_INODE.get_my_data()
+}
+
 impl File for OSInode {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }

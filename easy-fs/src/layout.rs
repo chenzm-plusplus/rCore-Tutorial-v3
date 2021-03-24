@@ -123,6 +123,11 @@ impl DiskInode {
         assert!(new_size >= self.size);
         Self::total_blocks(new_size) - Self::total_blocks(self.size)
     }
+    //每一个文件对应一个DiskInode。
+    //inner id的含义是这个文件中的第几个数据块
+    //到底是磁盘上的哪个数据块，存储了我这个inode的信息。
+    //我这个inode节点存储的信息就是文件的索引，
+    //文件的索引中可以找到真实存放文件的数据的磁盘块地址
     pub fn get_block_id(&self, inner_id: u32, block_device: &Arc<dyn BlockDevice>) -> u32 {
         let inner_id = inner_id as usize;
         if inner_id < INODE_DIRECT_COUNT {
@@ -399,8 +404,9 @@ impl DiskInode {
     }
 }
 
-//目录项DirEntry，和我们认为的目录不同，是在磁盘中的结构
-//用于访问实际数据的位置
+//DirEntry的含义是，对于磁盘中的每一个目录，里面都放了许多的文件哦
+//一个目录项表示其中一个文件的信息：name+inode_number
+//一个目录就实现为很多个目录项的组合
 #[repr(C)]
 pub struct DirEntry {
     name: [u8; NAME_LENGTH_LIMIT + 1],

@@ -17,6 +17,8 @@ use spin::{Mutex, MutexGuard};
 // use super::lib::*;
 
 pub struct Inode {
+    //新增
+    my_inode_id: u32,
     block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
     fs: Arc<Mutex<EasyFileSystem>>,
@@ -32,6 +34,7 @@ impl Inode {
     ) -> Self {
         let (block_id, block_offset) = fs.lock().get_disk_inode_pos(inode_id);
         Self {
+            my_inode_id: inode_id,
             block_id: block_id as usize,
             block_offset,
             fs,
@@ -60,13 +63,15 @@ impl Inode {
     //如果发现那个文件和自己想要找的文件名一样
     //那么就返回那个文件的inode_id
     //看起来这就是需要返回的ino了
+    //已经完全搞懂这是在做什么了，就是把一个文件夹下面的文件都遍历一遍
+    //有了inode-id，就可以从超级块里面访问文件了
     fn find_inode_id(
         &self,
         name: &str,
         disk_inode: &DiskInode,
     ) -> Option<u32> {
         // assert it is a directory
-        fs_println!("find_inode_id;:disk_node is dir...{}",disk_inode.is_dir());
+        fs_println!("find_inode_id::disk_node is dir...{}",disk_inode.is_dir());
         assert!(disk_inode.is_dir());
         let file_count = (disk_inode.size as usize) / DIRENT_SZ;
         let mut dirent = DirEntry::empty();
@@ -79,6 +84,7 @@ impl Inode {
                 ),
                 DIRENT_SZ,
             );
+            fs_println!("find_inode_id::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
             if dirent.name() == name {
                 return Some(dirent.inode_number() as u32);
             }
@@ -96,26 +102,53 @@ impl Inode {
 
     pub fn get_file_data(&self, name: &str) -> Option<(u32,bool)> {
         let _ = self.fs.lock();
-        // self.read_disk_inode(|disk_inode| {
-        //     let file_count = (disk_inode.size as usize) / DIRENT_SZ;
-        //     // let mut v: Vec<String> = Vec::new();
-        //     for i in 0..file_count {
-        //         let mut dirent = DirEntry::empty();
-        //         assert_eq!(
-        //             disk_inode.read_at(
-        //                 i * DIRENT_SZ,
-        //                 dirent.as_bytes_mut(),
-        //                 &self.block_device,
-        //             ),
-        //             DIRENT_SZ,
-        //         );
-        //         // v.push(String::from(dirent.name()));
-        //         if dirent.name() == name {
-        //             return Some((dirent.inode_number() as u32),disk_node.is_dir());
-        //         }
-        //     }
-        // });
         return None;
+    }
+
+    //已知有一个inode类型
+    //希望知道我代表的文件的inode是多少号
+    //也希望知道我的文件名是多少
+    pub fn get_my_data(&self) ->Option<(u32,&str)>{
+        
+        // assert!(disk_inode.is_dir());
+        // let file_count = (disk_inode.size as usize) / DIRENT_SZ;
+        // let mut dirent = DirEntry::empty();
+        // for i in 0..file_count {
+        //     assert_eq!(
+        //         disk_inode.read_at(
+        //             DIRENT_SZ * i,
+        //             dirent.as_bytes_mut(),
+        //             &self.block_device,
+        //         ),
+        //         DIRENT_SZ,
+        //     );
+        //     fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
+        //     if dirent.inode_number() == self.my_inode_id {
+        //         return Some(dirent.inode_number() as u32, dirent.name());
+        //     }
+        // }
+        // None
+        let _ = self.fs.lock();
+        self.read_disk_inode(|disk_inode| {
+            fs_println!("Inode::get_my_data::disk_node is dir...{}",disk_inode.is_dir());
+            let file_count = (disk_inode.size as usize) / DIRENT_SZ;
+            let mut dirent = DirEntry::empty();
+            for i in 0..file_count {
+                assert_eq!(
+                    disk_inode.read_at(
+                        DIRENT_SZ * i,
+                        dirent.as_bytes_mut(),
+                        &self.block_device,
+                    ),
+                    DIRENT_SZ,
+                );
+                fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
+                if dirent.inode_number() == self.my_inode_id {
+                    return Some((dirent.inode_number() as u32, dirent.name().clone()));
+                }
+            }
+            None
+        })
     }
 
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
