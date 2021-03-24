@@ -173,9 +173,12 @@ pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     if inner.fd_table[fd as usize].is_none(){
         return -1 as isize;
     }
-    let Some(inode) = inner.fd_table[fd as usize];
+    if let Some(inode) = &inner.fd_table[fd as usize]{
 
-    let Some(inode_id) = inode.get_my_inode_id();
+    }//这里是避免发生所有权转移
+
+    let mut inode_id = 0;
+    // let Some(inode_id) = inode.get_my_inode_id();
 
     info!("[sys_fstat] inode_id is {}",inode_id);
 

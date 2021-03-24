@@ -33,6 +33,10 @@ use crate::config::{
     MAIL_SIZE,
 };
 
+use super::flinker::{
+    get_link,
+};
+
 /// 代码段 .text 不允许被修改；
 /// 只读数据段 .rodata 不允许被修改，也不允许从它上面取指；
 /// .data/.bss 均允许被读写，但是不允许从它上面取指。

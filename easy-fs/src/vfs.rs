@@ -16,6 +16,8 @@ use alloc::vec::Vec;
 use spin::{Mutex, MutexGuard};
 // use super::lib::*;
 
+//注意，这个数据结构是放在内存里面的
+//某种意义上说可以随便修改······
 pub struct Inode {
     //新增.我就很想知道为什么这个结构里面不直接存一个inode-id好了？？？
     //为什么每次都要这么麻烦···因为访问硬盘很慢很慢！！！的啊！！！！
@@ -35,7 +37,7 @@ impl Inode {
     ) -> Self {
         let (block_id, block_offset) = fs.lock().get_disk_inode_pos(inode_id);
         Self {
-            my_inode_id: inode_id,
+            my_inode_id: inode_id,//new
             block_id: block_id as usize,
             block_offset,
             fs,
@@ -107,7 +109,6 @@ impl Inode {
 
     //已知有一个inode类型
     //希望知道我代表的文件的inode是多少号
-    //也希望知道我的文件名是多少
     pub fn get_my_data(&self) ->Option<(u32)>{
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
@@ -136,7 +137,6 @@ impl Inode {
     }
 
     //刚刚意识到哪里有问题！其实存inode编号就可以了？
-
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {

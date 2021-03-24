@@ -71,6 +71,8 @@ pub enum DiskInodeType {
 type IndirectBlock = [u32; BLOCK_SZ / 4];
 type DataBlock = [u8; BLOCK_SZ];
 
+//需要保证总大小是128个字节
+//后面需要增加其他类型数据的时候，减少直接索引的大小就可以了哦
 #[repr(C)]
 pub struct DiskInode {
     pub size: u32,
@@ -80,8 +82,13 @@ pub struct DiskInode {
     type_: DiskInodeType,
 }
 
+//DiskInode的功能大概就类似一个目录（？）
+//反正似乎是把inode-id输入，就可以给出blockid的输出
+//然后拿着这个blockid操作磁盘就可以了
+//这个文件的意思就是，我可以保存这么多个数据块哦
 impl DiskInode {
     /// indirect1 and indirect2 block are allocated only when they are needed.
+    /// 初始化为文件或者目录
     pub fn initialize(&mut self, type_: DiskInodeType) {
         self.size = 0;
         self.direct.iter_mut().for_each(|v| *v = 0);
@@ -124,7 +131,8 @@ impl DiskInode {
         Self::total_blocks(new_size) - Self::total_blocks(self.size)
     }
     //每一个文件对应一个DiskInode。
-    //inner id的含义是这个文件中的第几个数据块
+    //inner-id的含义是,我要取出这个文件中的第几个数据块
+    //也就是说第inner-id个数据块到底放在磁盘上的哪个block中
     //到底是磁盘上的哪个数据块，存储了我这个inode的信息。
     //我这个inode节点存储的信息就是文件的索引，
     //文件的索引中可以找到真实存放文件的数据的磁盘块地址
@@ -407,6 +415,11 @@ impl DiskInode {
 //DirEntry的含义是，对于磁盘中的每一个目录，里面都放了许多的文件哦
 //一个目录项表示其中一个文件的信息：name+inode_number
 //一个目录就实现为很多个目录项的组合
+//目录项说的应该是这个
+//事实上只要把目录项的inode-number修改过去就可以了
+//对于目录项来说，实际上就是在根目录下面新增加了一个DirEntry
+//这个DirEntry的name可能是新的，inode也是新分配的inode
+//但是block-id是和之前的一致的
 #[repr(C)]
 pub struct DirEntry {
     name: [u8; NAME_LENGTH_LIMIT + 1],
