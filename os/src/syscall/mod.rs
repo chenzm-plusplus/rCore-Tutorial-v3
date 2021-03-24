@@ -27,17 +27,14 @@ mod fs;
 mod process;
 mod memory;
 mod trap;
-mod fstat;
+mod flinker;
 
 use fs::*;
 use process::*;
 use memory::*;
 use trap::*;
 use crate::timer::TimeVal;
-use fstat::{
-    Stat,
-    StatMode,
-};
+use flinker::*;
 //现在的问题就是TimeVal为什么地址不能用？照理来说应该在创建的时候自动修改了才对
 
 pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {

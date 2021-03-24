@@ -51,6 +51,10 @@ impl OSInode {
         }
         v
     }
+    pub fn get_my_inode_id(&self) -> Option<u32>{
+        let mut inner = self.inner.lock();
+        return inner.inode.get_my_inode_id();
+    }
 }
 
 lazy_static! {
@@ -134,14 +138,6 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
 //perhaps done
 pub fn get_inode_id(name: &str) -> Option<u32>{
     ROOT_INODE.get_inode_id(name)
-}
-
-pub fn get_file_data(name: &str) ->Option<(u32,bool)>{
-    ROOT_INODE.get_file_data(name)
-}
-
-pub fn get_my_data()->Option<(u32,&str)>{
-    ROOT_INODE.get_my_data()
 }
 
 impl File for OSInode {

@@ -17,7 +17,8 @@ use spin::{Mutex, MutexGuard};
 // use super::lib::*;
 
 pub struct Inode {
-    //新增
+    //新增.我就很想知道为什么这个结构里面不直接存一个inode-id好了？？？
+    //为什么每次都要这么麻烦···因为访问硬盘很慢很慢！！！的啊！！！！
     my_inode_id: u32,
     block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
@@ -100,34 +101,14 @@ impl Inode {
         })
     }
 
-    pub fn get_file_data(&self, name: &str) -> Option<(u32,bool)> {
-        let _ = self.fs.lock();
-        return None;
+    pub fn get_my_inode_id(&self) ->Option<u32>{
+        return Some(self.my_inode_id)
     }
 
     //已知有一个inode类型
     //希望知道我代表的文件的inode是多少号
     //也希望知道我的文件名是多少
-    pub fn get_my_data(&self) ->Option<(u32,&str)>{
-        
-        // assert!(disk_inode.is_dir());
-        // let file_count = (disk_inode.size as usize) / DIRENT_SZ;
-        // let mut dirent = DirEntry::empty();
-        // for i in 0..file_count {
-        //     assert_eq!(
-        //         disk_inode.read_at(
-        //             DIRENT_SZ * i,
-        //             dirent.as_bytes_mut(),
-        //             &self.block_device,
-        //         ),
-        //         DIRENT_SZ,
-        //     );
-        //     fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
-        //     if dirent.inode_number() == self.my_inode_id {
-        //         return Some(dirent.inode_number() as u32, dirent.name());
-        //     }
-        // }
-        // None
+    pub fn get_my_data(&self) ->Option<(u32)>{
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             fs_println!("Inode::get_my_data::disk_node is dir...{}",disk_inode.is_dir());
@@ -142,14 +123,19 @@ impl Inode {
                     ),
                     DIRENT_SZ,
                 );
-                fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
+                //TODO这里要修改输出，能够返回文件名鸭
+                // fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
                 if dirent.inode_number() == self.my_inode_id {
-                    return Some((dirent.inode_number() as u32, dirent.name().clone()));
+                    // return Some((dirent.inode_number() as u32, dirent.name()));
+                    fs_println!("get_my_data::dirent name is {}, inode number is {},but return None",dirent.name(),dirent.inode_number());
+                    return None;
                 }
             }
-            None
+            return None;
         })
     }
+
+    //刚刚意识到哪里有问题！其实存inode编号就可以了？
 
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
         let _ = self.fs.lock();
