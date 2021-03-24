@@ -1,5 +1,6 @@
+
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 pub struct Stat {
     /// 文件所在磁盘驱动器号
     pub dev: u64,

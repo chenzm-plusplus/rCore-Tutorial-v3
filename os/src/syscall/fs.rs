@@ -6,6 +6,10 @@ use crate::mm::{
     check_byte_buffer_valid,
 };
 
+use crate::mm::{
+    VirtAddr,
+};
+
 use crate::fs::{
     make_pipe, OpenFlags, open_file,
     get_file_data,
@@ -24,6 +28,10 @@ use crate::task::{
     mail_not_full_pid,
     mail_not_empty_me,
     
+};
+
+use crate::task::{
+    current_user_v2p,
 };
 
 use super::process::sys_getpid;
@@ -412,6 +420,46 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
 }
 
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
+    info!("[sys_fstat]...fd:{:#x},st:{:#x}",fd,st as usize);
+
+    // let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
+    //仿佛明白了······因为现在处理系统调用肯定是运行在内核态
+    //但是这里给的是用户态的虚拟地址。那这就确实是有问题的
+    //因此这里大概是真的需要取出物理地址，然后访问物理地址。
+    //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
+    let pa = current_user_v2p(VirtAddr::from(st as usize));
+    match pa {
+    //pub dev: u64,
+    // /// inode 文件所在 inode 编号
+    // pub ino: u64,
+    // /// 文件类型
+    // pub mode: StatMode,
+    // /// 硬链接数量，初始为1
+    // pub nlink: u32,
+        Some(pa_t)=>{
+            // let pa_ts = usize::from(pa.unwrap()) as *mut TimeVal;
+            let pa_st = usize::from(pa_t) as *mut Stat;
+            info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
+            unsafe{
+                match (*pa_st){
+                    Stat => {
+                        (*pa_st).dev = 1 as u64;
+                        (*pa_st).ino = 1 as u64;
+                        (*pa_st).mode = StatMode::FILE;
+                        (*pa_st).nlink = 1 as u32;
+                    }
+                    _ => {
+                        warn!("[sys_fstat] NULL");
+                    },
+                }
+            }
+        },
+        _ =>{
+            warn!("[get_time]  NONE");
+        }
+    }
+    debug!("sys_get_time return...");
+    return 0 as isize;
     info!("[sys_fstat]...");
     //todo:从文件描述符到Inode或者name
     //todo：getfiledata如何得到文件类型是文件夹还是普通文件？
