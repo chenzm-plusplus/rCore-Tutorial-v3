@@ -29,6 +29,7 @@ bitflags! {
 //2.这个映射关系存储在磁盘上某个文件中，启动OS的时候把这个文件加载出来
 //3.OS关闭的时候写回去即可
 
+use core::any::Any;
 use alloc::sync::Arc;
 use spin::Mutex;
 use lazy_static::*;
@@ -36,7 +37,7 @@ use alloc::string::String;
 use alloc::collections::btree_map::BTreeMap;
 use super::fs::*;
 use crate::fs::{
-    make_pipe, OpenFlags, open_file,
+    make_pipe, OpenFlags, open_file, OSInode,
 };
 use crate::mm::{
     UserBuffer,
@@ -163,6 +164,16 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
     }
 }
 
+fn return_if_file(f: &(dyn Any)) -> Option<OSInode>{
+    if let Some(file) = f.downcast_ref::<OSInode>() {
+        println!("It's a OSInode");
+        return Some(file)
+    } else {
+        warn!("Not a OSInode...");
+        return None;
+    }
+}
+
 pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     info!("[sys_fstat]...fd:{:#x},st:{:#x}",fd,st as usize);
 
@@ -174,55 +185,62 @@ pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
         return -1 as isize;
     }
     if let Some(inode) = &inner.fd_table[fd as usize]{
+        //判断这里是不是OSInode类型
+        if let Some(osinode) = return_if_file(inode){
+            let mut inode_id = 0 as u32;
 
-    }//这里是避免发生所有权转移
+            if let Some(id) = osinode.get_my_inode_id(){
+                inode_id = id;
+            }
 
-    let mut inode_id = 0;
-    // let Some(inode_id) = inode.get_my_inode_id();
+            info!("[sys_fstat] inode_id is {}",inode_id);
 
-    info!("[sys_fstat] inode_id is {}",inode_id);
-
-
-    // let pa_top = KERNEL_SPACE.lock().v2p(VirtAddr::from(kernel_stack_top)).unwrap();
-    //仿佛明白了······因为现在处理系统调用肯定是运行在内核态
-    //但是这里给的是用户态的虚拟地址。那这就确实是有问题的
-    //因此这里大概是真的需要取出物理地址，然后访问物理地址。
-    //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
-    let pa = current_user_v2p(VirtAddr::from(st as usize));
-    match pa {
-    //pub dev: u64,
-    // /// inode 文件所在 inode 编号
-    // pub ino: u64,
-    // /// 文件类型
-    // pub mode: StatMode,
-    // /// 硬链接数量，初始为1
-    // pub nlink: u32,
-        Some(pa_t)=>{
-            // let pa_ts = usize::from(pa.unwrap()) as *mut TimeVal;
-            let pa_st = usize::from(pa_t) as *mut Stat;
-            info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
-            unsafe{
-                match (*pa_st){
-                    Stat => {
-                        (*pa_st).dev = 1 as u64;
-                        (*pa_st).ino = inode_id as u64;
-                        (*pa_st).mode = StatMode::FILE;
-                        (*pa_st).nlink = 1 as u32;
+            //仿佛明白了······因为现在处理系统调用肯定是运行在内核态
+            //但是这里给的是用户态的虚拟地址。那这就确实是有问题的
+            //因此这里大概是真的需要取出物理地址，然后访问物理地址。
+            //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
+            let pa = current_user_v2p(VirtAddr::from(st as usize));
+            match pa {
+            //pub dev: u64,
+            // /// inode 文件所在 inode 编号
+            // pub ino: u64,
+            // /// 文件类型
+            // pub mode: StatMode,
+            // /// 硬链接数量，初始为1
+            // pub nlink: u32,
+                Some(pa_t)=>{
+                    // let pa_ts = usize::from(pa.unwrap()) as *mut TimeVal;
+                    let pa_st = usize::from(pa_t) as *mut Stat;
+                    info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
+                    unsafe{
+                        match (*pa_st){
+                            Stat => {
+                                (*pa_st).dev = 1 as u64;
+                                (*pa_st).ino = inode_id as u64;
+                                (*pa_st).mode = StatMode::FILE;
+                                (*pa_st).nlink = 1 as u32;
+                            }
+                            _ => {
+                                warn!("[sys_fstat] NULL");
+                            },
+                        }
                     }
-                    _ => {
-                        warn!("[sys_fstat] NULL");
-                    },
+                },
+                _ =>{
+                    warn!("[get_time]  NONE");
                 }
             }
-        },
-        _ =>{
-            warn!("[get_time]  NONE");
+            debug!("sys_get_time return...");
+            return 0 as isize;
+            info!("[sys_fstat]...");
+            //todo:从文件描述符到Inode或者name
+            //todo：getfiledata如何得到文件类型是文件夹还是普通文件？
+            -1
+        }else{
+            return -1 as isize;
         }
+    }else{
+        return -1 as isize;
     }
-    debug!("sys_get_time return...");
-    return 0 as isize;
-    info!("[sys_fstat]...");
-    //todo:从文件描述符到Inode或者name
-    //todo：getfiledata如何得到文件类型是文件夹还是普通文件？
-    -1
+    //这里是避免发生所有权转移
 }

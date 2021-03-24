@@ -317,6 +317,50 @@ impl Inode {
         // return nothing
     }
 
+    pub fn count_files(&self, name: &str, old_name: &str) -> Option<Arc<Inode>> {
+        let mut fs = self.fs.lock();
+
+        //先检查原来的文件是否存在
+        if self.modify_disk_inode(|root_inode| {
+            // assert it is a directory
+            assert!(root_inode.is_dir());
+            // has the file been created?
+            self.find_inode_id(old_name, root_inode)
+        }).is_none() {
+            return None;
+        }
+
+        //就不用新建inode了
+        //先获取旧的文件名和inode-id
+        //再新建目录项就可以了
+        let mut inode_id = 0;
+        //新建一个目录项
+        self.modify_disk_inode(|root_inode| {
+            // append file in the dirent
+            let file_count = (root_inode.size as usize) / DIRENT_SZ;
+            let new_size = (file_count + 1) * DIRENT_SZ;
+            // increase size
+            self.increase_size(new_size as u32, root_inode, &mut fs);
+            // write dirent
+            let inode_id = self.find_inode_id(old_name, root_inode).unwrap();//因为前面已经检查过合法性了
+            //所以这个inode-id一定是合法的
+            let dirent = DirEntry::new(name, inode_id);
+            root_inode.write_at(
+                file_count * DIRENT_SZ,
+                dirent.as_bytes(),
+                &self.block_device,
+            );
+        });
+        // release efs lock manually because we will acquire it again in Inode::new
+        drop(fs);
+        // return inode
+        Some(Arc::new(Self::new(
+            inode_id,
+            self.fs.clone(),
+            self.block_device.clone(),
+        )))
+    }
+
     pub fn ls(&self) -> Vec<String> {
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
