@@ -60,6 +60,11 @@ impl OSInode {
         let mut inner = self.inner.lock();
         return inner.inode.count_files_from_me();
     }
+
+    pub fn count_files_from_id(&self,id:u32) ->Option<usize>{
+        let mut inner = self.inner.lock();
+        return inner.inode.count_files_from_id(id);
+    }
 }
 
 lazy_static! {
@@ -158,6 +163,10 @@ pub fn delete_linker(name: &str) -> bool{
 // pub fn count_files(&self, name: &str) -> Option<usize>
 pub fn count_files(name:&str) ->Option<usize>{
     ROOT_INODE.count_files(name)
+}
+
+pub fn count_files_from_id(id: u32) ->Option<usize>{
+    ROOT_INODE.count_files_from_id(id)
 }
 
 impl File for OSInode {

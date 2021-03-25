@@ -431,6 +431,42 @@ impl Inode {
         return Some(counter);
     }
 
+    //只有根目录可以调用
+    pub fn count_files_from_id(&self,id:u32) -> Option<usize>{
+        let mut fs = self.fs.lock();
+
+        let mut counter = 0 as usize;
+        //新建一个目录项
+        self.modify_disk_inode(|root_inode| {
+            // append file in the dirent
+            let file_count = (root_inode.size as usize) / DIRENT_SZ;
+            let mut dirent = DirEntry::empty();
+            //下面是计数的内容
+            for i in 0..file_count {
+                assert_eq!(
+                    root_inode.read_at(
+                        DIRENT_SZ * i,
+                        dirent.as_bytes_mut(),
+                        &self.block_device,
+                    ),
+                    DIRENT_SZ,
+                );
+                //得到了自己的inode-number
+                if dirent.inode_number() == id {
+                    fs_println!("count_files::counting::dirent name is {}, inode number is {},",
+                        dirent.name(),dirent.inode_number());
+                    //如果找到了，那么就把空的写进去
+                    //就是用一个不合法的内容替换的意思
+                    counter = counter + 1;
+                }
+            }
+        });
+        // release efs lock manually because we will acquire it again in Inode::new
+        drop(fs);
+        // return nothing
+        return Some(counter);
+    }
+
 
     pub fn ls(&self) -> Vec<String> {
         let _ = self.fs.lock();
