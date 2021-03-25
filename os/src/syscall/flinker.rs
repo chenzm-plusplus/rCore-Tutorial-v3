@@ -43,6 +43,7 @@ use crate::fs::{
     File, 
     Stdin, 
     Stdout,
+    count_files_from_id,
 };
 use crate::mm::{
     translated_str,
@@ -187,25 +188,30 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
     let task = current_task().unwrap();
     //get-data
     let mut inner = task.acquire_inner_lock();
-    if inner.fd_table[fd as usize].is_none(){
-        return -1 as isize;
-    }else{
 
-    }
     //TODO这儿肯定会写出死锁！！！！
     //也不一定。。。
     if let Some(inode) = &inner.fd_table[fd]{
         //判断这里是不是OSInode类型
         let inode = inode.clone();
+        drop(inner);
         if let Some(inode_id) = inode.inode_id(){
-
             info!("[sys_fstat] inode_id is {}",inode_id);
+            //TODO:exception solve
+            
+            let count = count_files_from_id(inode_id).unwrap();
+
+            //这边drop掉。但是关键是···类型转换的时候会再加一次锁，这样就死锁了······Orz
 
             //仿佛明白了······因为现在处理系统调用肯定是运行在内核态
             //但是这里给的是用户态的虚拟地址。那这就确实是有问题的
             //因此这里大概是真的需要取出物理地址，然后访问物理地址。
             //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
             let pa = current_user_v2p(VirtAddr::from(st as usize));
+
+            println!("v2p convert end");
+
+            // info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
             match pa {
             //pub dev: u64,
             // /// inode 文件所在 inode 编号
@@ -225,7 +231,7 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
                                 (*pa_st).dev = 1 as u64;
                                 (*pa_st).ino = inode_id as u64;
                                 (*pa_st).mode = StatMode::FILE;
-                                (*pa_st).nlink = 1 as u32;
+                                (*pa_st).nlink = count as u32;
                             }
                             _ => {
                                 warn!("[sys_fstat] NULL");
@@ -244,9 +250,11 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
             //todo：getfiledata如何得到文件类型是文件夹还是普通文件？
             -1
         }else{
+            warn!("[sys_fstat] cant't find inode id...");
             return -1 as isize;
         }
     }else{
+        warn!("[sys_fstat] no file in fdtable[fd]...");
         return -1 as isize;
     }
     //这里是避免发生所有权转移

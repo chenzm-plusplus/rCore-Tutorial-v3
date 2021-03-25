@@ -19,5 +19,6 @@ pub use inode::{
     OSInode, open_file, OpenFlags, list_apps,
     get_inode_id,
     create_linker,delete_linker,count_files,
+    count_files_from_id,
 };
 pub use mail::{Mail,MailBox,MPipe,make_mpipe};

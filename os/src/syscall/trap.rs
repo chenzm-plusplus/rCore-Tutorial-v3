@@ -26,6 +26,8 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize{
     //因此这里大概是真的需要取出物理地址，然后访问物理地址。
     //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
     let pa = current_user_v2p(VirtAddr::from(ts as usize));
+    //todo:注意一下sec和usec不在一页的情况
+    //但是似乎概率比较小，就先不管了吧
     match pa {
         Some(pa_t)=>{
             // let pa_ts = usize::from(pa.unwrap()) as *mut TimeVal;
