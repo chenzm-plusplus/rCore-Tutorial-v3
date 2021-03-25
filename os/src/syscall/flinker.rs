@@ -45,11 +45,7 @@ use crate::fs::{
     Stdout,
 };
 use crate::mm::{
-    UserBuffer,
-    translated_byte_buffer,
-    translated_refmut,
     translated_str,
-    check_byte_buffer_valid,
     VirtAddr,
 };
 use crate::task::{
@@ -58,10 +54,6 @@ use crate::task::{
     current_user_v2p,
 };
 use super::process::sys_getpid;
-use crate::config::{
-    MAIL_SIZE,
-};
-
 
 lazy_static! {
     pub static ref PATH_MAPPER: Mutex<BTreeMap<String,String>> = Mutex::new(BTreeMap::new());
@@ -179,35 +171,7 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
     // }
 }
 
-// fn is_string(s: &(dyn Any + Send + Sync)) {
-//     if s.is::<String>() {
-//         println!("It's a string!");
-//     } else {
-//         println!("Not a string...");
-//     }
-// }
-
 pub fn return_if_file(f: &(dyn Any + Send + Sync)) -> Option<&Arc<OSInode>>{
-    if f.is::<Arc<OSInode>>(){
-        println!("It's a Arc<OSInode>");
-    }else {
-        println!("Not a OSInode...");
-    }
-    if f.is::<Arc<dyn File + Send + Sync>>(){
-        println!("yeah!");
-    }else{
-        println!("not yeah");
-    }
-    if f.is::<Arc<Stdin>>(){
-        println!("It's a Arc<Stdin>");
-    }else {
-        println!("Not a Stdin...");
-    }
-    if f.is::<Arc<Stdin>>(){
-        println!("It's a Arc<Stdin>");
-    }else {
-        println!("Not a Stdin...");
-    }
     if let Some(file) = f.downcast_ref::<Arc<OSInode>>() {
         println!("It's a Arc<OSInode>");
         return Some(file)
@@ -225,8 +189,11 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
     let mut inner = task.acquire_inner_lock();
     if inner.fd_table[fd as usize].is_none(){
         return -1 as isize;
+    }else{
+
     }
-    //TODO
+    //TODO这儿肯定会写出死锁！！！！
+    //也不一定。。。
     if let Some(inode) = &inner.fd_table[fd]{
         //判断这里是不是OSInode类型
         let inode = inode.clone();
@@ -251,6 +218,7 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
                     // let pa_ts = usize::from(pa.unwrap()) as *mut TimeVal;
                     let pa_st = usize::from(pa_t) as *mut Stat;
                     info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
+
                     unsafe{
                         match (*pa_st){
                             Stat => {

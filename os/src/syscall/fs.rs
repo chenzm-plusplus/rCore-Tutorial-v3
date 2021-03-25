@@ -24,10 +24,6 @@ use crate::task::{
     
 };
 
-use crate::task::{
-    current_user_v2p,
-};
-
 use super::process::sys_getpid;
 use crate::config::{
     MAIL_SIZE,
@@ -35,7 +31,6 @@ use crate::config::{
 
 use super::flinker::{
     get_link,
-    return_if_file,
 };
 
 /// 代码段 .text 不允许被修改；

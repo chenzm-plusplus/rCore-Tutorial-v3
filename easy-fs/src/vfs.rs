@@ -322,7 +322,7 @@ impl Inode {
 
     //只有根目录可以调用
     pub fn count_files(&self, name: &str) -> Option<usize>{
-        let mut fs = self.fs.lock();
+        let fs = self.fs.lock();
 
         //先检查想要计数的文件是否存在
         if self.modify_disk_inode(|root_inode| {
@@ -393,13 +393,9 @@ impl Inode {
 
     //只有根目录可以调用
     pub fn count_files_from_me(&self) -> Option<usize>{
-        let mut fs = self.fs.lock();
+        let fs = self.fs.lock();
 
         let mut counter = 0 as usize;
-
-        //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
-        //把那个Entry设置成不合法即可
-        let mut inode_id = 0;
         //新建一个目录项
         self.modify_disk_inode(|root_inode| {
             // append file in the dirent
@@ -416,7 +412,7 @@ impl Inode {
                     DIRENT_SZ,
                 );
                 //得到了自己的inode-number
-                if dirent.inode_number() == inode_id {
+                if dirent.inode_number() == self.my_inode_id {
                     fs_println!("count_files::counting::dirent name is {}, inode number is {},",
                         dirent.name(),dirent.inode_number());
                     //如果找到了，那么就把空的写进去
@@ -433,7 +429,7 @@ impl Inode {
 
     //只有根目录可以调用
     pub fn count_files_from_id(&self,id:u32) -> Option<usize>{
-        let mut fs = self.fs.lock();
+        let fs = self.fs.lock();
 
         let mut counter = 0 as usize;
         //新建一个目录项
