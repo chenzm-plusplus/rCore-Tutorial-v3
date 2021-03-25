@@ -55,6 +55,11 @@ impl OSInode {
         let mut inner = self.inner.lock();
         return inner.inode.get_my_inode_id();
     }
+
+    pub fn count_files_from_me(&self) ->Option<usize>{
+        let mut inner = self.inner.lock();
+        return inner.inode.count_files_from_me();
+    }
 }
 
 lazy_static! {
@@ -140,13 +145,25 @@ pub fn get_inode_id(name: &str) -> Option<u32>{
     ROOT_INODE.get_inode_id(name)
 }
 
-pub fn create_linker(name: &str,old_name: &str){
-    
+// pub fn create(&self, name: &str,old_name: &str) -> Option<Arc<Inode>>
+pub fn create_linker(name:&str,old_name:&str) -> Option<Arc<Inode>>{
+    ROOT_INODE.create_linker(name,old_name)
+}
+
+// pub fn delete_linker(&self, name: &str) -> Option<bool>
+pub fn delete_linker(name: &str) -> bool{
+    ROOT_INODE.delete_linker(name)
+}
+
+// pub fn count_files(&self, name: &str) -> Option<usize>
+pub fn count_files(name:&str) ->Option<usize>{
+    ROOT_INODE.count_files(name)
 }
 
 impl File for OSInode {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }
+    fn inode_id(&self) -> Option<u32> { self.get_my_inode_id() }
     fn read(&self, mut buf: UserBuffer) -> usize {
         let mut inner = self.inner.lock();
         let mut total_read_size = 0usize;

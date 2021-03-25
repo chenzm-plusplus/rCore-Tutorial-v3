@@ -10,6 +10,7 @@ pub struct Stdout;
 impl File for Stdin {
     fn readable(&self) -> bool { true }
     fn writable(&self) -> bool { false }
+    fn inode_id(&self) -> Option<u32> { None }
     fn read(&self, mut user_buf: UserBuffer) -> usize {
         assert_eq!(user_buf.len(), 1);
         // busy loop
@@ -35,6 +36,7 @@ impl File for Stdin {
 impl File for Stdout {
     fn readable(&self) -> bool { false }
     fn writable(&self) -> bool { true }
+    fn inode_id(&self) -> Option<u32> { None }
     fn read(&self, _user_buf: UserBuffer) -> usize{
         panic!("Cannot read from stdout!");
     }

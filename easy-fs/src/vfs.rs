@@ -21,7 +21,7 @@ use spin::{Mutex, MutexGuard};
 pub struct Inode {
     //新增.我就很想知道为什么这个结构里面不直接存一个inode-id好了？？？
     //为什么每次都要这么麻烦···因为访问硬盘很慢很慢！！！的啊！！！！
-    my_inode_id: u32,
+    my_inode_id: u32,//还是非常需要的
     block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
     fs: Arc<Mutex<EasyFileSystem>>,
@@ -262,7 +262,8 @@ impl Inode {
 
     //这个函数也只允许ROOT调用
     //这要怎么写······不如我改一下好了，比如说增加一个valid位？
-    pub fn delete_linker(&self, name: &str){
+    //todo:fix return type, Option<bool>
+    pub fn delete_linker(&self, name: &str) -> bool{
         let mut fs = self.fs.lock();
 
         //先检查想要unlink的文件是否存在
@@ -272,12 +273,13 @@ impl Inode {
             // has the file been created?
             self.find_inode_id(name, root_inode)
         }).is_none() {
-            return;
+            return false;
         }
 
         //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
         //把那个Entry设置成不合法即可
         let mut inode_id = 0;
+        let mut result = false;
         //新建一个目录项
         self.modify_disk_inode(|root_inode| {
             // append file in the dirent
@@ -300,20 +302,25 @@ impl Inode {
                     //如果找到了，那么就把空的写进去
                     //就是用一个不合法的内容替换的意思
                     let mut dirent_unlink = DirEntry::empty();
-                    root_inode.write_at(
-                        i * DIRENT_SZ,
-                        dirent_unlink.as_bytes(),
-                        &self.block_device,
+                    assert_eq!(
+                        root_inode.write_at(
+                            i * DIRENT_SZ,
+                            dirent_unlink.as_bytes(),
+                            &self.block_device,
+                        ),
+                        DIRENT_SZ,
                     );
-                    break;
+                    result = true;
                 }
             }
         });
         // release efs lock manually because we will acquire it again in Inode::new
         drop(fs);
         // return nothing
+        return result;
     }
 
+    //只有根目录可以调用
     pub fn count_files(&self, name: &str) -> Option<usize>{
         let mut fs = self.fs.lock();
 
@@ -327,6 +334,7 @@ impl Inode {
             return None;
         }
 
+        //
         let mut counter = 0 as usize;
 
         //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
@@ -382,6 +390,47 @@ impl Inode {
         // return nothing
         return Some(counter);
     }
+
+    //只有根目录可以调用
+    pub fn count_files_from_me(&self) -> Option<usize>{
+        let mut fs = self.fs.lock();
+
+        let mut counter = 0 as usize;
+
+        //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
+        //把那个Entry设置成不合法即可
+        let mut inode_id = 0;
+        //新建一个目录项
+        self.modify_disk_inode(|root_inode| {
+            // append file in the dirent
+            let file_count = (root_inode.size as usize) / DIRENT_SZ;
+            let mut dirent = DirEntry::empty();
+            //下面是计数的内容
+            for i in 0..file_count {
+                assert_eq!(
+                    root_inode.read_at(
+                        DIRENT_SZ * i,
+                        dirent.as_bytes_mut(),
+                        &self.block_device,
+                    ),
+                    DIRENT_SZ,
+                );
+                //得到了自己的inode-number
+                if dirent.inode_number() == inode_id {
+                    fs_println!("count_files::counting::dirent name is {}, inode number is {},",
+                        dirent.name(),dirent.inode_number());
+                    //如果找到了，那么就把空的写进去
+                    //就是用一个不合法的内容替换的意思
+                    counter = counter + 1;
+                }
+            }
+        });
+        // release efs lock manually because we will acquire it again in Inode::new
+        drop(fs);
+        // return nothing
+        return Some(counter);
+    }
+
 
     pub fn ls(&self) -> Vec<String> {
         let _ = self.fs.lock();

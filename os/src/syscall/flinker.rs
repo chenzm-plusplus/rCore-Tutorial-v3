@@ -38,6 +38,11 @@ use alloc::collections::btree_map::BTreeMap;
 use super::fs::*;
 use crate::fs::{
     make_pipe, OpenFlags, open_file, OSInode,
+    create_linker,delete_linker,count_files,
+    get_inode_id,
+    File, 
+    Stdin, 
+    Stdout,
 };
 use crate::mm::{
     UserBuffer,
@@ -105,68 +110,106 @@ pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
     let real_path = translated_str(token, oldpath);
     let fake_path = translated_str(token, newpath);
     info!("[sys_linkat]...real_path:{},fake_path:{}",real_path,fake_path);
+    if let Some(inode) = create_linker(fake_path.as_str(),real_path.as_str()){
+        return -1 as isize;
+    }else{
+        return 0 as isize;
+    }
     //检查旧文件是否存在
     //如果不存在那就报错返回
-    if let Some(inode) = open_file(
-        real_path.as_str(),
-        OpenFlags::from_bits(flags).unwrap()
-    ){
-        debug!("[sys_linkat]....find old fild");
-        let task = current_task().unwrap();
-        let mut inner = task.acquire_inner_lock();
-        let fd = inner.alloc_fd();
-        inner.fd_table[fd] = Some(inode);
-        //记得关闭文件······
-        drop(inner);
-        sys_close(fd);
-        debug!("[sys_linkat]....old exist");
-    }else{
-        warn!("[sys_linkat]....old file don't exist");
-        return -1 as isize;
-    }
-    if real_path == fake_path{
-        //don't need to check
-        //must success
-        debug!("[sys_linkat]....old file and new file is the same");
-        put_link(fake_path,real_path);
-        return 0 as isize;
-    }
-    //检查新文件名是否已经存在
-    if let Some(inode) = open_file(
-        fake_path.as_str(),
-        OpenFlags::from_bits(flags).unwrap()
-    ){
-        let task = current_task().unwrap();
-        let mut inner = task.acquire_inner_lock();
-        let fd = inner.alloc_fd();
-        inner.fd_table[fd] = Some(inode);
-        //记得关闭文件······
-        sys_close(fd);
-        warn!("sys_linkat....try to link a new file");
-        return -1 as isize;
-    }else{
-        put_link(fake_path,real_path);
-        debug!("[sys_linkat]....link success");
-        return 0 as isize;
-    }
+    // if let Some(inode) = open_file(
+    //     real_path.as_str(),
+    //     OpenFlags::from_bits(flags).unwrap()
+    // ){
+    //     debug!("[sys_linkat]....find old fild");
+    //     let task = current_task().unwrap();
+    //     let mut inner = task.acquire_inner_lock();
+    //     let fd = inner.alloc_fd();
+    //     inner.fd_table[fd] = Some(inode);
+    //     //记得关闭文件······
+    //     drop(inner);
+    //     sys_close(fd);
+    //     debug!("[sys_linkat]....old exist");
+    // }else{
+    //     warn!("[sys_linkat]....old file don't exist");
+    //     return -1 as isize;
+    // }
+    // if real_path == fake_path{
+    //     //don't need to check
+    //     //must success
+    //     debug!("[sys_linkat]....old file and new file is the same");
+    //     put_link(fake_path,real_path);
+    //     return 0 as isize;
+    // }
+    // //检查新文件名是否已经存在
+    // if let Some(inode) = open_file(
+    //     fake_path.as_str(),
+    //     OpenFlags::from_bits(flags).unwrap()
+    // ){
+    //     let task = current_task().unwrap();
+    //     let mut inner = task.acquire_inner_lock();
+    //     let fd = inner.alloc_fd();
+    //     inner.fd_table[fd] = Some(inode);
+    //     //记得关闭文件······
+    //     sys_close(fd);
+    //     warn!("sys_linkat....try to link a new file");
+    //     return -1 as isize;
+    // }else{
+    //     put_link(fake_path,real_path);
+    //     debug!("[sys_linkat]....link success");
+    //     return 0 as isize;
+    // }
 }
 
 pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
     let token = current_user_token();
     let fake_path = translated_str(token, path);
     info!("[sys_unlinkat]...");
-    if let Some(real_path) = remove_link(&fake_path){
+    if delete_linker(fake_path.as_str()){
         return 0 as isize;
     }else{
-        //失败的原因是本来就没有这样的链接
-        warn!("sys_unlinkat...trying to remove invalid linker");
         return -1 as isize;
     }
+    // if let Some(real_path) = remove_link(&fake_path){
+    //     return 0 as isize;
+    // }else{
+    //     //失败的原因是本来就没有这样的链接
+    //     warn!("sys_unlinkat...trying to remove invalid linker");
+    //     return -1 as isize;
+    // }
 }
 
-fn return_if_file(f: &(dyn Any)) -> Option<&OSInode>{
-    if let Some(file) = f.downcast_ref::<OSInode>() {
-        println!("It's a OSInode");
+// fn is_string(s: &(dyn Any + Send + Sync)) {
+//     if s.is::<String>() {
+//         println!("It's a string!");
+//     } else {
+//         println!("Not a string...");
+//     }
+// }
+
+pub fn return_if_file(f: &(dyn Any + Send + Sync)) -> Option<&Arc<OSInode>>{
+    if f.is::<Arc<OSInode>>(){
+        println!("It's a Arc<OSInode>");
+    }else {
+        println!("Not a OSInode...");
+    }
+    if f.is::<Arc<dyn File + Send + Sync>>(){
+        println!("yeah!");
+    }else{
+        println!("not yeah");
+    }
+    if f.is::<Arc<Stdin>>(){
+        println!("It's a Arc<Stdin>");
+    }else {
+        println!("Not a Stdin...");
+    }
+    if f.is::<Arc<Stdin>>(){
+        println!("It's a Arc<Stdin>");
+    }else {
+        println!("Not a Stdin...");
+    }
+    if let Some(file) = f.downcast_ref::<Arc<OSInode>>() {
+        println!("It's a Arc<OSInode>");
         return Some(file)
     } else {
         warn!("Not a OSInode...");
@@ -174,9 +217,8 @@ fn return_if_file(f: &(dyn Any)) -> Option<&OSInode>{
     }
 }
 
-pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
+pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
     info!("[sys_fstat]...fd:{:#x},st:{:#x}",fd,st as usize);
-
 
     let task = current_task().unwrap();
     //get-data
@@ -184,14 +226,11 @@ pub fn sys_fstat(fd: isize, st: *mut Stat) -> isize{
     if inner.fd_table[fd as usize].is_none(){
         return -1 as isize;
     }
-    if let Some(inode) = &inner.fd_table[fd as usize]{
+    //TODO
+    if let Some(inode) = &inner.fd_table[fd]{
         //判断这里是不是OSInode类型
-        if let Some(osinode) = return_if_file(inode){
-            let mut inode_id = 0 as u32;
-
-            if let Some(id) = osinode.get_my_inode_id(){
-                inode_id = id;
-            }
+        let inode = inode.clone();
+        if let Some(inode_id) = inode.inode_id(){
 
             info!("[sys_fstat] inode_id is {}",inode_id);
 

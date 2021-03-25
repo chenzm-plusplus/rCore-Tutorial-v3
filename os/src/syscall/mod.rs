@@ -72,7 +72,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
 
         //lab7
         //=====================lab7===============================
-        SYSCALL_FSTAT => sys_fstat(args[0] as isize, args[1] as *mut Stat),
+        SYSCALL_FSTAT => sys_fstat(args[0], args[1] as *mut Stat),
         //important: permantly
         SYSCALL_UNLINKAT => sys_unlinkat(args[0] as isize, args[1] as *const u8, args[2] as u32),
         // SYSCALL_LINKAT => sys_linkat(args[0] as *const u8, args[1] as *const u8, args[2]),

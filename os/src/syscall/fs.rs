@@ -35,6 +35,7 @@ use crate::config::{
 
 use super::flinker::{
     get_link,
+    return_if_file,
 };
 
 /// 代码段 .text 不允许被修改；

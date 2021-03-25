@@ -195,6 +195,7 @@ pub fn make_mpipe() -> (Arc<MPipe>, Arc<MPipe>) {
 impl File for MPipe {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }
+    fn inode_id(&self) -> Option<u32> { None }
     fn read(&self, buf: UserBuffer) -> usize {
         assert_eq!(self.readable, true);
         let mut buf_iter = buf.into_iter();
