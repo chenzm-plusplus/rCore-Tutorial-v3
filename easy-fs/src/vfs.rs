@@ -276,10 +276,7 @@ impl Inode {
         }
 
         //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
-
-        //就不用新建inode了
-        //先获取旧的文件名和inode-id
-        //再新建目录项就可以了
+        //把那个Entry设置成不合法即可
         let mut inode_id = 0;
         //新建一个目录项
         self.modify_disk_inode(|root_inode| {
@@ -317,48 +314,73 @@ impl Inode {
         // return nothing
     }
 
-    pub fn count_files(&self, name: &str, old_name: &str) -> Option<Arc<Inode>> {
+    pub fn count_files(&self, name: &str) -> Option<usize>{
         let mut fs = self.fs.lock();
 
-        //先检查原来的文件是否存在
+        //先检查想要计数的文件是否存在
         if self.modify_disk_inode(|root_inode| {
             // assert it is a directory
             assert!(root_inode.is_dir());
             // has the file been created?
-            self.find_inode_id(old_name, root_inode)
+            self.find_inode_id(name, root_inode)
         }).is_none() {
             return None;
         }
 
-        //就不用新建inode了
-        //先获取旧的文件名和inode-id
-        //再新建目录项就可以了
+        let mut counter = 0 as usize;
+
+        //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
+        //把那个Entry设置成不合法即可
         let mut inode_id = 0;
         //新建一个目录项
         self.modify_disk_inode(|root_inode| {
             // append file in the dirent
             let file_count = (root_inode.size as usize) / DIRENT_SZ;
-            let new_size = (file_count + 1) * DIRENT_SZ;
-            // increase size
-            self.increase_size(new_size as u32, root_inode, &mut fs);
-            // write dirent
-            let inode_id = self.find_inode_id(old_name, root_inode).unwrap();//因为前面已经检查过合法性了
-            //所以这个inode-id一定是合法的
-            let dirent = DirEntry::new(name, inode_id);
-            root_inode.write_at(
-                file_count * DIRENT_SZ,
-                dirent.as_bytes(),
-                &self.block_device,
-            );
+            let mut dirent = DirEntry::empty();
+            for i in 0..file_count {
+                assert_eq!(
+                    root_inode.read_at(
+                        DIRENT_SZ * i,
+                        dirent.as_bytes_mut(),
+                        &self.block_device,
+                    ),
+                    DIRENT_SZ,
+                );
+                //得到了自己的inode-number
+                if dirent.name() == name {
+                    fs_println!("count_files::get_inode_id::dirent name is {}, inode number is {},but return None",
+                        dirent.name(),dirent.inode_number());
+                    //如果找到了，那么就把空的写进去
+                    //就是用一个不合法的内容替换的意思
+                    inode_id = dirent.inode_number();
+                    break;
+                }
+            }
+
+            //下面是计数的内容
+            for i in 0..file_count {
+                assert_eq!(
+                    root_inode.read_at(
+                        DIRENT_SZ * i,
+                        dirent.as_bytes_mut(),
+                        &self.block_device,
+                    ),
+                    DIRENT_SZ,
+                );
+                //得到了自己的inode-number
+                if dirent.inode_number() == inode_id {
+                    fs_println!("count_files::counting::dirent name is {}, inode number is {},but return None",
+                        dirent.name(),dirent.inode_number());
+                    //如果找到了，那么就把空的写进去
+                    //就是用一个不合法的内容替换的意思
+                    counter = counter + 1;
+                }
+            }
         });
         // release efs lock manually because we will acquire it again in Inode::new
         drop(fs);
-        // return inode
-        Some(Arc::new(Self::new(
-            inode_id,
-            self.fs.clone(),
-            self.block_device.clone(),
-        )))
+        // return nothing
+        return Some(counter);
     }
 
     pub fn ls(&self) -> Vec<String> {

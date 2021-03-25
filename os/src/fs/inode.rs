@@ -140,6 +140,10 @@ pub fn get_inode_id(name: &str) -> Option<u32>{
     ROOT_INODE.get_inode_id(name)
 }
 
+pub fn create_linker(name: &str,old_name: &str){
+    
+}
+
 impl File for OSInode {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }

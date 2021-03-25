@@ -164,7 +164,7 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
     }
 }
 
-fn return_if_file(f: &(dyn Any)) -> Option<OSInode>{
+fn return_if_file(f: &(dyn Any)) -> Option<&OSInode>{
     if let Some(file) = f.downcast_ref::<OSInode>() {
         println!("It's a OSInode");
         return Some(file)
