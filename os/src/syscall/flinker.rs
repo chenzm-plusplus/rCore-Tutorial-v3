@@ -108,50 +108,6 @@ pub fn sys_linkat(oldpath: *const u8, newpath: *const u8, flags: u32) -> isize{
     }else{
         return 0 as isize;
     }
-    //检查旧文件是否存在
-    //如果不存在那就报错返回
-    // if let Some(inode) = open_file(
-    //     real_path.as_str(),
-    //     OpenFlags::from_bits(flags).unwrap()
-    // ){
-    //     debug!("[sys_linkat]....find old fild");
-    //     let task = current_task().unwrap();
-    //     let mut inner = task.acquire_inner_lock();
-    //     let fd = inner.alloc_fd();
-    //     inner.fd_table[fd] = Some(inode);
-    //     //记得关闭文件······
-    //     drop(inner);
-    //     sys_close(fd);
-    //     debug!("[sys_linkat]....old exist");
-    // }else{
-    //     warn!("[sys_linkat]....old file don't exist");
-    //     return -1 as isize;
-    // }
-    // if real_path == fake_path{
-    //     //don't need to check
-    //     //must success
-    //     debug!("[sys_linkat]....old file and new file is the same");
-    //     put_link(fake_path,real_path);
-    //     return 0 as isize;
-    // }
-    // //检查新文件名是否已经存在
-    // if let Some(inode) = open_file(
-    //     fake_path.as_str(),
-    //     OpenFlags::from_bits(flags).unwrap()
-    // ){
-    //     let task = current_task().unwrap();
-    //     let mut inner = task.acquire_inner_lock();
-    //     let fd = inner.alloc_fd();
-    //     inner.fd_table[fd] = Some(inode);
-    //     //记得关闭文件······
-    //     sys_close(fd);
-    //     warn!("sys_linkat....try to link a new file");
-    //     return -1 as isize;
-    // }else{
-    //     put_link(fake_path,real_path);
-    //     debug!("[sys_linkat]....link success");
-    //     return 0 as isize;
-    // }
 }
 
 pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
@@ -163,13 +119,6 @@ pub fn sys_unlinkat(dirfd: isize, path: *const u8, flags: u32) -> isize{
     }else{
         return -1 as isize;
     }
-    // if let Some(real_path) = remove_link(&fake_path){
-    //     return 0 as isize;
-    // }else{
-    //     //失败的原因是本来就没有这样的链接
-    //     warn!("sys_unlinkat...trying to remove invalid linker");
-    //     return -1 as isize;
-    // }
 }
 
 pub fn return_if_file(f: &(dyn Any + Send + Sync)) -> Option<&Arc<OSInode>>{

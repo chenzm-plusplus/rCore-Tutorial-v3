@@ -1,5 +1,3 @@
-// #[macro_use]
-// use ::fs_println;
 
 use super::{
     BlockDevice,
@@ -109,7 +107,7 @@ impl Inode {
 
     //已知有一个inode类型
     //希望知道我代表的文件的inode是多少号
-    pub fn get_my_data(&self) ->Option<(u32)>{
+    pub fn get_my_data(&self) ->Option<u32>{
         let _ = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             fs_println!("Inode::get_my_data::disk_node is dir...{}",disk_inode.is_dir());
@@ -264,7 +262,7 @@ impl Inode {
     //这要怎么写······不如我改一下好了，比如说增加一个valid位？
     //todo:fix return type, Option<bool>
     pub fn delete_linker(&self, name: &str) -> bool{
-        let mut fs = self.fs.lock();
+        let fs = self.fs.lock();
 
         //先检查想要unlink的文件是否存在
         if self.modify_disk_inode(|root_inode| {
@@ -278,7 +276,6 @@ impl Inode {
 
         //就是不用考虑只剩下这一个DirEntry到文件还有link的情况，直接删除即可
         //把那个Entry设置成不合法即可
-        let mut inode_id = 0;
         let mut result = false;
         //新建一个目录项
         self.modify_disk_inode(|root_inode| {

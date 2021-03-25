@@ -44,7 +44,7 @@ macro_rules! println {
 #[macro_export]
 macro_rules! fs_println{
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        if let Some(key) = option_env!("LOG"){
+        if let Some(_key) = option_env!("LOG"){
             $crate::console::print(format_args!(concat!("\x1b[96m[easy-fs] ",$fmt,"\n\x1b[0m") $(, $($arg)+)?));
         }
     }
