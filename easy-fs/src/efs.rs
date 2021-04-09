@@ -11,6 +11,8 @@ use super::{
 };
 use crate::BLOCK_SZ;
 
+//从这一层开始，所有的数据结构都放在内存上
+//问题：下面几层的数据结构，怎么让它们放在磁盘上？Orz
 pub struct EasyFileSystem {
     pub block_device: Arc<dyn BlockDevice>,
     pub inode_bitmap: Bitmap,
@@ -85,6 +87,7 @@ impl EasyFileSystem {
         Arc::new(Mutex::new(efs))
     }
 
+    //只要把编号为0的超级块读入
     pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
         // read SuperBlock
         get_block_cache(0, Arc::clone(&block_device))
@@ -125,6 +128,8 @@ impl EasyFileSystem {
     }
     */
 
+    //这就真的开始给分配
+    //inode从磁盘上分配出的编号得知它们在磁盘上的实际位置
     pub fn get_disk_inode_pos(&self, inode_id: u32) -> (u32, usize) {
         let inode_size = core::mem::size_of::<DiskInode>();
         let inodes_per_block = (BLOCK_SZ / inode_size) as u32;

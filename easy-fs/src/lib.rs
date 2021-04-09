@@ -1,7 +1,12 @@
 #![no_std]
+#![feature(global_asm)]
+#![feature(llvm_asm)]
 
 extern crate alloc;
 
+#[macro_use]
+mod console;
+mod sbi;
 mod block_dev;
 mod layout;
 mod efs;

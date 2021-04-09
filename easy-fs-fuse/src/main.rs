@@ -66,7 +66,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
-    let apps: Vec<_> = read_dir(src_path)
+    let mut apps: Vec<_> = read_dir(src_path)
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
@@ -75,8 +75,11 @@ fn easy_fs_pack() -> std::io::Result<()> {
             name_with_ext
         })
         .collect();
+    apps.retain(|x| x!="");
+    println!("efs...apps number = {}",apps.len());
     for app in apps {
         // load app data from host file system
+        println!("[efs] loading app : {}{}",target_path, app);
         let mut host_file = File::open(format!("{}{}", target_path, app)).unwrap();
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();

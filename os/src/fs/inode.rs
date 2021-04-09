@@ -51,6 +51,20 @@ impl OSInode {
         }
         v
     }
+    pub fn get_my_inode_id(&self) -> Option<u32>{
+        let mut inner = self.inner.lock();
+        return inner.inode.get_my_inode_id();
+    }
+
+    pub fn count_files_from_me(&self) ->Option<usize>{
+        let mut inner = self.inner.lock();
+        return inner.inode.count_files_from_me();
+    }
+
+    pub fn count_files_from_id(&self,id:u32) ->Option<usize>{
+        let mut inner = self.inner.lock();
+        return inner.inode.count_files_from_id(id);
+    }
 }
 
 lazy_static! {
@@ -95,8 +109,10 @@ impl OpenFlags {
 pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     let (readable, writable) = flags.read_write();
     if flags.contains(OpenFlags::CREATE) {
+        kernel_println!("[open_file] creating file");
         if let Some(inode) = ROOT_INODE.find(name) {
             // clear size
+            // kernel_println!("[open_file] creating file");
             inode.clear();
             Some(Arc::new(OSInode::new(
                 readable,
@@ -129,9 +145,34 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     }
 }
 
+//perhaps done
+pub fn get_inode_id(name: &str) -> Option<u32>{
+    ROOT_INODE.get_inode_id(name)
+}
+
+// pub fn create(&self, name: &str,old_name: &str) -> Option<Arc<Inode>>
+pub fn create_linker(name:&str,old_name:&str) -> Option<Arc<Inode>>{
+    ROOT_INODE.create_linker(name,old_name)
+}
+
+// pub fn delete_linker(&self, name: &str) -> Option<bool>
+pub fn delete_linker(name: &str) -> bool{
+    ROOT_INODE.delete_linker(name)
+}
+
+// pub fn count_files(&self, name: &str) -> Option<usize>
+pub fn count_files(name:&str) ->Option<usize>{
+    ROOT_INODE.count_files(name)
+}
+
+pub fn count_files_from_id(id: u32) ->Option<usize>{
+    ROOT_INODE.count_files_from_id(id)
+}
+
 impl File for OSInode {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }
+    fn inode_id(&self) -> Option<u32> { self.get_my_inode_id() }
     fn read(&self, mut buf: UserBuffer) -> usize {
         let mut inner = self.inner.lock();
         let mut total_read_size = 0usize;
