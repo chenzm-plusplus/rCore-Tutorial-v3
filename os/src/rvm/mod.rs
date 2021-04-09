@@ -53,5 +53,12 @@ mod rvm_extern_fn {
         __alltraps as usize
     }
 
-    
+    #[cfg(target_arch = "riscv64")]
+    #[rvm::extern_fn(x86_all_traps_handler_addr)]
+    unsafe fn rvm_x86_all_traps_handler_addr() -> usize {
+        extern "C" {
+            fn __alltraps();
+        }
+        __alltraps as usize
+    }
 }
