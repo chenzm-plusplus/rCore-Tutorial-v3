@@ -99,13 +99,23 @@ tools:
 
 run-inner: build
 ifeq ($(BOARD),qemu)
+ifeq ($(ACCEL), on)
 	@qemu-system-riscv64 \
 		-machine virt -cpu rv64,x-h=true\
 		-nographic \
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
-        -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+else
+	@qemu-system-riscv64 \
+		-machine virt\
+		-nographic \
+		-bios $(BOOTLOADER) \
+		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
+		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+endif
 else
 	@cp $(BOOTLOADER) $(BOOTLOADER).copy
 	@dd if=$(KERNEL_BIN) of=$(BOOTLOADER).copy bs=$(K210_BOOTLOADER_SIZE) seek=1
