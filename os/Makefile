@@ -1,3 +1,24 @@
+#   ACCEL = on | off            [ x86_64 only] Enable/disable kvm/hvf acceleration
+#   HYPERVISOR = on | off       [ x86_64 only] Enable/disable the RVM hypervisor, and set ACCEL to on
+#   FEATURES = profile | ...    Add additional features
+
+# HYPERVISOR
+ACCEL ?= off
+HYPERVISOR ?= off
+
+ifeq ($(HYPERVISOR), on)
+	FEATURES += hypervisor
+	ACCEL = on
+endif
+
+ifeq ($(ACCEL), on)
+	ifeq ($(shell uname), Darwin)
+		qemu_opts += -accel hvf
+	else
+		qemu_opts += -accel kvm -cpu host
+	endif
+endif
+
 # Building
 TARGET := riscv64gc-unknown-none-elf
 MODE := release
@@ -79,7 +100,7 @@ tools:
 run-inner: build
 ifeq ($(BOARD),qemu)
 	@qemu-system-riscv64 \
-		-machine virt \
+		-machine virt -cpu rv64,x-h=true\
 		-nographic \
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
