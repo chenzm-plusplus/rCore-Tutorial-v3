@@ -26,3 +26,4 @@ rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "b289d5e", optiona
 [features]
 board_qemu = []
 board_k210 = []
+hypervisor = ["rvm"]

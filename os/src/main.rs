@@ -24,6 +24,9 @@ mod mm;
 mod fs;
 mod drivers;
 
+#[cfg(feature = "hypervisor")]
+pub mod rvm;
+
 global_asm!(include_str!("entry.asm"));
 
 fn clear_bss() {

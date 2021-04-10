@@ -1,6 +1,10 @@
+# 	board
+
 #   ACCEL = on | off            [ x86_64 only] Enable/disable kvm/hvf acceleration
 #   HYPERVISOR = on | off       [ x86_64 only] Enable/disable the RVM hypervisor, and set ACCEL to on
 #   FEATURES = profile | ...    Add additional features
+
+
 
 # HYPERVISOR
 ACCEL ?= off
@@ -42,6 +46,8 @@ else ifeq ($(BOARD), k210)
 	KERNEL_ENTRY_PA := 0x80020000
 endif
 
+FEATURES += board_$(BOARD)
+
 # Run K210
 K210-SERIALPORT	= /dev/ttyUSB0
 K210-BURNER	= ../tools/kflash.py
@@ -78,7 +84,7 @@ $(APPS):
 kernel:
 	@echo Platform: $(BOARD)
 	@cp src/linker-$(BOARD).ld src/linker.ld
-	@cargo build --release --features "board_$(BOARD)"
+	@cargo build --release --features "$(FEATURES)"
 	@rm src/linker.ld
 
 clean:
