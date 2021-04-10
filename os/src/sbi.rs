@@ -32,8 +32,15 @@ pub fn console_putchar(c: usize) {
     sbi_call(SBI_CONSOLE_PUTCHAR, c, 0, 0);
 }
 
+/// 从控制台中读取一个字符
+///
+/// 没有读取到字符则返回 -1
 pub fn console_getchar() -> usize {
-    sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
+    loop {
+        let t = sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0);
+        if t == usize::MAX { continue; }
+        return t;
+    }
 }
 
 pub fn shutdown() -> ! {
