@@ -97,6 +97,8 @@ run: tools run-inner
 tools:
 	(which $(K210-BURNER)) || (cd .. && git clone https://github.com/sipeed/kflash.py.git && mv kflash.py tools)
 
+# 就这里本来是做了一下判断，是否开启h特性。但是因为在RVM里面不会判断是否开启了h，所以就直接开了吧
+# 反正也不会有什么损失（？）
 run-inner: build
 ifeq ($(BOARD),qemu)
 ifeq ($(ACCEL), on)
@@ -109,7 +111,7 @@ ifeq ($(ACCEL), on)
 		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 else
 	@qemu-system-riscv64 \
-		-machine virt\
+		-machine virt -cpu rv64,x-h=true\
 		-nographic \
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \

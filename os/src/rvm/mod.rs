@@ -6,6 +6,7 @@
 #![deny(unused_variables)]
 #![deny(unused_imports)]
 
+use crate::mm::{PhysAddr};
 use rcore_fs::vfs::FsError;
 use rvm::RvmError;
 
@@ -28,15 +29,21 @@ fn into_fs_error(e: RvmError) -> FsError {
 }
 
 mod rvm_extern_fn {
-    use crate::memory::{alloc_frame, dealloc_frame, phys_to_virt};
-    #[rvm::extern_fn(alloc_frame)]
-    fn rvm_alloc_frame() -> Option<usize> {
-        alloc_frame()
+    use crate::memory::{frame_alloc, frame_dealloc, phys_to_virt};
+    #[rvm::extern_fn(frame_alloc)]
+    fn rvm_frame_alloc() -> Option<usize> {
+        frame_alloc()
     }
 
-    #[rvm::extern_fn(dealloc_frame)]
-    fn rvm_dealloc_frame(paddr: usize) {
-        dealloc_frame(paddr)
+    //paddr to paddnum
+    #[rvm::extern_fn(frame_dealloc)]
+    fn rvm_frame_dealloc(paddr: usize) {
+        let paddr = PhysAddr::from(paddr);
+        //RVM给了HostOS一个物理地址，然后我需要先把这个usize转换成物理地址
+        //判断它是否对齐了，然后再来真的释放物理内存
+        if(paddr.aligned()){
+            frame_dealloc(paddr);
+        }
     }
 
     #[rvm::extern_fn(phys_to_virt)]
