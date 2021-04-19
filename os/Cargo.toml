@@ -21,7 +21,7 @@ easy-fs = { path = "../easy-fs" }
 
 #rvm = { git = "https://github.com/rcore-os/RVM", rev = "939eb0a", optional = true }
 #rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "382fc60", optional = true } #main
-rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "b289d5e", optional = true } #test
+rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "5816fb6", optional = true } #test
 
 [features]
 board_qemu = []
