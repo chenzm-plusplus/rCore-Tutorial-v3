@@ -20,7 +20,7 @@
 
 运行测例，输出结果如下：
 
-![](./lab6/result.png)
+![](./lab7/result.png)
 
 ## 简答作业
 
