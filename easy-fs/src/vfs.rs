@@ -102,7 +102,8 @@ impl Inode {
     }
 
     pub fn get_my_inode_id(&self) ->Option<u32>{
-        return Some(self.my_inode_id)
+        let fs = self.fs.lock();
+        return Some(fs.get_inode_id(self.block_id as u32));
     }
 
     //已知有一个inode类型
@@ -124,7 +125,7 @@ impl Inode {
                 );
                 //TODO这里要修改输出，能够返回文件名鸭
                 // fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
-                if dirent.inode_number() == self.my_inode_id {
+                if dirent.inode_number() == self.get_my_inode_id().unwrap() {
                     // return Some((dirent.inode_number() as u32, dirent.name()));
                     fs_println!("get_my_data::dirent name is {}, inode number is {},but return None",dirent.name(),dirent.inode_number());
                     return None;
@@ -253,8 +254,8 @@ impl Inode {
             );
         });
         // release efs lock manually because we will acquire it again in Inode::new
-        drop(fs);
         let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
+        drop(fs);
         // return inode
         Some(Arc::new(Self::new(
             block_id,
@@ -415,7 +416,7 @@ impl Inode {
                     DIRENT_SZ,
                 );
                 //得到了自己的inode-number
-                if dirent.inode_number() == self.my_inode_id {
+                if dirent.inode_number() == self.get_my_inode_id().unwrap() {
                     fs_println!("count_files::counting::dirent name is {}, inode number is {},",
                         dirent.name(),dirent.inode_number());
                     //如果找到了，那么就把空的写进去
