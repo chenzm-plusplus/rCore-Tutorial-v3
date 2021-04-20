@@ -19,7 +19,7 @@ use spin::{Mutex, MutexGuard};
 pub struct Inode {
     //新增.我就很想知道为什么这个结构里面不直接存一个inode-id好了？？？
     //为什么每次都要这么麻烦···因为访问硬盘很慢很慢！！！的啊！！！！
-    my_inode_id: u32,//还是非常需要的
+    //my_inode_id: u32,//还是非常需要的
     block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
     fs: Arc<Mutex<EasyFileSystem>>,
@@ -35,7 +35,7 @@ impl Inode {
         block_device: Arc<dyn BlockDevice>,
     ) -> Self {
         Self {
-            my_inode_id: inode_id,//new
+            //my_inode_id: inode_id,//new
             block_id: block_id as usize,
             block_offset,
             fs,
@@ -254,9 +254,11 @@ impl Inode {
         });
         // release efs lock manually because we will acquire it again in Inode::new
         drop(fs);
+        let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
         // return inode
         Some(Arc::new(Self::new(
-            inode_id,
+            block_id,
+            block_offset,
             self.fs.clone(),
             self.block_device.clone(),
         )))
