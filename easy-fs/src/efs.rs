@@ -115,8 +115,12 @@ impl EasyFileSystem {
 
     pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {
         let block_device = Arc::clone(&efs.lock().block_device);
+        // acquire efs lock temporarily
+        let (block_id, block_offset) = efs.lock().get_disk_inode_pos(0);
+        // release efs lock
         Inode::new(
-            0,
+            block_id,
+            block_offset,
             Arc::clone(efs),
             block_device,
         )
@@ -135,6 +139,13 @@ impl EasyFileSystem {
         let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
         let block_id = self.inode_area_start_block + inode_id / inodes_per_block;
         (block_id, (inode_id % inodes_per_block) as usize * inode_size)
+    }
+
+    pub fn get_inode_id(&self, block_id: u32) -> u32 {
+        let inode_size = core::mem::size_of::<DiskInode>();
+        let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
+        let inode_id =  (block_id - self.inode_area_start_block) * inodes_per_block;
+        inode_id as u32
     }
 
     pub fn get_data_block_id(&self, data_block_id: u32) -> u32 {

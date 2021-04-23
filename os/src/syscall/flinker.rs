@@ -158,7 +158,7 @@ pub fn sys_fstat(fd: usize, st: *mut Stat) -> isize{
             //因为OS在页表初始化的时候以及建立了物理地址到物理地址的映射，因此直接访问物理地址也是没问题的吧大概
             let pa = current_user_v2p(VirtAddr::from(st as usize));
 
-            println!("v2p convert end");
+            //println!("v2p convert end");
 
             // info!("[sys_fstat]...physics addr is {:#x}",pa_st as usize);
             match pa {

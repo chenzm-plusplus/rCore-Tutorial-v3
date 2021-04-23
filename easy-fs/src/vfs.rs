@@ -19,7 +19,7 @@ use spin::{Mutex, MutexGuard};
 pub struct Inode {
     //新增.我就很想知道为什么这个结构里面不直接存一个inode-id好了？？？
     //为什么每次都要这么麻烦···因为访问硬盘很慢很慢！！！的啊！！！！
-    my_inode_id: u32,//还是非常需要的
+    //my_inode_id: u32,//还是非常需要的
     block_id: usize,//表明这个inode存储在磁盘的哪个块上s
     block_offset: usize,
     fs: Arc<Mutex<EasyFileSystem>>,
@@ -27,15 +27,15 @@ pub struct Inode {
 }
 
 impl Inode {
-    //==============================================
+    /// We should not acquire efs lock here.
     pub fn new(
-        inode_id: u32,
+        block_id: u32,
+        block_offset: usize,
         fs: Arc<Mutex<EasyFileSystem>>,
         block_device: Arc<dyn BlockDevice>,
     ) -> Self {
-        let (block_id, block_offset) = fs.lock().get_disk_inode_pos(inode_id);
         Self {
-            my_inode_id: inode_id,//new
+            //my_inode_id: inode_id,//new
             block_id: block_id as usize,
             block_offset,
             fs,
@@ -108,7 +108,8 @@ impl Inode {
     }
 
     pub fn get_my_inode_id(&self) ->Option<u32>{
-        return Some(self.my_inode_id)
+        let fs = self.fs.lock();
+        return Some(fs.get_inode_id(self.block_id as u32));
     }
 
     //已知有一个inode类型
@@ -130,7 +131,7 @@ impl Inode {
                 );
                 //TODO这里要修改输出，能够返回文件名鸭
                 // fs_println!("get_my_data::dirent name is {}, inode number is {}",dirent.name(),dirent.inode_number());
-                if dirent.inode_number() == self.my_inode_id {
+                if dirent.inode_number() == self.get_my_inode_id().unwrap() {
                     // return Some((dirent.inode_number() as u32, dirent.name()));
                     fs_println!("get_my_data::dirent name is {}, inode number is {},but return None",dirent.name(),dirent.inode_number());
                     return None;
@@ -142,12 +143,14 @@ impl Inode {
 
     //刚刚意识到哪里有问题！其实存inode编号就可以了？
     pub fn find(&self, name: &str) -> Option<Arc<Inode>> {
-        let _ = self.fs.lock();
+        let fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             self.find_inode_id(name, disk_inode)
             .map(|inode_id| {
+                let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
                 Arc::new(Self::new(
-                    inode_id,
+                    block_id,
+                    block_offset,
                     self.fs.clone(),
                     self.block_device.clone(),
                 ))
@@ -208,14 +211,16 @@ impl Inode {
                 &self.block_device,
             );
         });
-        // release efs lock manually because we will acquire it again in Inode::new
-        drop(fs);
+
+        let (block_id, block_offset) = fs.get_disk_inode_pos(new_inode_id);
         // return inode
         Some(Arc::new(Self::new(
-            new_inode_id,
+            block_id,
+            block_offset,
             self.fs.clone(),
             self.block_device.clone(),
         )))
+        // release efs lock automatically by compiler
     }
 
     //这个函数只允许ROOT调用
@@ -255,10 +260,12 @@ impl Inode {
             );
         });
         // release efs lock manually because we will acquire it again in Inode::new
+        let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
         drop(fs);
         // return inode
         Some(Arc::new(Self::new(
-            inode_id,
+            block_id,
+            block_offset,
             self.fs.clone(),
             self.block_device.clone(),
         )))
@@ -415,7 +422,7 @@ impl Inode {
                     DIRENT_SZ,
                 );
                 //得到了自己的inode-number
-                if dirent.inode_number() == self.my_inode_id {
+                if dirent.inode_number() == self.get_my_inode_id().unwrap() {
                     fs_println!("count_files::counting::dirent name is {}, inode number is {},",
                         dirent.name(),dirent.inode_number());
                     //如果找到了，那么就把空的写进去
@@ -468,7 +475,7 @@ impl Inode {
 
 
     pub fn ls(&self) -> Vec<String> {
-        let _ = self.fs.lock();
+        let _fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             let file_count = (disk_inode.size as usize) / DIRENT_SZ;
             let mut v: Vec<String> = Vec::new();
@@ -489,7 +496,7 @@ impl Inode {
     }
 
     pub fn read_at(&self, offset: usize, buf: &mut [u8]) -> usize {
-        let _ = self.fs.lock();
+        let _fs = self.fs.lock();
         self.read_disk_inode(|disk_inode| {
             disk_inode.read_at(offset, buf, &self.block_device)
         })
