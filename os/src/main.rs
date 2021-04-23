@@ -24,8 +24,8 @@ mod mm;
 mod fs;
 mod drivers;
 
-#[cfg(feature = "hypervisor")]
-pub mod rvm;
+// #[cfg(feature = "hypervisor")]
+// pub mod rvm;
 
 global_asm!(include_str!("entry.asm"));
 
@@ -49,7 +49,10 @@ pub fn rust_main() -> ! {
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     fs::list_apps();
-    task::add_initproc();
-    task::run_tasks();
+    // task::add_initproc();
+    // task::run_tasks();
+    rvm::check_hypervisor_feature();
+    print!("hello world in kernel");
+    loop{}
     panic!("Unreachable in rust_main!");
 }

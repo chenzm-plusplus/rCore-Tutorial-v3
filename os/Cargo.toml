@@ -7,7 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
+#riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
+riscv = { git = "https://gitee.com/chyyuu/riscv.git", features = ["inline-asm"] }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 buddy_system_allocator = "0.6"
 spin = "0.7.0"
@@ -21,7 +22,9 @@ easy-fs = { path = "../easy-fs" }
 
 #rvm = { git = "https://github.com/rcore-os/RVM", rev = "939eb0a", optional = true }
 #rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "382fc60", optional = true } #main
-rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "5816fb6", optional = true } #test
+#rvm = { git = "https://github.com/chenzm-plusplus/RVM", rev = "d2ecd0e", optional = true } #test
+rvm = { path="../../RVM",optional=true } #test
+
 
 [features]
 board_qemu = []
