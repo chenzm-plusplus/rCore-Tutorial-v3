@@ -86,6 +86,8 @@ impl From<VirtAddr> for VirtPageNum {
 impl From<VirtPageNum> for VirtAddr {
     fn from(v: VirtPageNum) -> Self { Self(v.0 << PAGE_SIZE_BITS) }
 }
+
+// 物理地址实现的功能是：给出物理地址可以返回物理页号
 impl PhysAddr {
     pub fn floor(&self) -> PhysPageNum { PhysPageNum(self.0 / PAGE_SIZE) }
     pub fn ceil(&self) -> PhysPageNum { PhysPageNum((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE) }
@@ -115,6 +117,11 @@ impl VirtPageNum {
 }
 
 impl PhysAddr {
+    pub fn get_ref<T>(&self) -> &'static T {
+        unsafe {
+            (self.0 as *const T).as_ref().unwrap()
+        }
+    }
     pub fn get_mut<T>(&self) -> &'static mut T {
         unsafe {
             (self.0 as *mut T).as_mut().unwrap()
@@ -154,6 +161,8 @@ impl StepByOne for PhysPageNum {
     }
 }
 
+//根据代码可以看出，这是一个左闭右开区间
+//[start,end]
 #[derive(Copy, Clone)]
 pub struct SimpleRange<T> where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug, {

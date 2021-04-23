@@ -11,6 +11,8 @@ use super::{
 };
 use crate::BLOCK_SZ;
 
+//从这一层开始，所有的数据结构都放在内存上
+//问题：下面几层的数据结构，怎么让它们放在磁盘上？Orz
 pub struct EasyFileSystem {
     pub block_device: Arc<dyn BlockDevice>,
     pub inode_bitmap: Bitmap,
@@ -80,13 +82,12 @@ impl EasyFileSystem {
         )
         .lock()
         .modify(root_inode_offset, |disk_inode: &mut DiskInode| {
-            disk_inode.initialize(
-                DiskInodeType::Directory,efs.alloc_data()
-            );
+            disk_inode.initialize(DiskInodeType::Directory);
         });
         Arc::new(Mutex::new(efs))
     }
 
+    //只要把编号为0的超级块读入
     pub fn open(block_device: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
         // read SuperBlock
         get_block_cache(0, Arc::clone(&block_device))
@@ -114,8 +115,12 @@ impl EasyFileSystem {
 
     pub fn root_inode(efs: &Arc<Mutex<Self>>) -> Inode {
         let block_device = Arc::clone(&efs.lock().block_device);
+        // acquire efs lock temporarily
+        let (block_id, block_offset) = efs.lock().get_disk_inode_pos(0);
+        // release efs lock
         Inode::new(
-            0,
+            block_id,
+            block_offset,
             Arc::clone(efs),
             block_device,
         )
@@ -127,11 +132,20 @@ impl EasyFileSystem {
     }
     */
 
+    //这就真的开始给分配
+    //inode从磁盘上分配出的编号得知它们在磁盘上的实际位置
     pub fn get_disk_inode_pos(&self, inode_id: u32) -> (u32, usize) {
         let inode_size = core::mem::size_of::<DiskInode>();
         let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
         let block_id = self.inode_area_start_block + inode_id / inodes_per_block;
         (block_id, (inode_id % inodes_per_block) as usize * inode_size)
+    }
+
+    pub fn get_inode_id(&self, block_id: u32) -> u32 {
+        let inode_size = core::mem::size_of::<DiskInode>();
+        let inodes_per_block = (BLOCK_SZ / inode_size) as u32;
+        let inode_id =  (block_id - self.inode_area_start_block) * inodes_per_block;
+        inode_id as u32
     }
 
     pub fn get_data_block_id(&self, data_block_id: u32) -> u32 {
@@ -158,6 +172,14 @@ impl EasyFileSystem {
     }
 
     pub fn dealloc_data(&mut self, block_id: u32) {
+        get_block_cache(
+            block_id as usize,
+            Arc::clone(&self.block_device)
+        )
+        .lock()
+        .modify(0, |data_block: &mut DataBlock| {
+            data_block.iter_mut().for_each(|p| { *p = 0; })
+        });
         self.data_bitmap.dealloc(
             &self.block_device,
             (block_id - self.data_area_start_block) as usize

@@ -4,21 +4,38 @@ mod frame_allocator;
 mod page_table;
 mod memory_set;
 
-use page_table::PTEFlags;
-use address::VPNRange;
-pub use address::{PhysAddr, VirtAddr, PhysPageNum, VirtPageNum, StepByOne};
-pub use frame_allocator::{FrameTracker, frame_alloc, frame_dealloc,};
+
+pub use address::{PhysAddr, VirtAddr,VPNRange, PhysPageNum, VirtPageNum, StepByOne};
+// use crate::config::{
+//     PAGE_SIZE,
+// };
+
+pub use frame_allocator::{
+    FrameTracker, 
+    frame_alloc,
+    frame_dealloc,
+    frame_left,
+};
 pub use page_table::{
     PageTable,
+    PTEFlags,
     PageTableEntry,
     translated_byte_buffer,
     translated_str,
+    translated_ref,
     translated_refmut,
     UserBuffer,
     UserBufferIterator,
+    check_byte_buffer_valid,
 };
-pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission, kernel_token};
-pub use memory_set::remap_test;
+
+pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
+pub use memory_set::{
+    remap_test,
+    kernel_token,
+    // mmap,
+    // munmap,
+};
 
 pub fn init() {
     heap_allocator::init_heap();

@@ -66,7 +66,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
-    let apps: Vec<_> = read_dir(src_path)
+    let mut apps: Vec<_> = read_dir(src_path)
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
@@ -75,8 +75,11 @@ fn easy_fs_pack() -> std::io::Result<()> {
             name_with_ext
         })
         .collect();
+    apps.retain(|x| x!="");
+    println!("efs...apps number = {}",apps.len());
     for app in apps {
         // load app data from host file system
+        println!("[efs] loading app : {}{}",target_path, app);
         let mut host_file = File::open(format!("{}{}", target_path, app)).unwrap();
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
@@ -118,7 +121,8 @@ fn efs_test() -> std::io::Result<()> {
     let filea = root_inode.find("filea").unwrap();
     let greet_str = "Hello, world!";
     filea.write_at(0, greet_str.as_bytes());
-    let mut buffer = [0u8; 512];
+    //let mut buffer = [0u8; 512];
+    let mut buffer = [0u8; 233];
     let len = filea.read_at(0, &mut buffer);
     assert_eq!(
         greet_str,
@@ -159,6 +163,9 @@ fn efs_test() -> std::io::Result<()> {
     random_str_test(100 * BLOCK_SZ);
     random_str_test(70 * BLOCK_SZ + BLOCK_SZ / 7);
     random_str_test((12 + 128) * BLOCK_SZ);
+    random_str_test(400 * BLOCK_SZ);
+    random_str_test(1000 * BLOCK_SZ);
+    random_str_test(2000 * BLOCK_SZ);
 
     Ok(())
 }

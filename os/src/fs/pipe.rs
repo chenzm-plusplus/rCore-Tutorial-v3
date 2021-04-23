@@ -5,6 +5,10 @@ use crate::mm::{
     UserBuffer,
 };
 use crate::task::suspend_current_and_run_next;
+use crate::config::MAIL_SIZE;
+
+//比如说我要创建一个Pipe，其实就是新建一个PipeBuffer，
+//然后读端和写端都包装成一个Pipe，用来和进程之间交互
 
 pub struct Pipe {
     readable: bool,
@@ -29,7 +33,9 @@ impl Pipe {
     }
 }
 
-const RING_BUFFER_SIZE: usize = 32;
+// const RING_BUFFER_SIZE: usize = 32;
+// const RING_BUFFER_SIZE: usize = 256;
+const RING_BUFFER_SIZE: usize = MAIL_SIZE;
 
 #[derive(Copy, Clone, PartialEq)]
 enum RingBufferStatus {
@@ -44,6 +50,7 @@ pub struct PipeRingBuffer {
     tail: usize,
     status: RingBufferStatus,
     write_end: Option<Weak<Pipe>>,
+    //一个pipebuffer要知道谁在写它
 }
 
 impl PipeRingBuffer {
@@ -115,6 +122,7 @@ pub fn make_pipe() -> (Arc<Pipe>, Arc<Pipe>) {
 impl File for Pipe {
     fn readable(&self) -> bool { self.readable }
     fn writable(&self) -> bool { self.writable }
+    fn inode_id(&self) -> Option<u32> { None }
     fn read(&self, buf: UserBuffer) -> usize {
         assert_eq!(self.readable(), true);
         let mut buf_iter = buf.into_iter();
@@ -150,6 +158,7 @@ impl File for Pipe {
             let loop_write = ring_buffer.available_write();
             if loop_write == 0 {
                 drop(ring_buffer);
+                // warn!("Pipe::write, may cause dead lock...");
                 suspend_current_and_run_next();
                 continue;
             }

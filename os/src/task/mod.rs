@@ -4,13 +4,19 @@ mod task;
 mod manager;
 mod processor;
 mod pid;
+mod stride;
+mod priority;
 
 use crate::fs::{open_file, OpenFlags};
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 use alloc::sync::Arc;
-use manager::fetch_task;
 use lazy_static::*;
+
+//=====================================================================
+// 本文件中是要向其他模块提供的代码
+//=====================================================================
+
 pub use context::TaskContext;
 
 pub use processor::{
@@ -20,10 +26,33 @@ pub use processor::{
     current_trap_cx,
     take_current_task,
     schedule,
+
+    set_priority,
+    mmap,
+    munmap,
+    current_user_v2p,
+    mail_write_to_me,
+    mail_get_from_me,
+    mail_not_full_me,
+    mail_not_empty_me,
 };
-pub use manager::add_task;
+pub use manager::{
+    add_task,
+    fetch_task,
+    call_test,
+    mail_write_to_pid,
+    mail_not_full_pid,
+    mail_user_token_pid,
+};
 pub use pid::{PidHandle, pid_alloc, KernelStack};
 
+pub use priority::{
+    TaskPriority,
+};
+
+//=====================================================================
+// 以下部分的代码都和进程调度相关
+//=====================================================================
 pub fn suspend_current_and_run_next() {
     // There must be an application running.
     let task = take_current_task().unwrap();
@@ -45,6 +74,7 @@ pub fn suspend_current_and_run_next() {
 pub fn exit_current_and_run_next(exit_code: i32) {
     // take from Processor
     let task = take_current_task().unwrap();
+    kernel_println!("exit current task is {}",task.pid.0);
     // **** hold current PCB lock
     let mut inner = task.acquire_inner_lock();
     // Change status to Zombie
@@ -86,3 +116,7 @@ lazy_static! {
 pub fn add_initproc() {
     add_task(INITPROC.clone());
 }
+
+//=====================================================================
+// 以下部分的代码是为了实现系统调用。目前支持的和进程相关的系统调用，有：
+//=====================================================================
