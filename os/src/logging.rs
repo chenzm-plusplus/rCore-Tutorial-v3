@@ -1,9 +1,78 @@
-use core::fmt;
-
 use lazy_static::lazy_static;
 use log::{self, Level, LevelFilter, Log, Metadata, Record};
 
-use crate::sync::SpinNoIrqLock as Mutex;
+use spin::Mutex;
+
+//====================
+
+use crate::sbi::console_putchar;
+use core::fmt::{self, Write};
+
+// use lazy_static::lazy_static;
+use core::option_env;
+
+struct Stdout;
+
+impl Write for Stdout {
+    /// 打印一个字符串
+    ///
+    /// [`console_putchar`] sbi 调用每次接受一个 `usize`，但实际上会把它作为 `u8` 来打印字符。
+    /// 因此，如果字符串中存在非 ASCII 字符，需要在 utf-8 编码下，对于每一个 `u8` 调用一次 [`console_putchar`]
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let mut buffer = [0u8; 4];
+        for c in s.chars() {
+            for code_point in c.encode_utf8(&mut buffer).as_bytes().iter() {
+                console_putchar(*code_point as usize);
+            }
+        }
+        Ok(())
+    }
+}
+
+pub fn print(args: fmt::Arguments) {
+    Stdout.write_fmt(args).unwrap();
+}
+
+//================
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ({
+        $crate::logging::print(format_args!($($arg)*));
+    });
+}
+
+#[macro_export]
+macro_rules! println {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+#[macro_export]
+macro_rules! kernel_println {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+// #[macro_export]
+// macro_rules! kernel_println{
+//     ($fmt: literal $(, $($arg: tt)+)?) => {
+//         // $crate::console::print(format_args!(concat!("\x1b[31m",$fmt, "\n","\x1b[0m") $(, $($arg)+)?));
+//         if let Some(_key) = option_env!("LOG"){
+//             $crate::console::print(format_args!(concat!("\x1b[35m[kernel] ",$fmt,"\n\x1b[0m") $(, $($arg)+)?));
+//             // _ => {},
+//         }
+//     }
+// }
+
+/// Add escape sequence to print with color in Linux console
+macro_rules! with_color {
+    ($args: ident, $color_code: ident) => {{
+        format_args!("\u{1B}[{}m{}\u{1B}[0m", $color_code as u8, $args)
+    }};
+}
+
+//==================
 
 lazy_static! {
     static ref LOG_LOCK: Mutex<()> = Mutex::new(());
@@ -22,36 +91,14 @@ pub fn init() {
     });
 }
 
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => ({
-        $crate::logging::print(format_args!($($arg)*));
-    });
-}
+//================basics function===================
 
-#[macro_export]
-macro_rules! println {
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
-}
-
-/// Add escape sequence to print with color in Linux console
-macro_rules! with_color {
-    ($args: ident, $color_code: ident) => {{
-        format_args!("\u{1B}[{}m{}\u{1B}[0m", $color_code as u8, $args)
-    }};
-}
 
 fn print_in_color(args: fmt::Arguments, color_code: u8) {
-    use crate::arch::io;
-    let _guard = LOG_LOCK.lock();
-    io::putfmt(with_color!(args, color_code));
-}
-
-pub fn print(args: fmt::Arguments) {
-    use crate::arch::io;
-    let _guard = LOG_LOCK.lock();
-    io::putfmt(args);
+    // use crate::arch::io;
+    // let _guard = LOG_LOCK.lock();
+    // io::putfmt(with_color!(args, color_code));
+    print(with_color!(args, color_code));
 }
 
 struct SimpleLogger;
@@ -64,31 +111,14 @@ impl Log for SimpleLogger {
         if !self.enabled(record.metadata()) {
             return;
         }
-
-        /*
-        if let Some(tid) = processor().tid_option() {
-            print_in_color(
-                format_args!(
-                    "[{:>5}][{},{}] {}\n",
-                    record.level(),
-                    crate::arch::cpu::id(),
-                    tid,
-                    record.args()
-                ),
-                level_to_color_code(record.level()),
-            );
-        } else {
-            */
         print_in_color(
             format_args!(
-                "[{:>5}][{},-] {}\n",
+                "[{:>5}] {}\n",
                 record.level(),
-                crate::arch::cpu::id(),
                 record.args()
             ),
             level_to_color_code(record.level()),
         );
-        //}
     }
     fn flush(&self) {}
 }

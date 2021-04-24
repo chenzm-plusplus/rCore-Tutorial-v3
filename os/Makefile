@@ -9,6 +9,7 @@
 # HYPERVISOR
 ACCEL ?= off
 HYPERVISOR ?= off
+LOG  ?=
 
 ifeq ($(HYPERVISOR), on)
 	FEATURES += hypervisor

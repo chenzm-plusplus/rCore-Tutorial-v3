@@ -6,11 +6,17 @@
 #![feature(const_in_array_repeat_expressions)]
 #![feature(alloc_error_handler)]
 
+#[macro_use]
+extern crate log;
+
 extern crate alloc;
 // extern crate rvm;
 
 #[macro_use]
 extern crate bitflags;
+
+#[macro_use]
+mod logging;
 
 #[macro_use]
 mod console;
@@ -24,7 +30,6 @@ mod timer;
 mod mm;
 mod fs;
 mod drivers;
-
 // #[cfg(feature = "hypervisor")]
 // pub mod rvm;
 
@@ -41,6 +46,7 @@ fn clear_bss() {
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
+    logging::init();
     kernel_println!("Hello, world!");
     //分页模式是在内核初始化期间开启的，也就是说现在已经开启分页模式了！
     mm::init();
@@ -49,8 +55,9 @@ pub fn rust_main() -> ! {
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     fs::list_apps();
-    // task::add_initproc();
-    // task::run_tasks();
+    task::add_initproc();
+    task::run_tasks();
+    info!("info");
     rvm::check_hypervisor_feature();
     print!("hello world in kernel");
     loop{}
