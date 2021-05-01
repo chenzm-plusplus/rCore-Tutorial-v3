@@ -27,6 +27,7 @@ pub use page_table::{
     UserBuffer,
     UserBufferIterator,
     check_byte_buffer_valid,
+    phys_to_virt,
 };
 
 pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};

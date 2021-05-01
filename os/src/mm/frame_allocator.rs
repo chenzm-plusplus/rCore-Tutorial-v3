@@ -20,6 +20,13 @@ impl FrameTracker {
     }
 }
 
+impl From<usize> for FrameTracker {
+    fn from(v: usize) -> Self { FrameTracker::new(PhysPageNum::from(v)) }
+}
+impl From<FrameTracker> for usize {
+    fn from(v: FrameTracker) -> Self { usize::from(v.ppn) }
+}
+
 impl Debug for FrameTracker {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!("FrameTracker:PPN={:#x}", self.ppn.0))

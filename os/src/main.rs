@@ -30,8 +30,13 @@ mod timer;
 mod mm;
 mod fs;
 mod drivers;
+mod hypervisor;
+mod rvminode;
 // #[cfg(feature = "hypervisor")]
 // pub mod rvm;
+
+use hypervisor::*;
+use rvminode::*;
 
 global_asm!(include_str!("entry.asm"));
 
@@ -59,6 +64,8 @@ pub fn rust_main() -> ! {
     task::run_tasks();
     info!("info");
     rvm::check_hypervisor_feature();
+    rvm::test_instructions();
+    run_hypervisor();
     print!("hello world in kernel");
     loop{}
     panic!("Unreachable in rust_main!");

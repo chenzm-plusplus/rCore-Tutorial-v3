@@ -7,6 +7,8 @@ use super::{
     PhysAddr,
     StepByOne
 };
+
+use crate::task::current_user_token;
 use alloc::vec::Vec;
 use alloc::vec;
 use alloc::string::String;
@@ -155,6 +157,8 @@ impl PageTable {
         self.find_pte(vpn)
             .map(|pte| {pte.clone()})
     }
+
+    //虚拟地址到物理地址
     pub fn translate_va(&self, va: VirtAddr) -> Option<PhysAddr> {
         self.find_pte(va.clone().floor())
             .map(|pte| {
@@ -164,6 +168,7 @@ impl PageTable {
                 (aligned_pa_usize + offset).into()
             })
     }
+
     //注意！这里的token给出的并不是物理页号啊······
     pub fn token(&self) -> usize {
         trace!("[kernel] PageTable::token is {:#x}",8usize << 60 | self.root_ppn.0);
@@ -263,6 +268,12 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     let page_table = PageTable::from_token(token);
     let va = ptr as usize;
     page_table.translate_va(VirtAddr::from(va)).unwrap().get_mut()
+}
+
+pub fn phys_to_virt(vaddr: VirtAddr) -> Option<PhysAddr>{
+    let token = current_user_token();
+    let page_table = PageTable::from_token(token);
+    page_table.translate_va(vaddr)
 }
 
 pub struct UserBuffer {
