@@ -270,10 +270,13 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     page_table.translate_va(VirtAddr::from(va)).unwrap().get_mut()
 }
 
+//todo
 pub fn phys_to_virt(vaddr: VirtAddr) -> Option<PhysAddr>{
+    // info!()
     let token = current_user_token();
     let page_table = PageTable::from_token(token);
     page_table.translate_va(vaddr)
+    // Some(PhysAddr::from(usize::from(vaddr)))
 }
 
 pub struct UserBuffer {

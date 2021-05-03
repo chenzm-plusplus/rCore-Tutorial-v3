@@ -62,6 +62,7 @@ fn setup() -> RvmResult<(Arc<Guest>, Vcpu)> {
 }
 
 pub fn run_hypervisor() -> RvmResult {
+    info!("run hypervisor");
     let (_guest, mut vcpu) = setup()?;
     // vcpu.write_state(&VcpuState {
     //     rax: 1,
@@ -82,6 +83,8 @@ pub fn run_hypervisor() -> RvmResult {
     //     r15: 15,
     //     rflags: 0,
     // })?;
+
+    info!("run hypervisor");
 
     let packet = vcpu.resume()?;
     // let state = vcpu.read_state()?;

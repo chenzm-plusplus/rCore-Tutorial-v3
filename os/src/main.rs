@@ -60,11 +60,10 @@ pub fn rust_main() -> ! {
     trap::enable_timer_interrupt();
     timer::set_next_trigger();
     fs::list_apps();
-    task::add_initproc();
-    task::run_tasks();
+    // task::add_initproc();
+    // task::run_tasks();
     info!("info");
     rvm::check_hypervisor_feature();
-    rvm::test_instructions();
     run_hypervisor();
     print!("hello world in kernel");
     loop{}
