@@ -54,7 +54,7 @@ K210-SERIALPORT	= /dev/ttyUSB0
 K210-BURNER	= ../tools/kflash.py
 
 # Binutils
-OBJDUMP := rust-objdump --arch-name=riscv64
+OBJDUMP := /opt/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14/bin/riscv64-unknown-elf-objdump -d
 OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
 # Disassembly
@@ -92,7 +92,7 @@ clean:
 	@cargo clean
 
 disasm: kernel
-	@$(OBJDUMP) $(DISASM) $(KERNEL_ELF) | less
+	@$(OBJDUMP) $(KERNEL_ELF) | less
 
 disasm-vim: kernel
 	@$(OBJDUMP) $(DISASM) $(KERNEL_ELF) > $(DISASM_TMP)
@@ -136,9 +136,13 @@ else
 endif
 
 debug: build
-	@tmux new-session -d \
-		"qemu-system-riscv64 -machine virt -nographic -bios $(BOOTLOADER) -device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) -s -S" && \
-		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
-		tmux -2 attach-session -d
+	@qemu-system-riscv64 \
+			-machine virt -cpu rv64,x-h=true\
+			-nographic \
+			-bios default \
+			-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+			-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
+			-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0  -s -S & 
+	/opt/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14/bin/riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -x gdbinit
 
 .PHONY: build env kernel clean disasm disasm-vim run-inner

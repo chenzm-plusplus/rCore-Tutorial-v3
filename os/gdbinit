@@ -1,0 +1,15 @@
+set arch riscv:rv64
+target remote localhost:1234
+b __riscv64_entry
+b test_switch
+b __test
+b __riscv64_exit
+b __test_write_general_registers
+disp /10i $pc
+disp /x $sstatus
+disp /x $stvec
+disp /x $ra
+disp /x $a0
+disp /x $t4
+disp /x $t5
+c

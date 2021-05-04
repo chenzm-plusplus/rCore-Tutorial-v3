@@ -12,6 +12,7 @@ use riscv::register::{
     },
     stval,
     sie,
+    sepc,
 };
 use crate::syscall::{
     syscall5,
@@ -54,7 +55,7 @@ pub fn enable_timer_interrupt() {
 #[no_mangle]
 pub fn trap_handler() -> ! {
     // debug!("in trap_handler......");
-    set_kernel_trap_entry();
+    set_kernel_trap_entry(); //在kernel里面不允许发生其他trap
     let scause = scause::read();
     let stval = stval::read();
     match scause.cause() {
@@ -134,7 +135,7 @@ pub fn trap_return() -> ! {
 
 #[no_mangle]
 pub fn trap_from_kernel() -> ! {
-    panic!("a trap {:?} from kernel!", scause::read().cause());
+    panic!("a trap {:?} from kernel!,sepc is {:#x}", scause::read().cause(),sepc::read());
 }
 
 pub use context::{TrapContext};

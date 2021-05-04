@@ -1,0 +1,69 @@
+set arch riscv:rv64
+target remote localhost:1234
+b __riscv64_entry
+b test_switch
+b __test
+b __riscv64_exit
+b __test_write_general_registers
+disp /10i $pc
+disp /x $sstatus
+disp /x $hstatus
+disp /x $hpmcounter3
+disp /x $hpmcounter4
+disp /x $hpmcounter5
+disp /x $hpmcounter6
+disp /x $hpmcounter7
+disp /x $hpmcounter8
+disp /x $hpmcounter9
+disp /x $hpmcounter10
+disp /x $hpmcounter11
+disp /x $hpmcounter12
+disp /x $hpmcounter13
+disp /x $hpmcounter14
+disp /x $hpmcounter15
+disp /x $hpmcounter16
+disp /x $hpmcounter17
+disp /x $hpmcounter18
+disp /x $hpmcounter19
+disp /x $hpmcounter20
+disp /x $hpmcounter21
+disp /x $hpmcounter22
+disp /x $hpmcounter23
+disp /x $hpmcounter24
+disp /x $hpmcounter25
+disp /x $hpmcounter26
+disp /x $hpmcounter27
+disp /x $hpmcounter28
+disp /x $hpmcounter29
+disp /x $hpmcounter30
+disp /x $hpmcounter31
+disp /x $hpmcounter3h
+disp /x $hpmcounter4h
+disp /x $hpmcounter5h
+disp /x $hpmcounter6h
+disp /x $hpmcounter7h
+disp /x $hpmcounter8h
+disp /x $hpmcounter9h
+disp /x $hpmcounter10h
+disp /x $hpmcounter11h
+disp /x $hpmcounter12h
+disp /x $hpmcounter13h
+disp /x $hpmcounter14h
+disp /x $hpmcounter15h
+disp /x $hpmcounter16h
+disp /x $hpmcounter17h
+disp /x $hpmcounter18h
+disp /x $hpmcounter19h
+disp /x $hpmcounter20h
+disp /x $hpmcounter21h
+disp /x $hpmcounter22h
+disp /x $hpmcounter23h
+disp /x $hpmcounter24h
+disp /x $hpmcounter25h
+disp /x $hpmcounter26h
+disp /x $hpmcounter27h
+disp /x $hpmcounter28h
+disp /x $hpmcounter29h
+disp /x $hpmcounter30h
+disp /x $hpmcounter31h
+c

@@ -24,10 +24,13 @@ fn setup() -> RvmResult<(Arc<Guest>, Vcpu)> {
         return Err(RvmError::NotSupported);
     }
 
+    info!("check hypervisor success");
+
     //todo
     let entry = hypercall as usize;
-    let gpm = DefaultGuestPhysMemorySet::new();
-    let guest = Guest::new(gpm)?;
+    info!("entry address is {:#x}",entry);
+    // let gpm = DefaultGuestPhysMemorySet::new();
+    let guest = Guest::new()?;
     let vcpu = Vcpu::new(entry as u64, guest.clone())?;
 
     // let hpaddr0 = alloc_frame().unwrap();
@@ -84,7 +87,7 @@ pub fn run_hypervisor() -> RvmResult {
     //     rflags: 0,
     // })?;
 
-    info!("run hypervisor");
+    info!("set up successfully");
 
     let packet = vcpu.resume()?;
     // let state = vcpu.read_state()?;
