@@ -9,3 +9,8 @@ edition = "2018"
 [dependencies]
 log = "0.4"
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
+
+[features]
+board_qemu = []
+board_k210 = []
+#hypervisor = ["rvm"]
