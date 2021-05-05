@@ -49,15 +49,15 @@ pub fn rust_main() -> ! {
     info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
     info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
     info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
-    info!(
-        "boot_stack [{:#x}, {:#x})",
-        boot_stack as usize, boot_stack_top as usize
-    );
+    // info!(
+    //     "boot_stack [{:#x}, {:#x})",
+    //     boot_stack as usize, boot_stack_top as usize
+    // );
     info!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
 
-    info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
-    info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
-    info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
+    // info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
+    // info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
+    // info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
     // error!("error");
     // warn!("warn");
     // info!("info");
