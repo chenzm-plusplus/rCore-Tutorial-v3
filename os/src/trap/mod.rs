@@ -16,6 +16,7 @@ use crate::batch::run_next_app;
 global_asm!(include_str!("trap.S"));
 
 pub fn init() {
+    kernel_println!("trap::init()");
     extern "C" { fn __alltraps(); }
     unsafe {
         stvec::write(__alltraps as usize, TrapMode::Direct);

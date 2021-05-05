@@ -141,6 +141,7 @@ pub fn app_address_space()-> (usize,usize){
 }
 
 pub fn init() {
+    kernel_println!("batch::init()");
     print_app_info();
 }
 
@@ -149,6 +150,7 @@ pub fn print_app_info() {
 }
 
 pub fn run_next_app() -> ! {
+    kernel_println!("batch::run_next_app()");
     let current_app = APP_MANAGER.inner.borrow().get_current_app();
     unsafe {
         APP_MANAGER.inner.borrow().load_app(current_app);

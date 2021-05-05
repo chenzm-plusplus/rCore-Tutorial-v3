@@ -18,4 +18,8 @@ elf:
 binary: elf
 	$(foreach elf, $(ELFS), $(OBJCOPY) $(elf) --strip-all -O binary $(patsubst $(TARGET_DIR)/%, $(TARGET_DIR)/%.bin, $(elf));)
 
+# $(OBJDUMP) $(KERNEL_ELF) | less
+disasm:
+	@$(foreach elf, $(ELFS), $(OBJCOPY) $(elf) --strip-all -O binary | less > $(elf).asm)
+
 build: binary
