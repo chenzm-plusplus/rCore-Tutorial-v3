@@ -53,19 +53,16 @@ pub fn rust_main() -> ! {
     clear_bss();
     logging::init();
 
-			let add = 0x90000000 as u64;
-			unsafe{
-				let re = *(add as * const u64);
-				info!("[kernel] re {:#x}",re);
-			}
     kernel_println!("Hello, world!");
     //分页模式是在内核初始化期间开启的，也就是说现在已经开启分页模式了！
     mm::init();
     mm::remap_test();
     trap::init();
-    trap::enable_timer_interrupt();
-    timer::set_next_trigger();
-    fs::list_apps();
+
+    // trap::enable_timer_interrupt();
+    // timer::set_next_trigger();
+
+    // fs::list_apps();
     // task::add_initproc();
     // task::run_tasks();
     info!("info");
