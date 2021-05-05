@@ -29,6 +29,7 @@ TARGET := riscv64gc-unknown-none-elf
 MODE := release
 KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
+GUEST_BIN := ../../GuestOS/os/$(KERNEL_BIN)
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 FS_IMG := ../user/target/$(TARGET)/$(MODE)/fs.img
 SDCARD := /dev/sdb
@@ -43,8 +44,10 @@ K210_BOOTLOADER_SIZE := 131072
 # KERNEL ENTRY
 ifeq ($(BOARD), qemu)
 	KERNEL_ENTRY_PA := 0x80200000
+	GUEST_ENTRY_PA :=0x90000000
 else ifeq ($(BOARD), k210)
 	KERNEL_ENTRY_PA := 0x80020000
+	GUEST_ENTRY_PA :=0x90000000
 endif
 
 FEATURES += board_$(BOARD)
@@ -109,18 +112,22 @@ run: run-inner
 run-inner: build
 ifeq ($(BOARD),qemu)
 ifeq ($(ACCEL), on)
-	@qemu-system-riscv64 \
+	qemu-system-riscv64 \
 		-machine virt -cpu rv64,x-h=true\
 		-nographic \
+		-m 1G \
 		-bios default \
+		-device loader,file=$(GUEST_BIN),addr=0x90000000 \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
 		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 else
-	@qemu-system-riscv64 \
+	qemu-system-riscv64 \
 		-machine virt -cpu rv64,x-h=true\
 		-nographic \
-		-bios $(BOOTLOADER) \
+		-m 1G \
+		-bios default \
+		-device loader,file=$(GUEST_BIN),addr=0x90000000 \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
 		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
@@ -139,8 +146,10 @@ debug: build
 	@qemu-system-riscv64 \
 			-machine virt -cpu rv64,x-h=true\
 			-nographic \
+			-m 1G \
 			-bios default \
 			-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
+			-device loader,file=$(GUEST_BIN),addr=$(GUEST_ENTRY_PA) \
 			-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
 			-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0  -s -S & 
 	/opt/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14/bin/riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -x gdbinit

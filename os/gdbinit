@@ -5,9 +5,11 @@ b test_switch
 b __test
 b __riscv64_exit
 b __test_write_general_registers
+b *0x00000000802087c6
 disp /10i $pc
 disp /x $sstatus
 disp /x $stvec
+disp /x $sepc
 disp /x $ra
 disp /x $a0
 disp /x $t4
