@@ -1,17 +1,16 @@
 set arch riscv:rv64
 target remote localhost:1234
 b __riscv64_entry
-b test_switch
-b __test
 b __riscv64_exit
-b __test_write_general_registers
-b *0x00000000802087c6
+b *0x00000000900002f4
 disp /10i $pc
 disp /x $sstatus
+disp /x $vsstatus
+disp /x $scause
+disp /x $vscause
 disp /x $stvec
+disp /x $vstvec
 disp /x $sepc
 disp /x $ra
 disp /x $a0
-disp /x $t4
-disp /x $t5
 c

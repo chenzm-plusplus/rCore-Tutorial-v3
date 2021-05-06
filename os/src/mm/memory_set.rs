@@ -159,6 +159,17 @@ impl MemorySet {
                 MapPermission::R | MapPermission::W,
             ), None);
         }
+
+        // warn!("[temp] mapping GUESTOS");
+        // memory_set.push(MapArea::new(
+        //     (0x90000000 as usize).into(),
+        //     (0x90800000 as usize).into(),
+        //     MapType::Identical,
+        //     MapPermission::R | MapPermission::W | MapPermission::X | MapPermission::U,
+        // ), None);
+
+        println!("memset is {:#?}",memory_set.areas);
+
         memory_set
     }
     /// Include sections in elf and trampoline and TrapContext and user stack,
@@ -372,6 +383,7 @@ impl MemorySet {
 
 }
 
+#[derive(Debug)]
 pub struct MapArea {
     vpn_range: VPNRange,
     data_frames: BTreeMap<VirtPageNum, FrameTracker>,

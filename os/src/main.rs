@@ -59,6 +59,11 @@ pub fn rust_main() -> ! {
     mm::remap_test();
     trap::init();
 
+    // unsafe{
+    //     let add = 0x0000_0000_9000_0000 as u64;
+    //     info!("address {:#x}",*(add as *const u64));
+    // }
+
     // trap::enable_timer_interrupt();
     // timer::set_next_trigger();
 
