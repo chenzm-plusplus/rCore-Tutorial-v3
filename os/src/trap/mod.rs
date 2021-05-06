@@ -19,6 +19,7 @@ pub fn init() {
     kernel_println!("trap::init()");
     extern "C" { fn __alltraps(); }
     unsafe {
+        //V=1的时候对stvec的读写其实是会写到vstvec里面
         stvec::write(__alltraps as usize, TrapMode::Direct);
     }
 }

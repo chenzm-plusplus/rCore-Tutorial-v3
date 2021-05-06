@@ -5,8 +5,17 @@
 
 #[macro_use]
 pub mod console;
+
+#[macro_use]
+pub mod instructions;
+
+pub mod bits;
+
+pub mod csr;
 mod syscall;
 mod lang_items;
+
+pub use console::{STDOUT};
 
 #[no_mangle]
 #[link_section = ".text.entry"]

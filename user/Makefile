@@ -6,7 +6,7 @@ APPS := $(wildcard $(APP_DIR)/*.rs)
 ELFS := $(patsubst $(APP_DIR)/%.rs, $(TARGET_DIR)/%, $(APPS))
 BINS := $(patsubst $(APP_DIR)/%.rs, $(TARGET_DIR)/%.bin, $(APPS))
 
-OBJDUMP := rust-objdump --arch-name=riscv64
+OBJDUMP := /opt/riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14/bin/riscv64-unknown-elf-objdump 
 OBJCOPY := rust-objcopy --binary-architecture=riscv64
 
 elf:
@@ -20,6 +20,7 @@ binary: elf
 
 # $(OBJDUMP) $(KERNEL_ELF) | less
 disasm:
-	@$(foreach elf, $(ELFS), $(OBJCOPY) $(elf) --strip-all -O binary | less > $(elf).asm)
+	@echo $(ELFS)
+	@$(foreach elf, $(ELFS), $(OBJDUMP) -d $(elf) > $(elf).asm;)
 
 build: binary
