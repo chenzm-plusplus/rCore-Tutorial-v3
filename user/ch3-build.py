@@ -22,7 +22,7 @@ def build(apps):
         app_id = app_id + 1
 
 if __name__ == '__main__':
-    apps = os.listdir('src/bin3')
+    apps = os.listdir('src/bin')
     apps.sort()
     base, yield_, stride = [], [], []
     for app in apps:

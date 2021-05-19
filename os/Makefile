@@ -95,6 +95,7 @@ kernel:
 
 
 clean:
+	@cd ../user && make clean
 	@cargo clean
 
 disasm: kernel
