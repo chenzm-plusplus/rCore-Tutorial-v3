@@ -40,10 +40,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "log"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "memchr"
@@ -71,11 +86,11 @@ checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 [[package]]
 name = "riscv"
 version = "0.6.0"
-source = "git+https://github.com/rcore-os/riscv#21e32ee1dc786cc0d5006ceee0040ce4f8398575"
 dependencies = [
  "bare-metal",
  "bit_field",
  "bitflags",
+ "log",
  "riscv-target",
 ]
 

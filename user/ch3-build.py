@@ -2,7 +2,7 @@ import os
 
 def build(apps):
     app_id = 0
-    base_address = 0x80400000
+    base_address = 0x90400000
     step = 0x20000
     linker = 'src/linker.ld'
     for app in apps:
@@ -22,7 +22,7 @@ def build(apps):
         app_id = app_id + 1
 
 if __name__ == '__main__':
-    apps = os.listdir('src/bin')
+    apps = os.listdir('src/bin3')
     apps.sort()
     base, yield_, stride = [], [], []
     for app in apps:

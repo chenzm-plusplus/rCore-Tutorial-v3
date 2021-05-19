@@ -15,10 +15,10 @@ use riscv::register::{
     stval,
 };
 
-// #[no_mangle]
-// pub fn test() {
-//     let scause = scause::read();
-// }
+#[no_mangle]
+pub fn test() {
+    let scause = scause::read();
+}
 
 /// 正确输出：
 /// Hello world from user mode program!

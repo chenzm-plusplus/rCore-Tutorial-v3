@@ -34,7 +34,7 @@ fn clear_bss() {
 #[no_mangle]
 pub fn rust_main() -> ! {
     clear_bss();
-    info!("[kernel] Hello, world!");
+    info!("[GUEST] Hello, world!");
     trap::init();
     loader::load_apps();
     //对时钟中断的初始化

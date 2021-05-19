@@ -1,11 +1,11 @@
 import os
 
-base_address = 0x80400000
+base_address = 0x90400000
 step = 0x20000
 linker = 'src/linker.ld'
 
 app_id = 0
-apps = os.listdir('src/bin')
+apps = os.listdir('src/bin3')
 apps.sort()
 for app in apps:
     app = app[:app.find('.')]

@@ -6,8 +6,13 @@
 
 #[macro_use]
 pub mod console;
-mod lang_items;
+
+#[macro_use]
+pub mod instructions;
+pub mod bits;
+pub mod csr;
 mod syscall;
+mod lang_items;
 
 extern crate core;
 #[macro_use]

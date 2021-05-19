@@ -10,6 +10,8 @@ extern crate user_lib;
 pub fn main() -> ! {
     unsafe {
         llvm_asm!("sret");
+        // llvm_asm!()
+        // llvm_asm!("csrw $0, $1" :: "i"(0x200), "r"(t) :: "volatile");
     }
     panic!("FAIL: T.T\n");
 }
