@@ -9,7 +9,7 @@ extern crate user_lib;
 
 #[no_mangle]
 fn main() -> i32 {
-    // println!("Hello, world!");
+    println!("[00hello_world] Hello, world!");
 
     let t = 0;
     unsafe {
