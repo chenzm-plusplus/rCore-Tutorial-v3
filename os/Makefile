@@ -38,7 +38,7 @@ APPS := ../user/src/bin/*
 # BOARD
 BOARD ?= qemu
 SBI ?= rustsbi
-BOOTLOADER := ../bootloader/$(SBI)-$(BOARD).bin
+BOOTLOADER := ../bootloader/fw_jump.elf
 K210_BOOTLOADER_SIZE := 131072
 
 # KERNEL ENTRY
@@ -116,7 +116,7 @@ ifeq ($(ACCEL), on)
 		-machine virt -cpu rv64,x-h=true\
 		-nographic \
 		-m 1G \
-		-bios default \
+		-bios $(BOOTLOADER) \
 		-device loader,file=$(GUEST_BIN),addr=0x90000000 \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
@@ -126,7 +126,7 @@ else
 		-machine virt -cpu rv64,x-h=true\
 		-nographic \
 		-m 1G \
-		-bios default \
+		-bios $(BOOTLOADER) \
 		-device loader,file=$(GUEST_BIN),addr=0x90000000 \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
@@ -147,7 +147,7 @@ debug: build
 			-machine virt -cpu rv64,x-h=true\
 			-nographic \
 			-m 1G \
-			-bios default \
+			-bios $(BOOTLOADER)\
 			-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 			-device loader,file=$(GUEST_BIN),addr=$(GUEST_ENTRY_PA) \
 			-drive file=$(FS_IMG),if=none,format=raw,id=x0 \

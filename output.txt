@@ -1,0 +1,75 @@
+make[1]: Entering directory '/home/user/OS/rCore-Tutorial-v3/os'
+Platform: qemu
+make[2]: Entering directory '/home/user/OS/GuestOS/os'
+(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add riscv64gc-unknown-none-elf
+riscv64gc-unknown-none-elf (installed)
+cargo install cargo-binutils --vers ~0.2
+rustup component add rust-src
+rustup component add llvm-tools-preview
+make[3]: Entering directory '/home/user/OS/GuestOS/user'
+(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add riscv64gc-unknown-none-elf
+riscv64gc-unknown-none-elf (installed)
+cargo install cargo-binutils --vers ~0.2
+rustup component add rust-src
+rustup component add llvm-tools-preview
+[build.py] application ch3_0_sleep start with address 0x90400000
+[build.py] application ch3_0_sleep1 start with address 0x90420000
+rust-objcopy --binary-architecture=riscv64 target/riscv64gc-unknown-none-elf/release/ch3_0_sleep --strip-all -O binary  target/riscv64gc-unknown-none-elf/release/ch3_0_sleep.bin;  rust-objcopy --binary-architecture=riscv64 target/riscv64gc-unknown-none-elf/release/ch3_0_sleep1 --strip-all -O binary  target/riscv64gc-unknown-none-elf/release/ch3_0_sleep1.bin;
+make[3]: Leaving directory '/home/user/OS/GuestOS/user'
+Platform: qemu
+# @cargo build --release --features "board_qemu"
+make[2]: Leaving directory '/home/user/OS/GuestOS/os'
+qemu-system-riscv64 \
+	-machine virt -cpu rv64,x-h=true\
+	-nographic \
+	-m 1G \
+	-bios default \
+	-device loader,file=../../GuestOS/os/target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x90000000 \
+	-device loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000 \
+	-drive file=../user/target/riscv64gc-unknown-none-elf/release/fs.img,if=none,format=raw,id=x0 \
+	-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
+OpenSBI v0.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name          : QEMU Virt Machine
+Platform HART Features : RV64ACDFHIMSU
+Current Hart           : 0
+Firmware Base          : 0x80000000
+Firmware Size          : 128 KB
+Runtime SBI Version    : 0.2
+
+MIDELEG : 0x0000000000000666
+MEDELEG : 0x0000000000b0b509
+PMP0    : 0x0000000080000000-0x000000008001ffff (A)
+PMP1    : 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
+Hello, world!
+last 99292 Physical Frames.
+.text [0x80200000, 0x8020d000)
+.rodata [0x8020d000, 0x80212000)
+.data [0x80212000, 0x80213000)
+.bss [0x80213000, 0x80424000)
+mapping .text section
+mapping .rodata section
+mapping .data section
+mapping .bss section
+mapping physical memory
+mapping memory-mapped registers
+remap_test passed!
+[34m[INFO][GUEST] Hello, world!
+[0m[35m[kernel] trap::init()
+[0m[35m[kernel] [Guest] sie_value: 0x0
+[0m[35m[kernel] [Guest] sie_value: 0x20
+[0m[ch3_1_sleep] hello world
+get_time OK! 26
+[ch3_0_sleep1] hello world
+current time_msec = 28
+QEMU: Terminated
+make[1]: Leaving directory '/home/user/OS/rCore-Tutorial-v3/os'
