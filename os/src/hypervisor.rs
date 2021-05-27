@@ -27,7 +27,7 @@ fn setup() -> RvmResult<(Arc<Guest>, Vcpu)> {
     info!("check hypervisor success");
 
     //todo
-    let entry = hypercall as usize;
+    let entry = 0x0000_0000_9000_0000 as usize;
     info!("entry address is {:#x}",entry);
     // let gpm = DefaultGuestPhysMemorySet::new();
     let guest = Guest::new()?;
